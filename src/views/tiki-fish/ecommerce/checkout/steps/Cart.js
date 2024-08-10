@@ -132,16 +132,23 @@ const Cart = (props) => {
 		subTotal,
 		products,
 		customerId: selectedOption.value,
-		paymentMode: selectedPaymentMode.value
+		paymentMode: selectedPaymentMode.value,
 	})
 	const totalAmount = Number(subTotal) + Number(orderData.logistics) - Number(orderData.discount)
 
 	// ** Get data on mount
 	useEffect(() => {
-		console.log({selectedPaymentMode}, orderData.paymentMode)
+		console.log({ selectedPaymentMode }, orderData.paymentMode)
 		dispatch(getAllData(JSON.parse(localStorage.getItem('userData')).role))
-		setOrderData({ ...orderData, amount: totalAmount, products, customerId: selectedOption.value, paymentMode: selectedPaymentMode.value, subTotal: products.reduce((n, { amount }) => n + amount, 0) })
-	}, [dispatch, subTotal,  products, selectedOption, selectedPaymentMode])
+		setOrderData({
+			...orderData,
+			amount: totalAmount,
+			products,
+			customerId: selectedOption.value,
+			paymentMode: selectedPaymentMode.value,
+			subTotal: products.reduce((n, { amount }) => n + amount, 0),
+		})
+	}, [dispatch, subTotal, products, selectedOption, selectedPaymentMode])
 
 	const store = useSelector((state) => state.customers)
 
@@ -182,7 +189,7 @@ const Cart = (props) => {
 						paymentMode: selectedPaymentMode?.value,
 						customerId: selectedOption?.value,
 					})
-					history.push(`/orders/preview/${response.data.data}`)
+					history.push(`/order/preview/${response.data.data}`)
 				} else {
 					setIsSubmitting(false)
 					swal('Oops!', response.data.message, 'error')
@@ -265,7 +272,12 @@ const Cart = (props) => {
 									theme={selectThemeColors}
 									className="react-select"
 									classNamePrefix="select"
-									options={[{ value: 'cash', label: 'CASH' }, { value: 'pos', label: 'POS' }, { value: 'transfer', label: 'TRANSFER' }, { value: 'dynamic', label: 'DYNAMIC' }]}
+									options={[
+										{ value: 'cash', label: 'CASH' },
+										{ value: 'pos', label: 'POS' },
+										{ value: 'transfer', label: 'TRANSFER' },
+										{ value: 'dynamic', label: 'DYNAMIC' },
+									]}
 									isClearable={false}
 									onChange={setSelectedPaymentMode}
 									defaultValue={{ value: 'cash', label: 'CASH' }}
