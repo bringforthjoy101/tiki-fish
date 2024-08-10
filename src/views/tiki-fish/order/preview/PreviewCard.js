@@ -17,13 +17,13 @@ const PreviewCard = ({ data }) => {
 			return (
 				<tr key={product.id}>
 					<td className="py-1">
-						<p className="card-text font-weight-bold mb-25">{product.name}</p>
+						<p className="card-text font-weight-bold mb-25">{product.name} - {product.unitValue}{product.unit}</p>
 					</td>
 					<td className="py-1">
 						<span className="font-weight-bold">₦{product.price.toLocaleString()}</span>
 					</td>
 					<td className="py-1">
-						<span className="font-weight-bold">{product.qty.toLocaleString()} {product.unit}</span>
+						<span className="font-weight-bold">{product.qty.toLocaleString()}</span>
 					</td>
 					<td className="py-1">
 						<span className="font-weight-bold">₦{product.amount.toLocaleString()}</span>
@@ -54,9 +54,9 @@ const PreviewCard = ({ data }) => {
 								<Media
 									object
 									className="rounded mr-50"
-									src={data.customer.avatar}
+									src={`${process.env.REACT_APP_IMAGE_PLACEHOLDER}/placeholder.png`}
 									alt="Generic placeholder image"
-									height="80"
+									height="200"
 								/>
 							</Media>
 						</div>

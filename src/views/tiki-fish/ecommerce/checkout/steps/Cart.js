@@ -182,7 +182,7 @@ const Cart = (props) => {
 						paymentMode: selectedPaymentMode?.value,
 						customerId: selectedOption?.value,
 					})
-					history.push(`/orders/preview/${response.data.data}`)
+					history.push(`/order/preview/${response.data.data}`)
 				} else {
 					setIsSubmitting(false)
 					swal('Oops!', response.data.message, 'error')
