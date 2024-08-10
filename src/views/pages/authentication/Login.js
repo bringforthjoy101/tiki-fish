@@ -82,7 +82,7 @@ const Login = props => {
 	const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const illustration = skin === 'dark' ? 'tuckshop-banner.png' : 'tuckshop-banner.png',
+  const illustration = skin === 'dark' ? 'tiki-banner.jpg' : 'tiki-banner.jpg',
     source = require(`@src/assets/images/pages/${illustration}`).default
 
     useEffect(() => {
@@ -144,7 +144,7 @@ const Login = props => {
         </Link>
         <Col className='d-none d-lg-flex align-items-center p-1' lg='8' sm='12'>
           <div className='w-100 d-lg-flex align-items-center justify-content-center px-5'>
-            <img className='img-fluid' src={source} width="100%"alt='Login V2' />
+            <img className='img-fluid' src={source} width="85%"alt='Login V2' />
           </div>
         </Col>
         <Col className='d-flex align-items-center auth-bg px-2 p-lg-5' lg='4' sm='12'>
