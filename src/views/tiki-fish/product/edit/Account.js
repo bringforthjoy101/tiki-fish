@@ -20,6 +20,8 @@ const UserAccountTab = ({ selectedProduct }) => {
 		name: selectedProduct.name,
 		qty: selectedProduct.qty,
 		price: selectedProduct.price,
+		costPrice: selectedProduct.costPrice,
+		packagingPrice: selectedProduct.packagingPrice,
 		unit: selectedProduct.unit,
 		unitValue: selectedProduct.unitValue,
 		category: selectedProduct.category
@@ -42,6 +44,8 @@ const UserAccountTab = ({ selectedProduct }) => {
 						name: selectedProduct.name,
 						qty: selectedProduct.qty,
 						price: selectedProduct.price,
+						costPrice: selectedProduct.costPrice,
+						packagingPrice: selectedProduct.packagingPrice,
 						unitValue: selectedProduct.unitValue,
 					})
 				} else {
@@ -50,6 +54,8 @@ const UserAccountTab = ({ selectedProduct }) => {
 						name: selectedProduct.name,
 						qty: selectedProduct.qty,
 						price: selectedProduct.price,
+						costPrice: selectedProduct.costPrice,
+						packagingPrice: selectedProduct.packagingPrice,
 						unitValue: selectedProduct.unitValue,
 					})
 				}
@@ -153,24 +159,49 @@ const UserAccountTab = ({ selectedProduct }) => {
 						</Col>
 						<Col md="6" sm="12">
 							<FormGroup>
-								<Label for="price">Product Price</Label>
+								<Label for="costPrice">Product Cost Price</Label>
+								<AvInput
+									name="costPrice"
+									id="costPrice"
+									placeholder="Product Cost Price"
+									value={selectedProduct.costPrice || 0}
+									onChange={(e) => setProductData({ ...productData, costPrice: e.target.value })}
+									required
+								/>
+							</FormGroup>
+						</Col>
+						<Col md="6" sm="12">
+							<FormGroup>
+								<Label for="price">Product Selling Price</Label>
 								<AvInput
 									name="price"
 									id="price"
-									placeholder="Product Price"
-									value={selectedProduct.price}
+									placeholder="Product Selling Price"
+									value={selectedProduct.price || 0}
 									onChange={(e) => setProductData({ ...productData, price: e.target.value })}
 									required
 								/>
-								{/* <Input type='text' id='price' placeholder='Price' defaultValue={selectedProduct.price} /> */}
+							</FormGroup>
+						</Col>
+						<Col md="6" sm="12">
+							<FormGroup>
+								<Label for="packagingPrice">Product Packaging Price</Label>
+								<AvInput
+									name="packagingPrice"
+									id="packagingPrice"
+									placeholder="Product Packaging Price"
+									value={selectedProduct.packagingPrice || 0}
+									onChange={(e) => setProductData({ ...productData, packagingPrice: e.target.value })}
+									required
+								/>
 							</FormGroup>
 						</Col>
 						<Col md='6' sm='12'>
 							<FormGroup>
-								<Label for='uniteValue'>Product Unit Value</Label>
+								<Label for='unitValue'>Product Unit Value</Label>
 								<AvInput 
-									name='uniteValue' 
-									id='uniteValue' 
+									name='unitValue' 
+									id='unitValue' 
 									placeholder='Product Unit Value' 
 									value={selectedProduct.unitValue}
 									onChange={e => setProductData({...productData, unitValue: e.target.value})}

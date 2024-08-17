@@ -125,33 +125,39 @@ const Cart = (props) => {
 	const subTotal = products.reduce((n, { amount }) => n + amount, 0)
 	const [selectedOption, setSelectedOption] = useState('')
 	const [selectedPaymentMode, setSelectedPaymentMode] = useState({ value: 'cash', label: 'CASH' })
+	const [discount, setDiscount] = useState(0)
+	const [logistics, setLogistics] = useState(0)
 	const [orderData, setOrderData] = useState({
 		location: '',
-		logistics: 0,
-		discount: 0,
+		logistics,
+		discount,
 		subTotal,
 		products,
 		customerId: selectedOption.value,
 		paymentMode: selectedPaymentMode.value,
 	})
-	const totalAmount = Number(subTotal) + Number(orderData.logistics) - Number(orderData.discount)
+	const [totalAmount, setTotalAmount] = useState(Number(subTotal) + Number(orderData.logistics) - Number(orderData.discount))
+	
+	const store = useSelector((state) => state.customers)
 
 	// ** Get data on mount
 	useEffect(() => {
+		setTotalAmount(Number(subTotal) + Number(logistics) - Number(discount))
 		console.log({ selectedPaymentMode }, orderData.paymentMode)
-		dispatch(getAllData(JSON.parse(localStorage.getItem('userData')).role))
+		if (store.length) {
+			dispatch(getAllData(JSON.parse(localStorage.getItem('userData')).role))
+		} 
 		setOrderData({
 			...orderData,
-			amount: totalAmount,
+			amount: Number(subTotal) + Number(orderData.logistics) - Number(orderData.discount),
 			products,
 			customerId: selectedOption.value,
 			paymentMode: selectedPaymentMode.value,
 			subTotal: products.reduce((n, { amount }) => n + amount, 0),
 		})
-	}, [dispatch, subTotal, products, selectedOption, selectedPaymentMode])
+	}, [dispatch, subTotal, products, selectedOption, selectedPaymentMode, discount, logistics])
 
-	const store = useSelector((state) => state.customers)
-
+	
 	const renderCustomers = (customers) => {
 		console.log(customers)
 		return customers
@@ -171,7 +177,7 @@ const Cart = (props) => {
 		if (errors && !errors.length) {
 			setIsSubmitting(true)
 			console.log({ orderData })
-			const body = JSON.stringify(orderData)
+			const body = JSON.stringify({...orderData, logistics, discount})
 			try {
 				const response = await apiRequest({ url: '/orders/create', method: 'POST', body }, dispatch)
 				console.log({ response })
@@ -251,7 +257,7 @@ const Cart = (props) => {
 									id="discount"
 									placeholder="₦ 1000"
 									value={orderData.discount}
-									onChange={(e) => setOrderData({ ...orderData, discount: e.target.value })}
+									onChange={(e) => setDiscount(e.target.value || 0)}
 									required
 								/>
 							</FormGroup>
@@ -262,7 +268,7 @@ const Cart = (props) => {
 									id="logistics"
 									placeholder="₦ 1000"
 									value={orderData.logistics}
-									onChange={(e) => setOrderData({ ...orderData, logistics: e.target.value })}
+									onChange={(e) => setLogistics(e.target.value || 0)}
 									required
 								/>
 							</FormGroup>
@@ -294,11 +300,11 @@ const Cart = (props) => {
 									</li>
 									<li className="price-detail">
 										<div className="detail-title detail-total">Discount</div>
-										<div className="detail-amt font-weight-bolder">₦{orderData.discount.toLocaleString()}</div>
+										<div className="detail-amt font-weight-bolder">₦{discount.toLocaleString()}</div>
 									</li>
 									<li className="price-detail">
 										<div className="detail-title detail-total">Logistics</div>
-										<div className="detail-amt font-weight-bolder">₦{orderData.logistics.toLocaleString()}</div>
+										<div className="detail-amt font-weight-bolder">₦{logistics.toLocaleString()}</div>
 									</li>
 									<li className="price-detail">
 										<div className="detail-title detail-total">Total</div>

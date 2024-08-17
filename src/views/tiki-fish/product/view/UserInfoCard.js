@@ -1,9 +1,12 @@
 // ** Custom Components
 import Avatar from '@components/avatar'
+import { apiRequest } from '@utils'
 
 // ** Third Party Components
-import { Card, CardBody, CardText, Row, Col, Button } from 'reactstrap'
-import moment from 'moment'
+import { Card, CardBody, CardText, Row, Col, Button, Label, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap'
+import { useState, Fragment } from 'react'
+import Flatpickr from 'react-flatpickr'
+import '@styles/react/libs/flatpickr/flatpickr.scss'
 
 import {useHistory, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
@@ -11,11 +14,16 @@ import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { deleteProduct, getAllData } from '../store/action'
+import moment from 'moment/moment'
 
 const MySwal = withReactContent(Swal)
 
 
 const UserInfoCard = ({ selectedProduct }) => {
+  const [picker, setPicker] = useState([new Date(), new Date()])
+  const [selected, setSelected] = useState([])
+  const [modal, setModal] = useState(false)
+  const [profit, setProfit] = useState({ qty: 0, sales: 0, profit: 0 })
 
   const renderImg = () => {
     if (selectedProduct !== null && selectedProduct.image) {
@@ -82,13 +90,54 @@ const UserInfoCard = ({ selectedProduct }) => {
       
   }
 
+  const handleRangeSearch = (date) => {
+    console.log({date})
+		const range = date.map((d) => new Date(d).getTime())
+		setPicker(range)
+    const body = JSON.stringify({ startDate: moment(picker[0]).format('L').split('/').join('-'), endDate: moment(picker[0]).format('L').split('/').join('-') })
+    if (date.length === 2) {
+      apiRequest({ url: `/products/get-profit/${selectedProduct.id}`, method: 'POST', body }).then((response) => {
+        console.log({response})
+        if (response) {
+          if (response.data.data && response.data.status) {
+            setProfit(response.data.data)
+          } else {
+            console.log(response.error)
+            MySwal.fire({
+              icon: 'error',
+              title: 'Oops!',
+              text: response.data.message,
+              customClass: {
+                confirmButton: 'btn btn-primary'
+              }
+            })
+          }
+        } else {
+          MySwal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: 'Somthing went wrong! Please try again.',
+            customClass: {
+              confirmButton: 'btn btn-primary'
+            }
+          })
+        }
+      })
+    }
+		
+		
+		// dispatch(
+		// 	getSalesReport({ startDate: moment(date[0]).format('L').split('/').join('-'), endDate: moment(date[1]).format('L').split('/').join('-'), category: currentCategory.value })
+		// )
+	}
+
   return (
     <Card>
       <CardBody>
         <Row>
           <Col xl='6' lg='12' className='d-flex flex-column justify-content-between border-container-lg'>
-            <div className='user-avatar-section'>
-              <h3>Product Details</h3>
+            <div className='user-avatar-section d-flex justify-content-between'>
+              {/* <h3>Product Details</h3> */}
               <div className='d-flex justify-content-start'>
                 {renderImg()}
                 <div className='d-flex flex-column ml-1'>
@@ -108,17 +157,70 @@ const UserInfoCard = ({ selectedProduct }) => {
                   </div>
                 </div>
               </div>
-              <div className='d-flex align-items-center mr-2 mt-1'>
-                {/* <div className='color-box'>
-                  <span>Description: </span>
-                </div> */}
-                <div className='ml-0'>
-                  <h6 className='mb-0'>{selectedProduct.description || ''}</h6>
-                </div>
+              <div className='d-flex justify-content-end'>
+                <Row className='d-flex justify-content-end'>
+                  <Col lg="4" md="6">
+                    <Flatpickr
+                      value={picker}
+                      id="range-picker"
+                      className="form-control"
+                      onChange={(date) => handleRangeSearch(date)}
+                      options={{
+                        mode: 'range',
+                        defaultDate: ['2020-02-01', '2020-02-15'],
+                      }}
+                    />
+                  </Col>
+                  <Col lg="4" md="6" >
+                      <Button.Ripple color="primary" onClick={() => setModal((prev) => !prev)}>Calculate Profit</Button.Ripple>
+                    <Modal isOpen={modal} toggle={() => setModal((prev) => !prev)} className={'modal-dialog-centered modal-lg'} key={1}>
+                      <ModalHeader toggle={() => setModal((prev) => !prev)}>{selectedProduct.name}'s profit from {moment(picker[0]).format('LL')} to {moment(picker[1]).format('LL')}</ModalHeader>
+                      <ModalBody>
+                        <Fragment>
+                          <h2>QTY Sold:- {profit.qty.toLocaleString()} Units</h2>
+                          <h2>Sales Value:- {profit.sales.toLocaleString('en-US', { style: 'currency', currency: 'NGN'})}</h2>
+                          <h2>Profit:- {profit.profit.toLocaleString('en-US', { style: 'currency', currency: 'NGN'})}</h2>
+                        </Fragment>
+                      </ModalBody>
+                      <ModalFooter>
+                        <Button color="primary" onClick={() => setModal((prev) => !prev)} outline>
+                          Accept
+                        </Button>
+                      </ModalFooter>
+                    </Modal>
+                  </Col>
+                </Row>
               </div>
             </div>
           </Col>
-          <Col xl='6' lg='12' className='d-flex flex-column justify-content-between border-container-lg'>
+          <Col xl='6' lg='12' className='d-flex flex-row justify-content-between border-container-lg'>
+            <div className='user-avatar-section'>
+              {/* <h3>Product Details</h3> */}
+              <div className='d-flex align-items-center mr-2 mt-1'>
+                <div className='color-box'>
+                  <span>Product Cost Price: </span>
+                </div>
+                <div className='ml-1'>
+                  <h6 className='mb-0'>{selectedProduct.costPrice.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                </div>
+              </div>
+              <div className='d-flex align-items-center mr-2 mt-1'>
+                <div className='color-box'>
+                  <span>Product Selling Price: </span>
+                </div>
+                <div className='ml-1'>
+                  <h6 className='mb-0'>{selectedProduct.price.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                </div>
+              </div>
+              <div className='d-flex align-items-center mr-2 mt-1'>
+                <div className='color-box'>
+                  <span>Product Profit Margin: </span>
+                </div>
+                <div className='ml-1'>
+                  <h6 className='mb-0'>{(Number(selectedProduct.price) - Number(selectedProduct.costPrice)).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                </div>
+              </div>
+            </div>
             <div className='user-avatar-section'>
               {/* <h3>Product Details</h3> */}
               <div className='d-flex align-items-center mr-2 mt-1'>
@@ -131,10 +233,10 @@ const UserInfoCard = ({ selectedProduct }) => {
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
                 <div className='color-box'>
-                  <span>Product Price: </span>
+                  <span>Product Packaging Price: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedProduct.price.toLocaleString()}</h6>
+                  <h6 className='mb-0'>{selectedProduct.packagingPrice.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
