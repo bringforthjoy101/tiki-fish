@@ -71,10 +71,13 @@ const ProductCards = props => {
                     {item.name}
                   </Link>
                 </h6> */}
-                <CardText className='item-description'>{item.unitValue}{item.unit}</CardText>
+                <CardText className='item-description d-flex flex-row'>
+                  <span className='mr-auto'>{item.unitValue}{item.unit}</span>
+                  <Badge className='ml-auto' color={item.qty > 5 ? 'light-success' : 'light-danger'}>{item.qty} {item.qty > 5 ? 'Available' : 'Left'}</Badge>
+                </CardText>
               </CardBody>
               <div className='item-options text-center'>
-                <div className='item-wrapper'>
+                {/* <div className='item-wrapper'>
                   <div className='item-cost'>
                     <h4 className='item-price'>₦{item.price.toLocaleString()}</h4>
                     {item.hasFreeShipping ? (
@@ -83,7 +86,7 @@ const ProductCards = props => {
                       </CardText>
                     ) : null}
                   </div>
-                </div>
+                </div> */}
                 {/* <Button
                   className='btn-wishlist'
                   color='light'
