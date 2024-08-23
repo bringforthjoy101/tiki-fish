@@ -334,14 +334,7 @@ const UsersList = () => {
 						sm="12"
 						className="d-flex align-items-sm-center justify-content-lg-end justify-content-start flex-lg-nowrap flex-wrap flex-sm-row flex-column pr-lg-1 p-0 mt-lg-0 mt-1"
 					>
-						{userData?.role === 'admin' || userData?.role === 'store' ? (
-							<Button.Ripple color="primary" onClick={toggleSidebar}>
-								{' '}
-								Add New Customer{' '}
-							</Button.Ripple>
-						) : (
-							''
-						)}
+								Add New Customer
 					</Col>
 				</Row>
 				<DataTable

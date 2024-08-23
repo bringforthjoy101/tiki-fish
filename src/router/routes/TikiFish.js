@@ -262,6 +262,43 @@ const SalesRepRoutes = [
     path: '/customers/list',
     component: lazy(() => import('../../views/tiki-fish/customer/list'))
   },
+  {
+    path: '/customer/view',
+    exact: true,
+    component: () => <Redirect to='/tiki-fish/customer/view/1' />
+  },
+  {
+    path: '/customer/view/:id',
+    component: lazy(() => import('../../views/tiki-fish/customer/view')),
+    meta: {
+      navLink: '/tiki-fish/customer/view'
+    }
+  },
+  {
+    path: '/orders/list',
+    component: lazy(() => import('../../views/tiki-fish/order/list'))
+  },
+  {
+    path: '/order/preview',
+    exact: true,
+    component: () => <Redirect to='/tiki-fish/order/preview/1' />
+  },
+  {
+    path: '/order/preview/:id',
+    component: lazy(() => import('../../views/tiki-fish/order/preview')),
+    meta: {
+      navLink: '/tiki-fish/order/preview'
+    }
+  },
+  {
+    path: '/order/print/:id',
+    layout: 'BlankLayout',
+    component: lazy(() => import('../../views/tiki-fish/order/print'))
+  },
+  {
+    path: '/reports/list',
+    component: lazy(() => import('../../views/tiki-fish/reports/list')),
+  },
   // {
   //   path: '/customer/view',
   //   exact: true,
