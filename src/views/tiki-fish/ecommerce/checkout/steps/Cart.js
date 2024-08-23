@@ -258,7 +258,6 @@ const Cart = (props) => {
 									placeholder="₦ 1000"
 									value={orderData.discount}
 									onChange={(e) => setDiscount(e.target.value || 0)}
-									required
 								/>
 							</FormGroup>
 							<FormGroup>
@@ -269,7 +268,6 @@ const Cart = (props) => {
 									placeholder="₦ 1000"
 									value={orderData.logistics}
 									onChange={(e) => setLogistics(e.target.value || 0)}
-									required
 								/>
 							</FormGroup>
 							<FormGroup>
@@ -300,11 +298,11 @@ const Cart = (props) => {
 									</li>
 									<li className="price-detail">
 										<div className="detail-title detail-total">Discount</div>
-										<div className="detail-amt font-weight-bolder">₦{discount.toLocaleString()}</div>
+										<div className="detail-amt font-weight-bolder">₦{Number(discount).toLocaleString()}</div>
 									</li>
 									<li className="price-detail">
 										<div className="detail-title detail-total">Logistics</div>
-										<div className="detail-amt font-weight-bolder">₦{logistics.toLocaleString()}</div>
+										<div className="detail-amt font-weight-bolder">₦{Number(logistics).toLocaleString()}</div>
 									</li>
 									<li className="price-detail">
 										<div className="detail-title detail-total">Total</div>

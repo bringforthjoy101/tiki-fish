@@ -214,10 +214,10 @@ const UserInfoCard = ({ selectedProduct }) => {
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
                 <div className='color-box'>
-                  <span>Product Profit Margin: </span>
+                  <span>Product Packaging Price: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{(Number(selectedProduct.price) - Number(selectedProduct.costPrice)).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{selectedProduct.packagingPrice.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
             </div>
@@ -233,10 +233,10 @@ const UserInfoCard = ({ selectedProduct }) => {
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
                 <div className='color-box'>
-                  <span>Product Packaging Price: </span>
+                  <span>Product Profit Margin: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedProduct.packagingPrice.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{(Number(selectedProduct.price) - (Number(selectedProduct.costPrice) + Number(selectedProduct.packagingPrice))).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
