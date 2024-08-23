@@ -149,7 +149,7 @@ const Cart = (props) => {
 		} 
 		setOrderData({
 			...orderData,
-			amount: Number(subTotal) + Number(orderData.logistics) - Number(orderData.discount),
+			amount: totalAmount,
 			products,
 			customerId: selectedOption.value,
 			paymentMode: selectedPaymentMode.value,
@@ -177,7 +177,7 @@ const Cart = (props) => {
 		if (errors && !errors.length) {
 			setIsSubmitting(true)
 			console.log({ orderData })
-			const body = JSON.stringify({...orderData, logistics, discount})
+			const body = JSON.stringify({...orderData, logistics, discount, amount: totalAmount})
 			try {
 				const response = await apiRequest({ url: '/orders/create', method: 'POST', body }, dispatch)
 				console.log({ response })

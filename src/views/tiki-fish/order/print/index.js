@@ -82,6 +82,14 @@ const { selectedOrder } = store
 							<span className="invoice-date-title">Location:</span>
 							<span className="font-weight-bold"> {selectedOrder?.location}</span>
 						</div>
+						<div className="invoice-date-wrapper mb-50">
+							<p className="invoice-date-title">Customer:</p>
+							<p className="font-weight-bold">{selectedOrder?.customer.fullName} - {selectedOrder?.customer.phone}</p>
+						</div>
+						<div className="invoice-date-wrapper">
+							<p className="invoice-date-title">Payment Mode:</p>
+							<p className="font-weight-bold">{selectedOrder?.paymentMode.toUpperCase()}</p>
+						</div>
 					</div>
 				</div>
 

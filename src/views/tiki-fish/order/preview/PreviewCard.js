@@ -69,16 +69,20 @@ const PreviewCard = ({ data }) => {
 							BILL PRINT OUT <span className="invoice-number">#{data.orderNumber}</span>
 						</h4>
 						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Date Issued:</p>
-							<p className="invoice-date">{moment(data.createdAt).format('LL')}</p>
+							<p className="invoice-date-title">Date:</p>
+							<p className="invoice-date">{moment(data.createdAt).format('LLL')}</p>
 						</div>
 						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Due Date:</p>
-							<p className="invoice-date">{moment(data.createdAt).format('LL')}</p>
+							<p className="invoice-date-title">Customer:</p>
+							<p className="invoice-date">{data.customer.fullName} - {data.customer.phone}</p>
 						</div>
 						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Amount Paid:</p>
-							<p className="invoice-date">₦{data.amount.toLocaleString()}</p>
+							<p className="invoice-date-title">Location:</p>
+							<p className="invoice-date">{data.location}</p>
+						</div>
+						<div className="invoice-date-wrapper">
+							<p className="invoice-date-title">Payment Mode:</p>
+							<p className="invoice-date">{data.paymentMode.toUpperCase()}</p>
 						</div>
 					</div>
 				</div>
@@ -152,18 +156,18 @@ const PreviewCard = ({ data }) => {
 					</Col>
 					<Col className="d-flex justify-content-end" md="6" order={{ md: 2, lg: 1 }}>
 						<div className="invoice-total-wrapper">
-							{/* <div className="invoice-total-item">
+							<div className="invoice-total-item">
 								<p className="invoice-total-title">Subtotal:</p>
 								<p className="invoice-total-amount">₦{data.subTotal.toLocaleString()}</p>
-							</div> */}
-							{/* <div className="invoice-total-item">
-								<p className="invoice-total-title">Service Charge:</p>
-								<p className="invoice-total-amount">₦{data.serviceCharge?.toLocaleString() || 0}</p>
-							</div> */}
-							{/* <div className="invoice-total-item">
+							</div>
+							<div className="invoice-total-item">
+								<p className="invoice-total-title">Logistics:</p>
+								<p className="invoice-total-amount">₦{data.logistics?.toLocaleString() || 0}</p>
+							</div>
+							<div className="invoice-total-item">
 								<p className="invoice-total-title">Discount:</p>
 								<p className="invoice-total-amount">₦{data.discount.toLocaleString()}</p>
-							</div> */}
+							</div>
 							<hr className="my-50" />
 							<div className="invoice-total-item">
 								<p className="invoice-total-title">Total:</p>
