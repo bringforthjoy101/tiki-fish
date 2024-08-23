@@ -476,24 +476,6 @@ const ReportsTable = () => {
 													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersDiscounts?.toLocaleString()}`} </h5>
 												</td>
 											</tr>
-											<tr key={'packaging'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL Packaging </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersPackaging?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'profits'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL Profits </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersProfit?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
 											<tr key={'total'}>
 												<td></td>
 												<td>
@@ -503,13 +485,41 @@ const ReportsTable = () => {
 													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrders?.toLocaleString()}`} </h3>
 												</td>
 											</tr>
+											<tr key={'space'}>
+												<td></td>
+												<td>
+													
+												</td>
+												<td>
+													
+												</td>
+											</tr>
+											<tr key={'packaging'}>
+												<td>Extras</td>
+												<td>
+													<span className="align-middle fw-bold"> TOTAL Packaging </span>
+												</td>
+												<td>
+													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersPackaging?.toLocaleString()}`} </h5>
+												</td>
+											</tr>
+											<tr key={'profits'}>
+												<td>Extras</td>
+												<td>
+													<span className="align-middle fw-bold"> TOTAL Profits </span>
+												</td>
+												<td>
+													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersProfit?.toLocaleString()}`} </h5>
+												</td>
+											</tr>
+											
 											</tbody>
 										</Table>
 									</Fragment>
 								</ModalBody>
 								<ModalFooter>
 									<Button color="primary" onClick={() => toggleModal()} outline>
-										Accept
+										Close
 									</Button>
 								</ModalFooter>
 							</Modal>

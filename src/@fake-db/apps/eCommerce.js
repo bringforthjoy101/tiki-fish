@@ -371,8 +371,21 @@ const {users} = store.getState()
 
 const getProducts = async () => {
     const response = await apiRequest({ url: '/products', method: 'GET' })
+    
     console.log('response', response, response?.data.data.length)
     store.dispatch({ type: 'GET_T_PRODUCTS', data: response?.data.data, params: { q: '', sortBy: 'featured', perPage: 9, page: 1 } })
+    
+    // const customersResponse = await apiRequest({ url: '/customers', method: 'GET' })
+    // store.dispatch({ type: 'GET_ALL_DATA', data: response?.data.data, params: { q: '', sortBy: 'featured', perPage: 9, page: 1 } })
+		// if (response && response.data.data && response.data.status) {
+		// 	await dispatch({
+		// 		type: 'GET_ALL_DATA',
+		// 		data: response.data.data,
+		// 	})
+		// } else {
+		// 	console.log(response)
+		// 	swal('Oops!', 'Something went wrong.', 'error')
+		// }
     return response?.data.data.filter(item => item.qty > 0)
 }
 

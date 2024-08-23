@@ -137,11 +137,16 @@ const Cart = (props) => {
 		paymentMode: selectedPaymentMode.value,
 	})
 	const [totalAmount, setTotalAmount] = useState(Number(subTotal) + Number(orderData.logistics) - Number(orderData.discount))
+	const [customers, setCustomers] = useState([])
 	
 	const store = useSelector((state) => state.customers)
 
 	// ** Get data on mount
 	useEffect(() => {
+		apiRequest({ url: '/customers', method: 'GET' }).then(customerResponse => {
+			console.log({customerResponse})
+			setCustomers(customerResponse.data.data)
+		})
 		setTotalAmount(Number(subTotal) + Number(logistics) - Number(discount))
 		console.log({ selectedPaymentMode }, orderData.paymentMode)
 		if (store.length) {
@@ -233,7 +238,7 @@ const Cart = (props) => {
 									className="react-select"
 									classNamePrefix="select"
 									defaultValue={selectedOption}
-									options={renderCustomers(store.allData)}
+									options={renderCustomers(customers)}
 									isClearable={false}
 									onChange={setSelectedOption}
 									required
