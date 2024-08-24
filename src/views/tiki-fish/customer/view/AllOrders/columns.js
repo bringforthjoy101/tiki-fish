@@ -21,6 +21,12 @@ const getItemNames = (items) => {
 	return `${string.substring(0, 35)}...`
 }
 
+const orderStatus = {
+	processing: 'light-warning',
+	completed: 'light-success',
+	cancelled: 'light-danger'
+}
+
 // ** Table columns
 export const columns = [
 	{
@@ -39,6 +45,13 @@ export const columns = [
 		sortable: true,
 		minWidth: '150px',
 		cell: (row) => <span>{(row.amount || 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>,
+	},
+	{
+		name: 'Status',
+		selector: 'status',
+		sortable: true,
+		minWidth: '100px',
+		cell: row => <Badge color={orderStatus[row.status]} pill>{row.status.toUpperCase()}</Badge>
 	},
 	{
 		name: 'Products ',

@@ -94,7 +94,7 @@ const UserInfoCard = ({ selectedProduct }) => {
     console.log({date})
 		const range = date.map((d) => new Date(d).getTime())
 		setPicker(range)
-    const body = JSON.stringify({ startDate: moment(picker[0]).format('L').split('/').join('-'), endDate: moment(picker[0]).format('L').split('/').join('-') })
+    const body = JSON.stringify({ startDate: moment(picker[0]).format('L').split('/').join('-'), endDate: moment(picker[1]).format('L').split('/').join('-') })
     if (date.length === 2) {
       apiRequest({ url: `/products/get-profit/${selectedProduct.id}`, method: 'POST', body }).then((response) => {
         console.log({response})

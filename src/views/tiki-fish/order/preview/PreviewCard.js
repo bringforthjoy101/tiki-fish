@@ -1,11 +1,19 @@
 // ** Third Party Components
-import { Badge, Card, CardBody, CardText, Row, Col, Table, Media } from 'reactstrap'
+import { Badge, Card, CardBody, CardText, Button, Row, Col, Table, Media } from 'reactstrap'
 import moment from 'moment'
 import { isUserLoggedIn } from '@utils'
 import {useState, useEffect} from 'react'
+import {useHistory } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import { completeOrder, nullifyOrder, getAllData, getOrder } from '../store/action'
 
 const PreviewCard = ({ data }) => {
 	const [userData, setUserData] = useState(null)
+	const MySwal = withReactContent(Swal)
+	// const history = useHistory()
+  const dispatch = useDispatch()
 	useEffect(() => {
 		if (isUserLoggedIn()) setUserData(JSON.parse(localStorage.getItem('userData')))
 	}, [])
@@ -34,9 +42,74 @@ const PreviewCard = ({ data }) => {
 	}
 
 	const statusObj = {
-		PAID: 'light-warning',
-		PAID: 'light-success',
+		processing: 'light-warning',
+		completed: 'light-success',
+		cancelled: 'light-danger'
 	}
+
+	const handleCompleteOrder = async (id) => {
+        return MySwal.fire({
+          title: 'Are you sure?',
+          text: "This action will complete this order!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, complete it!',
+          customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-outline-danger ml-1'
+          },
+          buttonsStyling: false
+        }).then(async function (result) {
+          if (result.value) {
+            const completed = await dispatch(completeOrder(id))
+            if (completed) {
+              await dispatch(getOrder(id))
+                MySwal.fire({
+                    icon: 'success',
+                    title: 'Comleted!',
+                    text: 'Order has been completed.',
+                    customClass: {
+                      confirmButton: 'btn btn-primary'
+                    }
+                  })
+            //   history.push(`/products/list`)
+            }
+            
+          }
+        })
+  	}
+
+	  const handleNullifyOrder = async (id) => {
+        return MySwal.fire({
+          title: 'Are you sure?',
+          text: "This action will cancelled this order!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, cancel it!',
+          customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-outline-danger ml-1'
+          },
+          buttonsStyling: false
+        }).then(async function (result) {
+          if (result.value) {
+            const nullified = await dispatch(nullifyOrder(id))
+            if (nullified) {
+              await dispatch(getOrder(id))
+                MySwal.fire({
+                    icon: 'success',
+                    title: 'Cancelled!',
+                    text: 'Order has been cancelled.',
+                    customClass: {
+                      confirmButton: 'btn btn-primary'
+                    }
+                  })
+            //   history.push(`/products/list`)
+            }
+            
+          }
+        })
+  	}
 
 	// const discountedAmount = (Number(data.amount) - Number(orderData.discount))
 	// const taxedAmount = ((Number(orderData.tax) / 100) * Number(discountedAmount))
@@ -59,6 +132,14 @@ const PreviewCard = ({ data }) => {
 									height="200"
 								/>
 							</Media>
+						</div>
+						<div className='d-flex flex-wrap align-items-start'>
+							<Button.Ripple color='success' onClick={() => handleCompleteOrder(data.id)}>
+								Complete Order
+							</Button.Ripple>
+							<Button.Ripple className='ml-1' color='danger' outline onClick={() => handleNullifyOrder(data.id)}>
+								Cancel Order
+							</Button.Ripple>
 						</div>
 						<CardText className="mb-25">{data?.customer?.firstName || ''} {data?.customer?.lastName || ''}</CardText>
 						<CardText className="mb-25">{data?.business?.address || ''}</CardText>
@@ -83,6 +164,11 @@ const PreviewCard = ({ data }) => {
 						<div className="invoice-date-wrapper">
 							<p className="invoice-date-title">Payment Mode:</p>
 							<p className="invoice-date">{data.paymentMode.toUpperCase()}</p>
+						</div>
+						<div className="invoice-date-wrapper">
+							<p className="invoice-date-title">Order Status:</p>
+							<Badge className='invoice-date' color={statusObj[data.status]}>{data.status.toUpperCase()}</Badge>
+							{/* <p className="invoice-date">{data.paymentMode.toUpperCase()}</p> */}
 						</div>
 					</div>
 				</div>

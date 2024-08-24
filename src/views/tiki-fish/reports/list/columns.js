@@ -64,6 +64,12 @@ const modeObj = {
 	dynamic: 'light-info',
 }
 
+const orderStatus = {
+	processing: 'light-warning',
+	completed: 'light-success',
+	cancelled: 'light-danger'
+}
+
 export const columns = [
 	{
 		name: 'Order Id',
@@ -108,17 +114,17 @@ export const columns = [
 			</Badge>
 		),
 	},
-	// {
-	// 	name: 'Mode',
-	// 	width: '100px',
-	// 	selector: 'mode',
-	// 	sortable: true,
-	// 	cell: (row) => (
-	// 		<Badge className="text-capitalize" color={'light-primary'} pill>
-	// 			{row.mode}
-	// 		</Badge>
-	// 	),
-	// },
+	{
+		name: 'Status',
+		width: '100px',
+		selector: 'status',
+		sortable: true,
+		cell: (row) => (
+			<Badge className="text-capitalize" color={orderStatus[row.status]} pill>
+				{row.status}
+			</Badge>
+		),
+	},
 	{
 		name: 'Service Charge',
 		width: '250px',

@@ -244,7 +244,7 @@ const UserInfoCard = ({ customerDetails, userRole }) => {
                   <Pocket className='text-primary' />
                 </div>
                 <div className='ml-1'>
-                  <h5 className='mb-0'>{customerDetails.orders.length.toLocaleString()}</h5>
+                  <h5 className='mb-0'>{customerDetails.orders.filter(order => order.status !== 'cancelled').length.toLocaleString()}</h5>
                   <small>Total Patronage</small>
                 </div>
               </div>
@@ -253,7 +253,7 @@ const UserInfoCard = ({ customerDetails, userRole }) => {
                   <Pocket className='text-success' />
                 </div>
                 <div className='ml-1'>
-                  <h5 className='mb-0'>{getTotalSpent(customerDetails.orders).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h5>
+                  <h5 className='mb-0'>{getTotalSpent(customerDetails.orders.filter(order => order.status !== 'cancelled')).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h5>
                   <small>Total Spent</small>
                 </div>
               </div>

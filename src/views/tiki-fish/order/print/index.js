@@ -108,8 +108,8 @@ const { selectedOrder } = store
 				</Table>
 
 				<Row className="invoice-sales-total-wrapper mt-3">
-					<Col className="justify-content-end ml-auto" md="6">
-						<div className="invoice-total-wrapper">
+					<Col className="ml-auto" md="12">
+						<div className="invoice-total-wrapper d-flex flex-column align-items-end">
 							<div className="invoice-total-item">
 								<p className="invoice-total-title">Subtotal:</p>
 								<p className="invoice-total-amount">₦{selectedOrder?.subTotal.toLocaleString()}</p>
@@ -129,7 +129,7 @@ const { selectedOrder } = store
 							</div>
 						</div>
 					</Col>
-					<Col className="mt-md-0 mt-3" md="6">
+					<Col className="mt-md-0 mt-3" md="12">
 						<p className="mb-0">
 							<span className="font-weight-bold">Attendant:</span> <span className="ml-75">{selectedOrder?.admin.firstName} {selectedOrder?.admin.lastName}</span>
 						</p>

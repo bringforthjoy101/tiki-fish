@@ -20,6 +20,30 @@ export const getAllData = () => {
 	}
 }
 
+export const completeOrder = (orderId) => {
+	return async dispatch => {
+	  const response = await apiRequest({url:`/orders/complete/${orderId}`, method:'GET'}, dispatch)
+	  if (response && response.data.status) {
+		  return response.data
+	  } else {
+		console.log(response)
+		swal('Oops!', 'Something went wrong.', 'error')
+	  }
+	}
+}
+
+export const nullifyOrder = (orderId) => {
+	return async dispatch => {
+	  const response = await apiRequest({url:`/orders/nullify/${orderId}`, method:'GET'}, dispatch)
+	  if (response && response.data.status) {
+		  return response.data
+	  } else {
+		console.log(response)
+		swal('Oops!', 'Something went wrong.', 'error')
+	  }
+	}
+}
+
 // All Users Filtered Data
 export const getFilteredData = (orders, params) => {
 	return async (dispatch) => {

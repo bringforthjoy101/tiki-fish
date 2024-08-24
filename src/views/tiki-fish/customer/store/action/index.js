@@ -92,7 +92,7 @@ export const deleteCustomer = (customerId) => {
 			return response.data
 		} else {
 			console.log(response)
-			swal('Oops!', 'Something went wrong.', 'error')
+			swal('Oops!', response.data.message, 'error')
 		}
 	}
 }

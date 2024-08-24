@@ -66,8 +66,9 @@ const handleDelete = async (id) => {
 export const columns = [
   {
     name: 'Product Name',
-    minWidth: '200px',
     selector: 'id',
+    minWidth: '250px',
+    wrap: true,
     sortable: true,
     cell: row => (
       <div className='d-flex justify-content-left align-items-center'>
@@ -77,7 +78,7 @@ export const columns = [
             to={`/product/view/${row.id}`}
             className='user-name text-truncate mb-0'
           >
-            <span className='font-weight-bold text-clamp'>{row.name}</span>
+            <span className='font-weight-bold'>{row.name.slice(0, 20).trim()}{row.name.length > 20 ? '...' : ''}</span>
           </Link>
         </div>
       </div>
@@ -85,42 +86,39 @@ export const columns = [
   },
   {
     name: 'Price',
-    minWidth: '100px',
     selector: 'price',
+    maxWidth: '200px',
+    wrap: true,
     sortable: true,
     cell: row => <span>{(row.price || 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
   },
   {
     name: 'Qty',
-    minWidth: '50px',
     selector: 'qty',
     sortable: true,
     cell: row => <span className="text-capitalize">{row.qty}</span>
   },
   {
     name: 'Unit',
-    minWidth: '50px',
     selector: 'unit',
     sortable: true,
     cell: row => <span className="text-capitalize">{row.unitValue} {row.unit}</span>
   },
   {
     name: 'Category',
-    minWidth: '150px',
     selector: 'category',
     sortable: true,
     cell: row => <span className="text-capitalize">{row.category}</span>
   },
   {
     name: 'Cretaed Date',
-    minWidth: '250px',
     selector: 'createdAt',
     sortable: true,
+    wrap: true,
     cell: row => moment(row.createdAt).format('lll')
   },
   {
     name: 'Actions',
-    minWidth: '100px',
     selector: 'name',
     sortable: true,
     cell: row => (

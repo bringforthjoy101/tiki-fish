@@ -11,4 +11,4 @@ import reports from './reports.js'
 const userData = JSON.parse(localStorage.getItem('userData'))
 
 // ** Merge & Export
-export default userData?.role === 'admin' ? [...dashboards, ...shop, ...products, ...orders, ...customers, ...admins, ...reports] : userData?.role === 'store' ? [...dashboards, ...shop, ...customers] : userData?.role === 'sales-rep' ? [...dashboards, ...shop, ...customers, ...orders] : [...dashboards, ...shop]
+export default userData?.role === 'admin' ? [...dashboards, ...shop, ...products, ...orders, ...customers, ...admins, ...reports] : userData?.role === 'store' ? [...dashboards, ...shop, ...customers] : userData?.role === 'sales-rep' ? [...dashboards, ...shop, ...customers, ...orders, ...reports] : [...dashboards, ...shop]
