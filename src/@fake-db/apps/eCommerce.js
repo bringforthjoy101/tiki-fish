@@ -487,7 +487,7 @@ mock.onGet('/apps/ecommerce/cart').reply(async () => {
     console.log(product)
     // Other data
     product.isInWishlist = data.userWishlist.findIndex(p => p.productId === cartProduct.productId) > -1
-    product.qty = cartProduct.qty
+    product.qty = cartProduct.qty 
     product.amount = Number(product.price) * Number(cartProduct.qty)
     product.shippingDate = randomDate(nextDay, nextWeek)
     product.offers = getRandomInt(1, 4)

@@ -1,5 +1,6 @@
 const initialState = {
   allProducts: [],
+  stable:[],
   products: [],
   filtered: [],
   wishlist: [],
@@ -24,7 +25,7 @@ const ecommerceReducer = (state = initialState, action) => {
       return { ...state, products: action.data.products, filtered: action.data.filtered, params: action.params, totalProducts: action.data.total }
     case 'GET_T_PRODUCTS':
       console.log('action', action)
-      return { ...state, products: action.data, params: action.params, totalProducts: action.data.length }
+      return { ...state, products: action.data, stable: action.data, params: action.params, totalProducts: action.data.length }
     case 'GET_WISHLIST':
       return { ...state, wishlist: action.data.products }
     case 'DELETE_WISHLIST_ITEM':

@@ -44,7 +44,7 @@ const ProductCards = props => {
     if (products.length) {
       return products.map(item => {
         const CartBtnTag = item.isInCart ? Link : 'button'
-
+        const itemQty = store.stable.find(p => p.id === item.id).qty
         return (
           
             <Card className='ecommerce-card' key={item.id}>
@@ -73,7 +73,7 @@ const ProductCards = props => {
                 </h6> */}
                 <CardText className='item-description d-flex flex-row'>
                   <span className='mr-auto'>{item.unitValue}{item.unit}</span>
-                  <Badge className='ml-auto' color={item.qty > 5 ? 'light-success' : 'light-danger'}>{item.qty} {item.qty > 5 ? 'Available' : 'Left'}</Badge>
+                  <Badge className='ml-auto' color={itemQty > 5 ? 'light-success' : 'light-danger'}>{itemQty} {itemQty > 5 ? 'Available' : 'Left'}</Badge>
                 </CardText>
               </CardBody>
               <div className='item-options text-center'>

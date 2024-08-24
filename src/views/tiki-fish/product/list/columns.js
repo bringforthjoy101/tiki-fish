@@ -77,7 +77,7 @@ export const columns = [
             to={`/product/view/${row.id}`}
             className='user-name text-truncate mb-0'
           >
-            <span className='font-weight-bold'>{row.name}</span>
+            <span className='font-weight-bold text-clamp'>{row.name}</span>
           </Link>
         </div>
       </div>
