@@ -12,6 +12,7 @@ import { getOrder, completeOrder, nullifyOrder } from '../store/action'
 
 const PreviewActions = ({ id, data }) => {
 	const dispatch = useDispatch()
+  const MySwal = withReactContent(Swal)
 
 	const completePayment = async (saleId) => {
 		const response = await apiRequest({ url: `/sales/complete/${saleId}`, method: 'GET' }, dispatch)
