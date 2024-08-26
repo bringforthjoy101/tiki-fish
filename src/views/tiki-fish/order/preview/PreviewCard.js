@@ -47,69 +47,6 @@ const PreviewCard = ({ data }) => {
 		cancelled: 'light-danger'
 	}
 
-	const handleCompleteOrder = async (id) => {
-        return MySwal.fire({
-          title: 'Are you sure?',
-          text: "This action will complete this order!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Yes, complete it!',
-          customClass: {
-            confirmButton: 'btn btn-success',
-            cancelButton: 'btn btn-outline-danger ml-1'
-          },
-          buttonsStyling: false
-        }).then(async function (result) {
-          if (result.value) {
-            const completed = await dispatch(completeOrder(id))
-            if (completed) {
-              await dispatch(getOrder(id))
-                MySwal.fire({
-                    icon: 'success',
-                    title: 'Comleted!',
-                    text: 'Order has been completed.',
-                    customClass: {
-                      confirmButton: 'btn btn-primary'
-                    }
-                  })
-            //   history.push(`/products/list`)
-            }
-            
-          }
-        })
-  	}
-
-	  const handleNullifyOrder = async (id) => {
-        return MySwal.fire({
-          title: 'Are you sure?',
-          text: "This action will cancelled this order!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Yes, cancel it!',
-          customClass: {
-            confirmButton: 'btn btn-danger',
-            cancelButton: 'btn btn-outline-danger ml-1'
-          },
-          buttonsStyling: false
-        }).then(async function (result) {
-          if (result.value) {
-            const nullified = await dispatch(nullifyOrder(id))
-            if (nullified) {
-              await dispatch(getOrder(id))
-                MySwal.fire({
-                    icon: 'success',
-                    title: 'Cancelled!',
-                    text: 'Order has been cancelled.',
-                    customClass: {
-                      confirmButton: 'btn btn-primary'
-                    }
-                  })
-            //   history.push(`/products/list`)
-            }
-            
-          }
-        })
-  	}
 
 	// const discountedAmount = (Number(data.amount) - Number(orderData.discount))
 	// const taxedAmount = ((Number(orderData.tax) / 100) * Number(discountedAmount))
@@ -133,17 +70,17 @@ const PreviewCard = ({ data }) => {
 								/>
 							</Media>
 						</div>
-						<div className='d-flex flex-wrap align-items-start'>
-							<Button.Ripple color='success' onClick={() => handleCompleteOrder(data.id)}>
+						{/* <div className='d-flex flex-wrap align-items-start'>
+							<Button.Ripple color='success' onClick={() => handleCompleteOrder(data.id)} disabled={data.status !== 'processing'}>
 								Complete Order
 							</Button.Ripple>
-							<Button.Ripple className='ml-1' color='danger' outline onClick={() => handleNullifyOrder(data.id)}>
+							<Button.Ripple className='ml-1' color='danger' outline onClick={() => handleNullifyOrder(data.id)} disabled={data.status !== 'processing'}>
 								Cancel Order
 							</Button.Ripple>
 						</div>
 						<CardText className="mb-25">{data?.customer?.firstName || ''} {data?.customer?.lastName || ''}</CardText>
 						<CardText className="mb-25">{data?.business?.address || ''}</CardText>
-						<CardText className="mb-0">{data?.business?.phone || ''}</CardText>
+						<CardText className="mb-0">{data?.business?.phone || ''}</CardText> */}
 					</div>
 					<div className="mt-md-0 mt-2">
 						<h4 className="invoice-title">

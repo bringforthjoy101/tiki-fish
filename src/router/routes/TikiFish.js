@@ -133,6 +133,10 @@ const ManagerRoutes = [
         component: lazy(() => import('../../views/tiki-fish/reports/list')),
       },
       {
+        path: '/withdrawals/list',
+        component: lazy(() => import('../../views/tiki-fish/withdrawals/list')),
+      },
+      {
         path: '/settlements/list',
         component: lazy(() => import('../../views/tiki-fish/settlement/list'))
       },
@@ -222,6 +226,10 @@ const BursaryRoutes = [
     }
   },
   {
+    path: '/withdrawals/list',
+    component: lazy(() => import('../../views/tiki-fish/withdrawals/list')),
+  },
+  {
     path: '/settlements/list',
     component: lazy(() => import('../../views/tiki-fish/settlement/list'))
   }
@@ -299,6 +307,10 @@ const SalesRepRoutes = [
     path: '/reports/list',
     component: lazy(() => import('../../views/tiki-fish/reports/list')),
   },
+  {
+    path: '/withdrawals/list',
+    component: lazy(() => import('../../views/tiki-fish/withdrawals/list')),
+  },
   // {
   //   path: '/customer/view',
   //   exact: true,
@@ -343,7 +355,11 @@ const StoreRoutes = [
       path: '/apps/ecommerce/checkout',
       className: 'ecommerce-application',
       component: lazy(() => import('../../views/tiki-fish/ecommerce/checkout'))
-  }
+  },
+  {
+    path: '/withdrawals/list',
+    component: lazy(() => import('../../views/tiki-fish/withdrawals/list')),
+  },
 ]
 
 export default userData?.role === 'admin' ? ManagerRoutes : userData?.role === 'store' ? BursaryRoutes : userData?.role === 'sales-rep' ? SalesRepRoutes : StoreRoutes

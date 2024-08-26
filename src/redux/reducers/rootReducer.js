@@ -15,6 +15,7 @@ import products from '@src/views/tiki-fish/product/store/reducer'
 import orders from '@src/views/tiki-fish/order/store/reducer'
 import settlements from '@src/views/tiki-fish/settlement/store/reducer'
 import reports from '@src/views/tiki-fish/reports/store/reducer'
+import withdrawals from '@src/views/tiki-fish/withdrawals/store/reducer'
 
 import email from '@src/views/apps/email/store/reducer'
 // import invoice from '@src/views/apps/invoice/store/reducer'
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   products,
   settlements,
   reports,
+  withdrawals,
   orders,
   navbar,
   layout,
