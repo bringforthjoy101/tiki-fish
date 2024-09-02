@@ -113,7 +113,7 @@ const UsersList = () => {
 		)
 	}
 
-	const filteredData = store.allData.filter((customer) => customer.firstName?.toLowerCase() || customer?.lastName?.toLowerCase())
+	const filteredData = store.allData.filter((customer) => customer.fullName?.toLowerCase() || customer?.phone?.toLowerCase() || customer?.location?.toLowerCase())
 
 	// ** Custom Pagination
 	const CustomPagination = () => {
@@ -278,7 +278,7 @@ const UsersList = () => {
 									className="ml-50 w-100"
 									type="text"
 									value={searchTerm}
-									placeholder="Name Email Search & Phone Search"
+									placeholder="Name, Phone Search & Location Search"
 									onChange={(e) => handleFilter(e.target.value)}
 								/>
 							</FormGroup>

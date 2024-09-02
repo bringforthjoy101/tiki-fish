@@ -23,18 +23,15 @@ export const getAllData = (role) => {
 // All Users Filtered Data
 export const getFilteredData = (customers, params) => {
 	return async (dispatch) => {
-		const { q = '', perPage = 10, number = '', page = 1, status = null, className = null, level = null, group = null } = params
+		const { q = '', perPage = 10, number = '', page = 1, status = null } = params
 
 		/* eslint-disable  */
 		const queryLowered = q.toLowerCase()
 		const filteredData = customers.filter(
 			(customer) =>
-				(customer.firstName.toLowerCase().includes(queryLowered) ||
-					customer.lastName?.toString().toLowerCase().includes(queryLowered) ||
-					customer.type.toLowerCase().includes(queryLowered)) &&
-				customer.class === (className || customer.class) &&
-				customer.level === (level || customer.level) &&
-				customer.group === (group || customer.group) &&
+				(customer.fullName.toLowerCase().includes(queryLowered) ||
+					customer.phone?.toString().toLowerCase().includes(queryLowered) ||
+					customer.location.toLowerCase().includes(queryLowered)) &&
 				customer.status === (status || customer.status)
 		)
 

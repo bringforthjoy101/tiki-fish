@@ -51,15 +51,10 @@ const UserView = (props) => {
 				<Col xl="9" lg="8" md="7">
 					<UserInfoCard customerDetails={store.customerDetails} userRole={userData?.role} />
 				</Col>
-				{userData?.role === 'admin' || userData?.role === 'store' ? (
 					<Col xl="3" lg="4" md="5">
 						<PlanCard customerDetails={store.customerDetails} />
 					</Col>
-				) : (
-					<Spinner color="primary" className="reload-spinner" />
-				)}
 			</Row>
-			{userData?.role === 'admin' || userData?.role === 'store' ? (
 				<div>
 					<Card className="mb-3 d-flex justify-content-around">
 						<Row className="d-sm-block d-lg-flex justify-content-center">
@@ -83,9 +78,6 @@ const UserView = (props) => {
 						</Col>
 					</Row>
 				</div>
-			) : (
-				''
-			)}
 		</div>
 	) : (
 		<SpinnerComponent />

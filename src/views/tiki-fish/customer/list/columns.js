@@ -113,13 +113,12 @@ export const columns = [
       <div className='d-flex justify-content-left align-items-center'>
         {renderClient(row)}
         <div className='d-flex flex-column'>
-          {userData.role === 'admin' || userData.role === 'store' ? <Link
+          <Link
             to={`/customer/view/${row.id}`}
             className='user-name text-truncate mb-0'
           >
             <span className='font-weight-bold'>{row.fullName}</span>
-          </Link> : <span className='font-weight-bold'>{row.fullName}</span>
-          }
+          </Link> 
           <small className='text-truncate text-muted text-capitalize mb-0'>{row.phone}</small>
         </div>
       </div>
