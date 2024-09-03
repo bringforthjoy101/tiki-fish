@@ -70,30 +70,30 @@ const AnalyticsDashboard = () => {
 					<StatsVertical icon={<Eye size={21} />} color="warning" stats={numFormatter(dashData.totalOrders)} statTitle="Orders" />
 				</Col>
 				<Col xl="2" md="4" sm="6">
-					<StatsVertical icon={<Eye size={21} />} color="secondary" stats={numFormatter(dashData.totalCustomers)} statTitle="Customers" />
+					<StatsVertical icon={<Eye size={21} />} color="secondary" stats={dashData.stock ? Number(dashData?.stock.stockVolume).toLocaleString() : <Spinner className="mr-25" size="s" />} statTitle="Total Stocks Available" />
 				</Col>
 				<Col xl="2" md="4" sm="6">
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
-						stats={dashData.sales ? `₦${numFormatter(dashData.sales.totalSales)}` : <Spinner className="mr-25" size="sm" />}
-						statTitle="Sales"
+						stats={dashData.sales ? `₦${numFormatter(dashData.stock.stockValue)}` : <Spinner className="mr-25" size="sm" />}
+						statTitle="Available Stocks"
 					/>
 				</Col>
 				<Col xl="2" md="4" sm="6">
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
-						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.maxSales)}` : <Spinner className="mr-25" size="sm" />}
-						statTitle="Max Sales"
+						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.profitToday)}` : <Spinner className="mr-25" size="sm" />}
+						statTitle="Profit Today"
 					/>
 				</Col>
 				<Col xl="2" md="4" sm="6">
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
-						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.avgSales.toFixed(0))}` : <Spinner className="mr-25" size="sm" />}
-						statTitle="Avg Sales"
+						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.totalProfit.toFixed(0))}` : <Spinner className="mr-25" size="sm" />}
+						statTitle="Profit So Far"
 					/>
 				</Col>
 			</Row>
