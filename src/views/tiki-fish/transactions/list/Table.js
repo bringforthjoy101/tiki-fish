@@ -9,7 +9,7 @@ import Sidebar from './Sidebar'
 import { columns } from './columns'
 
 // ** Store & Actions
-import { getAllData, getFilteredData, getFilteredRageData } from '../store/action'
+import { getAccountTransactions, getFilteredData, getFilteredRageData } from '../store/action'
 import { useDispatch, useSelector } from 'react-redux'
 
 // ** Third Party Components
@@ -81,9 +81,14 @@ const CustomHeader = ({ toggleSidebar, handlePerPage, rowsPerPage, userData }) =
 					xl="6"
 					className="d-flex align-items-sm-center justify-content-lg-end justify-content-start flex-lg-nowrap flex-wrap flex-sm-row flex-column pr-lg-1 p-0 mt-lg-0 mt-1"
 				>
+					{userData?.role === 'ADMIN' ? (
 						<Button.Ripple color="primary" onClick={toggleSidebar}>
-							Make New Withdrawal
+							{' '}
+							Add New User{' '}
 						</Button.Ripple>
+					) : (
+						''
+					)}
 				</Col>
 			</Row>
 		</div>
@@ -93,7 +98,7 @@ const CustomHeader = ({ toggleSidebar, handlePerPage, rowsPerPage, userData }) =
 const ReportsTable = () => {
 	// ** Store Vars
 	const dispatch = useDispatch()
-	const store = useSelector((state) => state.withdrawals)
+	const store = useSelector((state) => state.transactions)
 
 	// ** States
 	const [searchTerm, setSearchTerm] = useState('')
@@ -116,9 +121,9 @@ const ReportsTable = () => {
 	// ** Get data on mount
 	useEffect(() => {
 		console.log('store', store.loading)
-		dispatch(getAllData())
+		dispatch(getAccountTransactions({ startDate: moment().format('L').split('/').join('-'), endDate: moment().format('L').split('/').join('-')}))
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store.allData, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: searchTerm,
@@ -141,7 +146,7 @@ const ReportsTable = () => {
 	// ** Function in get data on page change
 	const handlePagination = (page) => {
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store.allData, {
 				page: page.selected + 1,
 				perPage: rowsPerPage,
 				q: searchTerm,
@@ -154,7 +159,7 @@ const ReportsTable = () => {
 	const handlePerPage = (e) => {
 		const value = parseInt(e.currentTarget.value)
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store.allData, {
 				page: currentPage,
 				perPage: value,
 				q: searchTerm,
@@ -167,7 +172,7 @@ const ReportsTable = () => {
 	const handleFilter = (val) => {
 		setSearchTerm(val)
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store.allData, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: val,
@@ -179,10 +184,10 @@ const ReportsTable = () => {
 		const range = date.map((d) => new Date(d).getTime())
 		setPicker(range)
 		dispatch(
-			getSalesReport({ startDate: moment(date[0]).format('L').split('/').join('-'), endDate: moment(date[1]).format('L').split('/').join('-'), category: currentCategory.value })
+			getAccountTransactions({ startDate: moment(date[0]).format('L').split('/').join('-'), endDate: moment(date[1]).format('L').split('/').join('-'), category: currentCategory.value })
 		)
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store.allData, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: searchTerm,
@@ -336,12 +341,12 @@ const ReportsTable = () => {
 			return filters[k].length > 0
 		})
 
-		if (store?.data?.length > 0) {
+		if (store.data.length > 0) {
 			return store.data
-		} else if (store?.data?.length === 0 && isFiltered) {
+		} else if (store.data.length === 0 && isFiltered) {
 			return []
 		} else {
-			return store?.allData?.slice(0, rowsPerPage)
+			return store.allData?.slice(0, rowsPerPage)
 		}
 	}
 
@@ -406,7 +411,7 @@ const ReportsTable = () => {
 								/>
 							</FormGroup>
 						</Col> */}
-						{/* <Col lg="4" md="6">
+						<Col lg="4" md="6">
 							<Label for="range-picker">Select Range</Label>
 							<Flatpickr
 								value={picker}
@@ -418,114 +423,15 @@ const ReportsTable = () => {
 									defaultDate: ['2020-02-01', '2020-02-15'],
 								}}
 							/>
-						</Col> */}
-						{/* <Col
-							lg="4"
-							md="6"
-							className="d-flex align-items-sm-center justify-content-lg-end justify-content-start flex-lg-nowrap flex-wrap flex-sm-row flex-column pr-lg-1 p-0 mt-lg-0 mt-1"
-						>
-							<>
-								<Button.Ripple color="primary" onClick={() => toggleModal()}>
-									{' '}
-									Show Summary{' '}
-								</Button.Ripple>
-							</>
-							<Modal isOpen={modal} toggle={() => toggleModal()} className={'modal-dialog-centered modal-lg'} key={1}>
-								<ModalHeader toggle={() => toggleModal()}>Report Summary</ModalHeader>
-								<ModalBody>
-									<Fragment>
-										<Table bordered responsive>
-											<thead>
-											<tr>
-												<th>Products</th>
-												<th>Qty</th>
-												<th>Sales</th>
-											</tr>
-											</thead>
-											<tbody>
-											{renderTable()}
-											<tr key={'sub-total'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> SUB TOTAL </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersSubTotal?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'logistics'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL LOGISTICS </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersLogistics?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'discounts'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL DISCOUNTS </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersDiscounts?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'total'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> GRAND TOTAL </span>
-												</td>
-												<td>
-													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrders?.toLocaleString()}`} </h3>
-												</td>
-											</tr>
-											<tr key={'space'}>
-												<td></td>
-												<td>
-													
-												</td>
-												<td>
-													
-												</td>
-											</tr>
-											<tr key={'packaging'}>
-												<td>Extras</td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL Packaging </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersPackaging?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'profits'}>
-												<td>Extras</td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL Profits </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersProfit?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											
-											</tbody>
-										</Table>
-									</Fragment>
-								</ModalBody>
-								<ModalFooter>
-									<Button color="primary" onClick={() => toggleModal()} outline>
-										Close
-									</Button>
-								</ModalFooter>
-							</Modal>
-						</Col> */}
+						</Col>
+						
 					</Row>
 				</CardBody>
 			</Card>
 
 			<Card>
-				<Row className="d-flex flex-row justify-content-between mx-0 mt-3">
-					<Col xl="4" md="12" className="d-flex align-items-center pl-3">
+				<Row className="mx-0 mt-3">
+					<Col xl="6" sm="12" className="d-flex align-items-center pl-3">
 						<div className="d-flex align-items-center w-100">
 							<Label for="rows-per-page">Show</Label>
 							<CustomInput
@@ -540,14 +446,14 @@ const ReportsTable = () => {
 									backgroundPosition: 'calc(100% - 3px) 11px, calc(100% - 20px) 13px, 100% 0',
 								}}
 							>
+								<option value="10">10</option>
+								<option value="50">50</option>
 								<option value="100">100</option>
-								<option value="250">250</option>
-								<option value="500">500</option>
 							</CustomInput>
 							<Label for="rows-per-page">Entries</Label>
 						</div>
 					</Col>
-					<Col xl="4" md="12" className="d-flex align-items-sm-center justify-content-center pr-lg-3 p-0 mt-lg-0 mt-1">
+					<Col xl="6" sm="12" className="d-flex align-items-sm-center justify-content-lg-end justify-content-center pr-lg-3 p-0 mt-lg-0 mt-1">
 						<UncontrolledButtonDropdown>
 							<DropdownToggle className="mr-lg-0 mr-5" color="secondary" caret outline>
 								<Share size={15} />
@@ -568,14 +474,6 @@ const ReportsTable = () => {
 								</DropdownItem> */}
 							</DropdownMenu>
 						</UncontrolledButtonDropdown>
-					</Col>
-					<Col
-						xl='4' md='12'
-						className='d-flex align-items-sm-cente justify-content-end flex-lg-nowrap flex-wrap flex-sm-row flex-column pr-lg-1 p-0 mt-lg-0 mt-1'
-					>
-						
-							<Button.Ripple color='primary' onClick={toggleSidebar}> Make New Withdrawal </Button.Ripple>
-						
 					</Col>
 				</Row>
 				<DataTable
@@ -603,7 +501,7 @@ const ReportsTable = () => {
 				/>
 			</Card>
 
-			<Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
+			{/* <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} /> */}
 		</Fragment>
 	)
 }

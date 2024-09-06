@@ -199,7 +199,7 @@ const ReportsTable = () => {
 
 	// ** Custom Pagination
 	const CustomPagination = () => {
-		const count = Math.ceil(store.length / rowsPerPage)
+		const count = Math.ceil(store.allData.orders.length / rowsPerPage)
 
 		return (
 			<ReactPaginate

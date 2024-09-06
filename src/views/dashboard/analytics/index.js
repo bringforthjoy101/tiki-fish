@@ -63,14 +63,14 @@ const AnalyticsDashboard = () => {
 				</Col>
 			</Row>
 			<Row className="match-height">
-				<Col xl="2" md="4" sm="6">
-					<StatsVertical icon={<Eye size={21} />} color="primary" stats={numFormatter(dashData.totalProduct)} statTitle="Products" />
+				<Col xl="4" md="8" sm="12">
+					<StatsVertical icon={<Eye size={21} />} color="success" stats={dashData.businessBalance.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})} statTitle="Account Balance" />
 				</Col>
-				<Col xl="2" md="4" sm="6">
+				{/* <Col xl="2" md="4" sm="6">
 					<StatsVertical icon={<Eye size={21} />} color="warning" stats={numFormatter(dashData.totalOrders)} statTitle="Orders" />
-				</Col>
+				</Col> */}
 				<Col xl="2" md="4" sm="6">
-					<StatsVertical icon={<Eye size={21} />} color="secondary" stats={dashData.stock ? Number(dashData?.stock.stockVolume).toLocaleString() : <Spinner className="mr-25" size="s" />} statTitle="Total Stocks Available" />
+					<StatsVertical icon={<TrendingUp size={21} />} color="primary" stats={dashData.stock ? Number(dashData?.stock.stockVolume).toLocaleString() : <Spinner className="mr-25" size="s" />} statTitle="Total Stocks Available" />
 				</Col>
 				<Col xl="2" md="4" sm="6">
 					<StatsVertical
