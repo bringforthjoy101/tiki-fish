@@ -139,6 +139,21 @@ export const columns = [
     cell: row => <span className="text-capitalize">{row.location}</span>
   },
   {
+    name: 'Total Orders',
+    minWidth: '297px',
+    selector: 'totalOrderAmount',
+    sortable: true,
+    cell: row => (
+      <div className='d-flex justify-content-left align-items-center'>
+        <div className='d-flex flex-column'>
+          
+            <span className='font-weight-bold'>{row.totalOrderAmount.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</span>
+          <small className='text-truncate text-muted text-capitalize mb-0'>{row.totalOrders} Orders</small>
+        </div>
+      </div>
+    )
+  },
+  {
     name: 'Status',
     minWidth: '80px',
     selector: 'status',
