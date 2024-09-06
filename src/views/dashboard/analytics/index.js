@@ -64,7 +64,7 @@ const AnalyticsDashboard = () => {
 			</Row>
 			<Row className="match-height">
 				<Col xl="4" md="8" sm="12">
-					<StatsVertical icon={<Eye size={21} />} color="success" stats={Number(dashData.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})} statTitle="Account Balance" />
+					<StatsVertical icon={<Eye size={21} />} color="success" stats={Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})} statTitle="Account Balance" />
 				</Col>
 				{/* <Col xl="2" md="4" sm="6">
 					<StatsVertical icon={<Eye size={21} />} color="warning" stats={numFormatter(dashData.totalOrders)} statTitle="Orders" />
