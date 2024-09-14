@@ -346,7 +346,7 @@ const ReportsTable = () => {
 		} else if (store.data.length === 0 && isFiltered) {
 			return []
 		} else {
-			return store.allData.orders?.slice(0, rowsPerPage)
+			return store.allData?.orders?.slice(0, rowsPerPage)
 		}
 	}
 
@@ -545,9 +545,10 @@ const ReportsTable = () => {
 									backgroundPosition: 'calc(100% - 3px) 11px, calc(100% - 20px) 13px, 100% 0',
 								}}
 							>
+								<option value="10">10</option>
+								<option value="25">25</option>
+								<option value="50">50</option>
 								<option value="100">100</option>
-								<option value="250">250</option>
-								<option value="500">500</option>
 							</CustomInput>
 							<Label for="rows-per-page">Entries</Label>
 						</div>

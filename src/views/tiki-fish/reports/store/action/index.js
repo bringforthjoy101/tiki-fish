@@ -63,7 +63,7 @@ export const getFilteredRageData = (orders, range, params) => {
 	//   return ra[0] < time && time < ra[1]
 	// }))
 	return async (dispatch) => {
-		const { q = '', perPage = 100, page = 1 } = params
+		const { q = '', perPage = 10, page = 1 } = params
 		// console.log(range)
 		// orders.filter((d) => {
 		// 	const time = new Date(d.createdAt).getTime()
