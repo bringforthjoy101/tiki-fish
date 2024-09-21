@@ -178,8 +178,8 @@ const UserInfoCard = ({ selectedProduct }) => {
                       <ModalBody>
                         <Fragment>
                           <h2>QTY Sold:- {profit.qty.toLocaleString()} Units</h2>
-                          <h2>Sales Value:- {profit.sales.toLocaleString('en-US', { style: 'currency', currency: 'NGN'})}</h2>
-                          <h2>Profit:- {profit.profit.toLocaleString('en-US', { style: 'currency', currency: 'NGN'})}</h2>
+                          <h2>Sales Value:- {profit.sales.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</h2>
+                          <h2>Profit:- {profit.profit.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</h2>
                         </Fragment>
                       </ModalBody>
                       <ModalFooter>
@@ -201,7 +201,7 @@ const UserInfoCard = ({ selectedProduct }) => {
                   <span>Product Cost Price: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedProduct.costPrice.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{selectedProduct.costPrice.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
@@ -209,7 +209,7 @@ const UserInfoCard = ({ selectedProduct }) => {
                   <span>Product Selling Price: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedProduct.price.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{selectedProduct.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
@@ -217,7 +217,7 @@ const UserInfoCard = ({ selectedProduct }) => {
                   <span>Product Packaging Price: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedProduct.packagingPrice.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{selectedProduct.packagingPrice.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
             </div>
@@ -236,7 +236,7 @@ const UserInfoCard = ({ selectedProduct }) => {
                   <span>Product Profit Margin: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{(Number(selectedProduct.price) - (Number(selectedProduct.costPrice) + Number(selectedProduct.packagingPrice))).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{(Number(selectedProduct.price) - (Number(selectedProduct.costPrice) + Number(selectedProduct.packagingPrice))).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>

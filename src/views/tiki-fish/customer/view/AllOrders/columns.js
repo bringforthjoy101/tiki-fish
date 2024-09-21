@@ -44,7 +44,7 @@ export const columns = [
 		selector: 'amount',
 		sortable: true,
 		minWidth: '150px',
-		cell: (row) => <span>{(row.amount || 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>,
+		cell: (row) => <span>{(row.amount || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>,
 	},
 	{
 		name: 'Status',

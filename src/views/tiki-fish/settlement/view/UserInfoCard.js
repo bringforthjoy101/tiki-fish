@@ -122,14 +122,14 @@ const UserInfoCard = ({ selectedTransaction }) => {
                   <span>Transaction Amount:</span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedTransaction.trans_amount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{selectedTransaction.trans_amount.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div><div className='d-flex align-items-center mr-2 mt-1'>
                 <div className='color-box'>
                   <span>Balance:</span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedTransaction.balance.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{selectedTransaction.balance.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>

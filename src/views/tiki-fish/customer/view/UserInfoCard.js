@@ -253,7 +253,7 @@ const UserInfoCard = ({ customerDetails, userRole }) => {
                   <Pocket className='text-success' />
                 </div>
                 <div className='ml-1'>
-                  <h5 className='mb-0'>{getTotalSpent(customerDetails.orders.filter(order => order.status !== 'cancelled')).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</h5>
+                  <h5 className='mb-0'>{getTotalSpent(customerDetails.orders.filter(order => order.status !== 'cancelled')).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h5>
                   <small>Total Spent</small>
                 </div>
               </div>

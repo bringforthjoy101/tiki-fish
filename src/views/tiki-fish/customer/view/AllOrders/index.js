@@ -241,7 +241,7 @@ const TransactionList = () => {
 				body: [
 					[
 						arr.orderNumber,
-						arr.amount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' }),
+						arr.amount.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' }),
 						getProducts(arr.products),
 						moment(arr.createdAt).format('lll'),
 						`${arr.admin.firstName} ${arr.admin.lastName}`,

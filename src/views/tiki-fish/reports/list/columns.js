@@ -87,7 +87,7 @@ export const columns = [
 		width: '150px',
 		selector: 'amount',
 		sortable: true,
-		cell: (row) => <span className="text-capitalize">{row?.amount?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>,
+		cell: (row) => <span className="text-capitalize">{row?.amount?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>,
 	},
 	// {
 	//   name: 'Products ',
@@ -130,7 +130,7 @@ export const columns = [
 		width: '250px',
 		selector: 'charges',
 		sortable: true,
-		cell: (row) => <span className="text-capitalize">{(row?.charges || 0)?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>,
+		cell: (row) => <span className="text-capitalize">{(row?.charges || 0)?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>,
 	},
 	{
 		name: 'Order Date',

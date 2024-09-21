@@ -87,16 +87,17 @@ export const columns = [
   {
     name: 'Price',
     selector: 'price',
-    maxWidth: '200px',
+    minWidth: '200px',
     wrap: true,
     sortable: true,
-    cell: row => <span>{(row.price || 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
+    cell: row => <span>{(row.price || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
   },
   {
     name: 'Qty',
     selector: 'qty',
+    minWidth: '50px',
     sortable: true,
-    cell: row => <span className="text-capitalize">{row.qty}</span>
+    cell: row => <span className="text-capitalize">{Number(row.qty).toLocaleString()}</span>
   },
   {
     name: 'Unit',
@@ -114,6 +115,7 @@ export const columns = [
     name: 'Cretaed Date',
     selector: 'createdAt',
     sortable: true,
+    minWidth: '200px',
     wrap: true,
     cell: row => moment(row.createdAt).format('lll')
   },

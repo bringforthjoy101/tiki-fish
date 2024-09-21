@@ -207,9 +207,9 @@ const TransactionTable = () => {
 					[
 						arr.transactionId,
 						`${arr.student.firstName} ${arr.student.lastName}`,
-						arr.amount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' }),
+						arr.amount.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' }),
 						arr.type,
-						arr.balance.toLocaleString('en-US', { style: 'currency', currency: 'NGN' }),
+						arr.balance.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' }),
 						arr.narration,
 						moment(arr.createdAt).format('lll'),
 						`${arr.admin.firstName} ${arr.admin.lastName}`,

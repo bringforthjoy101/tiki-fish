@@ -49,7 +49,7 @@ export const columns = [
 			<div className="d-flex justify-content-left align-items-center">
 				{/* {renderClient(row.student)} */}
 				<div className='d-flex flex-column'>
-					<span className='font-weight-bold'>{row?.transactionsValue?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
+					<span className='font-weight-bold'>{row?.transactionsValue?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
 					<small className='text-truncate text-muted text-capitalize mb-0'>{row.transactionsVolume.toLocaleString()} Transactions</small>
 				</div>
 			</div>
@@ -64,7 +64,7 @@ export const columns = [
 			<div className="d-flex justify-content-left align-items-center">
 				{/* {renderClient(row.student)} */}
 				<div className='d-flex flex-column'>
-				<span className='font-weight-bold'>{row?.totalCreditsValue?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
+				<span className='font-weight-bold'>{row?.totalCreditsValue?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
 					<small className='text-truncate text-muted text-capitalize mb-0'>{row.totalCreditsVolume.toLocaleString()} Transactions</small>
 				</div>
 			</div>
@@ -79,7 +79,7 @@ export const columns = [
 			<div className="d-flex justify-content-left align-items-center">
 				{/* {renderClient(row.student)} */}
 				<div className='d-flex flex-column'>
-				<span className='font-weight-bold'>{row?.totalDebitsValue?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
+				<span className='font-weight-bold'>{row?.totalDebitsValue?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
 					<small className='text-truncate text-muted text-capitalize mb-0'>{row.totalDebitsVolume.toLocaleString()} Transactions</small>
 				</div>
 			</div>
@@ -94,7 +94,7 @@ export const columns = [
 			<div className="d-flex justify-content-left align-items-center">
 				{/* {renderClient(row.student)} */}
 				<div className='d-flex flex-column'>
-				<span className='font-weight-bold'>{row?.amount?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
+				<span className='font-weight-bold'>{row?.amount?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
 					<small className='text-truncate text-muted text-capitalize mb-0'>{row.serviceChargeCount.toLocaleString()} Transactions</small>
 				</div>
 			</div>
