@@ -49,6 +49,7 @@ import '@styles/react/libs/tables/react-dataTable-component.scss'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import FormGroup from 'reactstrap/lib/FormGroup'
+import { parse } from 'json2csv'
 
 // ** Table Header
 const CustomHeader = ({ toggleSidebar, handlePerPage, rowsPerPage, userData }) => {
@@ -360,11 +361,40 @@ const ReportsTable = () => {
 					<td>
 						<span className="align-middle fw-bold">{product.qty}</span>
 					</td>
-					<td>{`₦${product.orders.toLocaleString()}`}</td>
+					<td>{`${product.orders.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}</td>
 				</tr>
 			)
 		})
 	}
+
+	const exportToPDF = () => {
+		const doc = new jsPDF()
+		doc.setFontSize(24);
+		doc.setTextColor("blue");
+		doc.text("Tikifish Sales Platform.", 20, 20);
+		doc.setFontSize(12);
+		doc.text(`Report Summary from ${moment(picker[0]).format('LLL')} to ${moment(picker[1]).format('LLL')}`, 20, 30);
+		doc.autoTable({ html: '#report-table', startY: 40, startX: 80 })
+		doc.save(`report-summary-${moment(picker[0]).format('LLL')}-to-${moment(picker[1]).format('LLL')}-${new Date().getTime()}.pdf`)
+	  }
+	
+	  const exportToCSV = () => {
+		const data = renderTable().map(row => ({
+			Products: row.props.children[0].props.children,
+			Qty: row.props.children[1].props.children,
+			Sales: row.props.children[2].props.children
+		  }))
+		const csv = parse(data)
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+		const link = document.createElement('a')
+		const url = URL.createObjectURL(blob)
+		link.setAttribute('href', url)
+		link.setAttribute('download', 'report-summary.csv')
+		link.style.visibility = 'hidden'
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+	  }
 
 	return (
 		<Fragment>
@@ -439,7 +469,7 @@ const ReportsTable = () => {
 								<ModalHeader toggle={() => toggleModal()}>Report Summary</ModalHeader>
 								<ModalBody>
 									<Fragment>
-										<Table bordered responsive>
+										<Table bordered responsive id="report-table">
 											<thead>
 											<tr>
 												<th>Products</th>
@@ -455,7 +485,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> SUB TOTAL </span>
 												</td>
 												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersSubTotal?.toLocaleString()}`} </h5>
+													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersSubTotal?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
 												</td>
 											</tr>
 											<tr key={'logistics'}>
@@ -464,7 +494,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> TOTAL LOGISTICS </span>
 												</td>
 												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersLogistics?.toLocaleString()}`} </h5>
+													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersLogistics?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
 												</td>
 											</tr>
 											<tr key={'discounts'}>
@@ -473,7 +503,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> TOTAL DISCOUNTS </span>
 												</td>
 												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersDiscounts?.toLocaleString()}`} </h5>
+													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersDiscounts?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
 												</td>
 											</tr>
 											<tr key={'total'}>
@@ -482,7 +512,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> GRAND TOTAL </span>
 												</td>
 												<td>
-													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrders?.toLocaleString()}`} </h3>
+													<h3 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrders?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h3>
 												</td>
 											</tr>
 											<tr key={'space'}>
@@ -500,7 +530,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> TOTAL Packaging </span>
 												</td>
 												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersPackaging?.toLocaleString()}`} </h5>
+													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersPackaging?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
 												</td>
 											</tr>
 											<tr key={'profits'}>
@@ -509,7 +539,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> TOTAL Profits </span>
 												</td>
 												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersProfit?.toLocaleString()}`} </h5>
+													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersProfit?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
 												</td>
 											</tr>
 											
@@ -518,6 +548,9 @@ const ReportsTable = () => {
 									</Fragment>
 								</ModalBody>
 								<ModalFooter>
+									<Button color="success" onClick={exportToPDF} className="">
+										Export to PDF
+									</Button>
 									<Button color="primary" onClick={() => toggleModal()} outline>
 										Close
 									</Button>
