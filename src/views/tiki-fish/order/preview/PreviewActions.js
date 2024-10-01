@@ -6,6 +6,9 @@ import { Card, CardBody, Button } from 'reactstrap'
 import UpdateStatus from './UpdateStatus'
 import { swal, apiRequest } from '@utils'
 import { useDispatch } from 'react-redux'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+import moment from 'moment/moment'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { getOrder, completeOrder, nullifyOrder } from '../store/action'
@@ -91,6 +94,52 @@ const PreviewActions = ({ id, data }) => {
           }
         })
   	}
+
+    const handleDownloadOrder = () => {
+      // Fetch order details based on orderId
+      // const orderDetails = data.find(order => order.id === orderId)
+  
+      // Create a new jsPDF instance
+      const doc = new jsPDF()
+      doc.setFontSize(24);
+		  doc.setTextColor("blue");
+      doc.text("Tikifish Sales.", 14, 20);
+  
+      // Add title
+      doc.setFontSize(12);
+      doc.text(`Order Details - ${data.orderNumber}`, 14, 30)
+  
+      // Add order details
+      doc.text(`Date: ${moment(data.createdAt).format('LLL')}`, 14, 38)
+      doc.text(`Customer: ${data.customer.fullName} - ${data.customer.phone}`, 14, 46)
+      doc.text(`Location: ${data.location}`, 14, 54)
+      doc.text(`Payment Mode: ${data.paymentMode}`, 14, 62)
+      doc.text(`Order Status: ${data.status}`, 14, 70)
+  
+      // Add order products table
+      doc.autoTable({
+        startY: 78,
+        head: [['Product', 'Qty', 'Price', 'Total']],
+        body: data.products.map(product => [product.name, product.qty, `${product.price.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`, `${product.amount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`])
+      })
+  
+      // Add total
+      const rightAlign = (text, y) => {
+        const pageWidth = doc.internal.pageSize.width;
+        const textWidth = doc.getTextWidth(text);
+        doc.text(text, pageWidth - textWidth - 14, y);
+      };
+
+      rightAlign(`Sub Total: ${data.subTotal.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`, doc.autoTable.previous.finalY + 10);
+      rightAlign(`Logistics: ${data.logistics.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`, doc.autoTable.previous.finalY + 20);
+      rightAlign(`Discount: ${data.discount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`, doc.autoTable.previous.finalY + 30);
+      doc.setFont(undefined, 'bold');
+      rightAlign(`Total: ${data.amount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`, doc.autoTable.previous.finalY + 40);
+      doc.setFont(undefined, 'normal'); // Reset to normal font
+  
+      // Save the PDF
+      doc.save(`order-${data.orderNumber}.pdf`)
+    }
 	return (
 		<Card className="invoice-action-wrapper">
 			<CardBody>
@@ -103,6 +152,9 @@ const PreviewActions = ({ id, data }) => {
 				</Button.Ripple>
 				<Button.Ripple className='mb-75' color='danger' outline onClick={() => handleNullifyOrder(data.id)} block disabled={data.status !== 'processing'}>
 					Cancel Order
+				</Button.Ripple>
+        <Button.Ripple className='mb-75' color="success" onClick={() => handleDownloadOrder()} block outline>
+					Download
 				</Button.Ripple>
 				<Button.Ripple color="secondary" tag={Link} to={`/order/print/${id}`} block outline className="mb-75">
 					Print
