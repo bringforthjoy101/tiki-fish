@@ -89,6 +89,13 @@ export const columns = [
 		sortable: true,
 		cell: (row) => <span className="text-capitalize">{row?.amount?.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>,
 	},
+	{
+		name: 'Category',
+		minWidth: '150px',
+		selector: 'category',
+		sortable: true,
+		cell: (row) => <span className="text-capitalize">{row?.category}</span>,
+	},
 	// {
 	//   name: 'Products ',
 	//   minWidth: '150px',

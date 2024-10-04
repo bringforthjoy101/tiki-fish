@@ -1,18 +1,19 @@
 import { paginateArray, sortCompare, apiRequest, swal } from '@utils'
 
 // ** Get all Report
-export const getAllData = () => {
+export const getAllData = ({ startDate, endDate }) => {
 	return async dispatch => {
-	  const response = await apiRequest({url:'/withdrawals', method:'GET'}, dispatch)
-	  if (response && response.data.data && response.data.status) {
-		  await dispatch({
-			type: 'GET_ALL_WITHDRAWAL_DATA',
-			data: response.data.data
-		  })
-	  } else {
-		console.log(response)
-		swal('Oops!', 'Something went wrong.', 'error')
-	  }
+		const body = JSON.stringify({ startDate, endDate })
+	  	const response = await apiRequest({ url:'/withdrawals', method:'POST', body }, dispatch)
+		if (response && response.data.data && response.data.status) {
+			await dispatch({
+				type: 'GET_ALL_WITHDRAWAL_DATA',
+				data: response.data.data
+			})
+		} else {
+			console.log(response)
+			swal('Oops!', 'Something went wrong.', 'error')
+		}
 	}
   }
   

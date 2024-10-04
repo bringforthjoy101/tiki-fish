@@ -116,9 +116,9 @@ const ReportsTable = () => {
 	// ** Get data on mount
 	useEffect(() => {
 		console.log('store', store.loading)
-		dispatch(getAllData())
+		dispatch(getAllData({ startDate: moment().format('L').split('/').join('-'), endDate: moment().format('L').split('/').join('-')}))
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store?.allData.withdrawals, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: searchTerm,
@@ -141,7 +141,7 @@ const ReportsTable = () => {
 	// ** Function in get data on page change
 	const handlePagination = (page) => {
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store?.allData.withdrawals, {
 				page: page.selected + 1,
 				perPage: rowsPerPage,
 				q: searchTerm,
@@ -154,7 +154,7 @@ const ReportsTable = () => {
 	const handlePerPage = (e) => {
 		const value = parseInt(e.currentTarget.value)
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store?.allData.withdrawals, {
 				page: currentPage,
 				perPage: value,
 				q: searchTerm,
@@ -167,7 +167,7 @@ const ReportsTable = () => {
 	const handleFilter = (val) => {
 		setSearchTerm(val)
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store?.allData.withdrawals, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: val,
@@ -179,10 +179,10 @@ const ReportsTable = () => {
 		const range = date.map((d) => new Date(d).getTime())
 		setPicker(range)
 		dispatch(
-			getSalesReport({ startDate: moment(date[0]).format('L').split('/').join('-'), endDate: moment(date[1]).format('L').split('/').join('-'), category: currentCategory.value })
+			getAllData({ startDate: moment(date[0]).format('L').split('/').join('-'), endDate: moment(date[1]).format('L').split('/').join('-') })
 		)
 		dispatch(
-			getFilteredData(store?.allData, {
+			getFilteredData(store?.allData.withdrawals, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: searchTerm,
@@ -341,21 +341,21 @@ const ReportsTable = () => {
 		} else if (store?.data?.length === 0 && isFiltered) {
 			return []
 		} else {
-			return store?.allData?.slice(0, rowsPerPage)
+			return store?.allData.withdrawals?.slice(0, rowsPerPage)
 		}
 	}
 
 	const renderTable = () => {
-		return store?.allData?.summary?.map((product) => {
+		return store?.allData?.categorySummary?.map((category, key) => {
 			return (
-				<tr key={product.product}>
+				<tr key={key}>
 					<td>
-						<span className="align-middle fw-bold">{product.product}</span>
+						<span className="align-middle fw-bold">{category.category}</span>
 					</td>
 					<td>
-						<span className="align-middle fw-bold">{product.qty}</span>
+						<span className="align-middle fw-bold">{category.count}</span>
 					</td>
-					<td>{`₦${product.orders.toLocaleString()}`}</td>
+					<td>{`₦${category.totalAmount.toLocaleString()}`}</td>
 				</tr>
 			)
 		})
@@ -376,7 +376,7 @@ const ReportsTable = () => {
 									id="search-invoice"
 									type="text"
 									value={searchTerm}
-									placeholder="Sale ID Search"
+									placeholder="Withdrawal Search"
 									onChange={(e) => handleFilter(e.target.value)}
 								/>
 							</FormGroup>
@@ -406,7 +406,7 @@ const ReportsTable = () => {
 								/>
 							</FormGroup>
 						</Col> */}
-						{/* <Col lg="4" md="6">
+						<Col lg="4" md="6">
 							<Label for="range-picker">Select Range</Label>
 							<Flatpickr
 								value={picker}
@@ -418,93 +418,38 @@ const ReportsTable = () => {
 									defaultDate: ['2020-02-01', '2020-02-15'],
 								}}
 							/>
-						</Col> */}
-						{/* <Col
+						</Col>
+						<Col
 							lg="4"
 							md="6"
 							className="d-flex align-items-sm-center justify-content-lg-end justify-content-start flex-lg-nowrap flex-wrap flex-sm-row flex-column pr-lg-1 p-0 mt-lg-0 mt-1"
 						>
 							<>
 								<Button.Ripple color="primary" onClick={() => toggleModal()}>
-									{' '}
-									Show Summary{' '}
+									Show Summary
 								</Button.Ripple>
 							</>
 							<Modal isOpen={modal} toggle={() => toggleModal()} className={'modal-dialog-centered modal-lg'} key={1}>
-								<ModalHeader toggle={() => toggleModal()}>Report Summary</ModalHeader>
+								<ModalHeader toggle={() => toggleModal()}>Withdrawal Report Summary</ModalHeader>
 								<ModalBody>
 									<Fragment>
 										<Table bordered responsive>
 											<thead>
 											<tr>
-												<th>Products</th>
-												<th>Qty</th>
-												<th>Sales</th>
+												<th>Category</th>
+												<th>Count</th>
+												<th>Total</th>
 											</tr>
 											</thead>
 											<tbody>
 											{renderTable()}
-											<tr key={'sub-total'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> SUB TOTAL </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersSubTotal?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'logistics'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL LOGISTICS </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersLogistics?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'discounts'}>
-												<td></td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL DISCOUNTS </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersDiscounts?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
 											<tr key={'total'}>
 												<td></td>
 												<td>
 													<span className="align-middle fw-bold"> GRAND TOTAL </span>
 												</td>
 												<td>
-													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrders?.toLocaleString()}`} </h3>
-												</td>
-											</tr>
-											<tr key={'space'}>
-												<td></td>
-												<td>
-													
-												</td>
-												<td>
-													
-												</td>
-											</tr>
-											<tr key={'packaging'}>
-												<td>Extras</td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL Packaging </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersPackaging?.toLocaleString()}`} </h5>
-												</td>
-											</tr>
-											<tr key={'profits'}>
-												<td>Extras</td>
-												<td>
-													<span className="align-middle fw-bold"> TOTAL Profits </span>
-												</td>
-												<td>
-													<h5 className="align-middle fw-bold"> {`₦${store?.allData?.sumOfOrdersProfit?.toLocaleString()}`} </h5>
+													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.withdrawals?.reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString()}`} </h3>
 												</td>
 											</tr>
 											
@@ -518,7 +463,7 @@ const ReportsTable = () => {
 									</Button>
 								</ModalFooter>
 							</Modal>
-						</Col> */}
+						</Col>
 					</Row>
 				</CardBody>
 			</Card>

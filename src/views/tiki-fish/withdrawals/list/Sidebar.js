@@ -2,6 +2,7 @@
 import Sidebar from '@components/sidebar'
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
+import moment from 'moment'
 
 import { swal, apiRequest } from '@utils'
 import { getAllData, getFilteredData } from '../store/action'
@@ -16,6 +17,7 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 	const [withdrawalData, setWithdrawalData] = useState({
 		amount: '',
 		purpose: '',
+		category: ''
 	})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -34,10 +36,11 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 					if (response.data.status) {
 						setIsSubmitting(false)
 						swal('Great job!', response.data.message, 'success')
-						dispatch(getAllData())
+						dispatch(getAllData({ startDate: moment().format('L').split('/').join('-'), endDate: moment().format('L').split('/').join('-') }))
 						setWithdrawalData({
 							amount: '',
 							purpose: '',
+							category: ''
 						})
 						toggleSidebar()
 					} else {
@@ -45,6 +48,7 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 						setWithdrawalData({
 							amount: '',
 							purpose: '',
+							category: ''
 						})
 						swal('Oops!', response.data.message, 'error')
 					}
@@ -61,11 +65,11 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 
 	useEffect(() => {
 		// onSubmit()
-		dispatch(getAllData())
+		dispatch(getAllData({ startDate: moment().format('L').split('/').join('-'), endDate: moment().format('L').split('/').join('-') }))
 	}, [dispatch])
 
 	return (
-		<Sidebar size="lg" open={open} title="New User" headerClassName="mb-1" contentClassName="pt-0" toggleSidebar={toggleSidebar}>
+		<Sidebar size="lg" open={open} title="New Withdrawal" headerClassName="mb-1" contentClassName="pt-0" toggleSidebar={toggleSidebar}>
 			<AvForm onSubmit={onSubmit}>
 				<FormGroup>
 					<Label for="amount">Amount</Label>
@@ -78,6 +82,30 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 						onChange={(e) => setWithdrawalData({ ...withdrawalData, amount: e.target.value })}
 						required
 					/>
+				</FormGroup>
+				<FormGroup>
+					<Label for='category'>Category</Label>
+					<AvInput 
+						type='select' 
+						id='category' 
+						name='category' 
+						value={withdrawalData.category}
+						onChange={e => setWithdrawalData({...withdrawalData, category: e.target.value})}
+						required
+					>
+						<option value=''>Select Category</option>
+						<option value='WAYBILL'>Waybill</option>
+						<option value='CARTON'>Carton</option>
+						<option value='BURBLE_WRAPS'>Burble Wraps</option>
+						<option value='GUSSET_BAGS'>Gusset Bags</option>
+						<option value='JARS'>Jars</option>
+						<option value='LOGISTICS'>Logistics</option>
+						<option value='FUEL'>Fuel</option>
+						<option value='PAYMENT_TO_SUPPLIERS'>Payment To Suppliers</option>
+						<option value='CELLOTAPE'>Cellotape</option>
+						<option value='STATIONARY'>Stationary</option>
+						<option value='OTHERS'>Others</option>
+					</AvInput>
 				</FormGroup>
 				<FormGroup>
 					<Label for="purpose">Purpose</Label>
