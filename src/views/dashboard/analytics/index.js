@@ -6,7 +6,7 @@ import ContactsCount from '@src/views/ui-elements/cards/statistics/ContactsCount
 import CardCongratulations from '@src/views/ui-elements/cards/advance/CardCongratulations'
 import StatsCard from '@src/views/ui-elements/cards/statistics/StatsCard'
 import StatsVertical from '@components/widgets/stats/StatsVertical'
-import { Eye, TrendingUp } from 'react-feather'
+import { DollarSign, Eye, TrendingUp } from 'react-feather'
 
 import '@styles/react/libs/charts/apex-charts.scss'
 
@@ -63,16 +63,59 @@ const AnalyticsDashboard = () => {
 				</Col>
 			</Row>
 			<Row className="match-height">
-				<Col xl="4" md="8" sm="12">
+				{/* <Col xl="4" md="8" sm="12">
 					<StatsVertical icon={<Eye size={21} />} color="success" stats={Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})} statTitle="Account Balance" />
+				</Col> */}
+				<Col xl="2" md="4" sm="6">
+					<StatsVertical icon={<DollarSign size={21} />} color="success" stats={dashData.businessBalance ? Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="s" />} statTitle="Total Account Balance" />
 				</Col>
+				<Col xl="2" md="4" sm="6">
+					<StatsVertical icon={<DollarSign size={21} />} color="success" stats={dashData.logisticsBalance ? Number(dashData?.logisticsBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="s" />} statTitle="Logistics Balance" />
+				</Col>
+				<Col xl="2" md="4" sm="6">
+					<StatsVertical
+						icon={<DollarSign size={21} />}
+						color="success"
+						stats={dashData.packagingBalance ? Number(dashData?.packagingBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						statTitle="Packaging Balance"
+					/>
+				</Col>
+				<Col xl="2" md="4" sm="6">
+					<StatsVertical
+						icon={<DollarSign size={21} />}
+						color="success"
+						stats={dashData.profitBalance ? Number(dashData?.profitBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						statTitle="Profit Balance"
+					/>
+				</Col>
+				<Col xl="2" md="4" sm="6">
+					<StatsVertical
+						icon={<DollarSign size={21} />}
+						color="success"
+						stats={dashData.salesBalance ? Number(dashData?.salesBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						statTitle="Sales Balance"
+					/>
+				</Col>
+				<Col xl="2" md="4" sm="6">
+					<StatsVertical
+						icon={<DollarSign size={21} />}
+						color="success"
+						stats={dashData.smokeHouseBalance ? Number(dashData?.smokeHouseBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						statTitle="Smoke House Balance"
+					/>
+				</Col>
+			</Row>
+			<Row className="match-height">
+				{/* <Col xl="4" md="8" sm="12">
+					<StatsVertical icon={<Eye size={21} />} color="success" stats={Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})} statTitle="Account Balance" />
+				</Col> */}
 				{/* <Col xl="2" md="4" sm="6">
 					<StatsVertical icon={<Eye size={21} />} color="warning" stats={numFormatter(dashData.totalOrders)} statTitle="Orders" />
 				</Col> */}
-				<Col xl="2" md="4" sm="6">
+				<Col xl="3" md="4" sm="6">
 					<StatsVertical icon={<TrendingUp size={21} />} color="primary" stats={dashData.stock ? Number(dashData?.stock.stockVolume).toLocaleString() : <Spinner className="mr-25" size="s" />} statTitle="Total Stocks Available" />
 				</Col>
-				<Col xl="2" md="4" sm="6">
+				<Col xl="3" md="4" sm="6">
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
@@ -80,7 +123,7 @@ const AnalyticsDashboard = () => {
 						statTitle="Available Stocks"
 					/>
 				</Col>
-				<Col xl="2" md="4" sm="6">
+				<Col xl="3" md="4" sm="6">
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
@@ -88,7 +131,7 @@ const AnalyticsDashboard = () => {
 						statTitle="Profit Today"
 					/>
 				</Col>
-				<Col xl="2" md="4" sm="6">
+				<Col xl="3" md="4" sm="6">
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"

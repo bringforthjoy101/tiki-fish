@@ -22,7 +22,8 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
     category: '',
     price: '',
     costPrice: '',
-    packagingPrice: ''
+    packagingPrice: '',
+    smokeHousePrice: ''
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -53,7 +54,8 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
               category: '',
               price: '',
               costPrice: '',
-              packagingPrice: ''
+              packagingPrice: '',
+              smokeHousePrice: ''
             })
             toggleSidebar()
         } else {
@@ -68,7 +70,8 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             category: '',
             price: '',
             costPrice: '',
-            packagingPrice: ''
+            packagingPrice: '',
+            smokeHousePrice: ''
           })
           toggleSidebar()
         }
@@ -122,14 +125,14 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for='price'>Product Selling Price</Label>
+            <Label for='smokeHousePrice'>Smoke House Price</Label>
             <AvInput 
               type='number' 
-              name='price' 
-              id='price' 
-              placeholder='Product Price' 
-              value={productData.price}
-              onChange={e => setProductData({...productData, price: e.target.value})}
+              name='smokeHousePrice' 
+              id='smokeHousePrice' 
+              placeholder='Smoke House Price' 
+              value={productData.smokeHousePrice}
+              onChange={e => setProductData({...productData, smokeHousePrice: e.target.value})}
             />
           </FormGroup>
           <FormGroup>
@@ -141,6 +144,17 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
               placeholder='Product Packagaing Price' 
               value={productData.packagingPrice}
               onChange={e => setProductData({...productData, packagingPrice: e.target.value})}
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for='price'>Product Selling Price</Label>
+            <AvInput 
+              type='number' 
+              name='price' 
+              id='price' 
+              placeholder='Product Price' 
+              value={productData.price}
+              onChange={e => setProductData({...productData, price: e.target.value})}
             />
           </FormGroup>
           <FormGroup>

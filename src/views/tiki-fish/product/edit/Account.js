@@ -22,6 +22,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 		price: selectedProduct.price,
 		costPrice: selectedProduct.costPrice,
 		packagingPrice: selectedProduct.packagingPrice,
+		smokeHousePrice: selectedProduct.smokeHousePrice,
 		unit: selectedProduct.unit,
 		unitValue: selectedProduct.unitValue,
 		category: selectedProduct.category
@@ -46,6 +47,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 						price: selectedProduct.price,
 						costPrice: selectedProduct.costPrice,
 						packagingPrice: selectedProduct.packagingPrice,
+						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
 					})
 				} else {
@@ -56,6 +58,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 						price: selectedProduct.price,
 						costPrice: selectedProduct.costPrice,
 						packagingPrice: selectedProduct.packagingPrice,
+						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
 					})
 				}
@@ -179,6 +182,19 @@ const UserAccountTab = ({ selectedProduct }) => {
 									placeholder="Product Selling Price"
 									value={selectedProduct.price || 0}
 									onChange={(e) => setProductData({ ...productData, price: e.target.value })}
+									required
+								/>
+							</FormGroup>
+						</Col>
+						<Col md="6" sm="12">
+							<FormGroup>
+								<Label for="smokeHousePrice">Smoke House Price</Label>
+								<AvInput
+									name="smokeHousePrice"
+									id="smokeHousePrice"
+									placeholder="Smoke House Price"
+									value={selectedProduct.smokeHousePrice || 0}
+									onChange={(e) => setProductData({ ...productData, smokeHousePrice: e.target.value })}
 									required
 								/>
 							</FormGroup>

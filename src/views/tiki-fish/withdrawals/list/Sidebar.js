@@ -4,22 +4,29 @@ import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import moment from 'moment'
 
-import { swal, apiRequest } from '@utils'
+import { swal, apiRequest, selectThemeColors } from '@utils'
 import { getAllData, getFilteredData } from '../store/action'
 
 // ** Third Party Components
 import { Button, FormGroup, Label, Spinner } from 'reactstrap'
 import { AvForm, AvInput } from 'availity-reactstrap-validation-safe'
+import Select from 'react-select'
 
 const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 	const dispatch = useDispatch()
 
+	
+	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [wallets, setWallets] = useState([])
+	const [selectedWallet, setSelectedWallet] = useState('')
+
 	const [withdrawalData, setWithdrawalData] = useState({
 		amount: '',
 		purpose: '',
-		category: ''
+		category: '',
+		walletId: selectedWallet.value
 	})
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	
 
 	// ** Function to handle form submit
 	const onSubmit = async (event, errors) => {
@@ -40,7 +47,8 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 						setWithdrawalData({
 							amount: '',
 							purpose: '',
-							category: ''
+							category: '',
+							walletId: selectedWallet.value
 						})
 						toggleSidebar()
 					} else {
@@ -48,7 +56,8 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 						setWithdrawalData({
 							amount: '',
 							purpose: '',
-							category: ''
+							category: '',
+							walletId: selectedWallet.value
 						})
 						swal('Oops!', response.data.message, 'error')
 					}
@@ -66,11 +75,45 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 	useEffect(() => {
 		// onSubmit()
 		dispatch(getAllData({ startDate: moment().format('L').split('/').join('-'), endDate: moment().format('L').split('/').join('-') }))
+		
 	}, [dispatch])
+
+	useEffect(() => {
+		apiRequest({ url: '/wallets', method: 'GET' }).then(walletResponse => {
+			console.log({walletResponse})
+			setWallets(walletResponse.data.data)
+		})
+		setWithdrawalData({
+			...withdrawalData,
+			walletId: selectedWallet.value
+		})
+		
+	}, [selectedWallet])
+
+	const renderWallets = (wallets) => {
+		console.log(wallets)
+		return wallets
+			.map((wallet) => {
+				return { value: wallet.id, label: `${wallet.name} (${wallet.balance.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })})` }
+			})
+	}
 
 	return (
 		<Sidebar size="lg" open={open} title="New Withdrawal" headerClassName="mb-1" contentClassName="pt-0" toggleSidebar={toggleSidebar}>
 			<AvForm onSubmit={onSubmit}>
+				<FormGroup>
+					<Label for="walletId">Select Wallet</Label>
+					<Select
+						theme={selectThemeColors}
+						className="react-select"
+						classNamePrefix="select"
+						defaultValue={selectedWallet}
+						options={renderWallets(wallets)}
+						isClearable={false}
+						onChange={setSelectedWallet}
+						required
+					/>
+				</FormGroup>
 				<FormGroup>
 					<Label for="amount">Amount</Label>
 					<AvInput

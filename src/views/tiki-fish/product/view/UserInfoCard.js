@@ -201,7 +201,15 @@ const UserInfoCard = ({ selectedProduct }) => {
                   <span>Product Cost Price: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{selectedProduct.costPrice.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{(selectedProduct.costPrice).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
+                </div>
+              </div>
+              <div className='d-flex align-items-center mr-2 mt-1'>
+                <div className='color-box'>
+                  <span>Product Smoke House Price: </span>
+                </div>
+                <div className='ml-1'>
+                  <h6 className='mb-0'>{(selectedProduct.smokeHousePrice).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
@@ -236,7 +244,7 @@ const UserInfoCard = ({ selectedProduct }) => {
                   <span>Product Profit Margin: </span>
                 </div>
                 <div className='ml-1'>
-                  <h6 className='mb-0'>{(Number(selectedProduct.price) - (Number(selectedProduct.costPrice) + Number(selectedProduct.packagingPrice))).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
+                  <h6 className='mb-0'>{(Number(selectedProduct.price) - (Number(selectedProduct.costPrice) + Number(selectedProduct.smokeHousePrice) + Number(selectedProduct.packagingPrice))).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</h6>
                 </div>
               </div>
               <div className='d-flex align-items-center mr-2 mt-1'>
