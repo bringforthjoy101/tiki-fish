@@ -138,7 +138,7 @@ const UserInfoCard = ({ selectedProduct }) => {
           <Col xl='6' lg='12' className='d-flex flex-column justify-content-between border-container-lg'>
             <div className='user-avatar-section d-flex justify-content-between'>
               <div className='d-flex justify-content-start'>
-                {renderImg()}
+                {/* {renderImg()} */}
                 <div className='d-flex flex-column ml-1'>
                   <div className='user-info mt-2'>
                     <h4 className='mb-2'>{selectedProduct.name}</h4>
