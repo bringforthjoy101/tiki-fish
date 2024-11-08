@@ -137,29 +137,28 @@ const UserInfoCard = ({ selectedProduct }) => {
         <Row>
           <Col xl='6' lg='12' className='d-flex flex-column justify-content-between border-container-lg'>
             <div className='user-avatar-section d-flex justify-content-between'>
-              {/* <h3>Product Details</h3> */}
               <div className='d-flex justify-content-start'>
                 {renderImg()}
                 <div className='d-flex flex-column ml-1'>
                   <div className='user-info mt-2'>
                     <h4 className='mb-2'>{selectedProduct.name}</h4>
-                    {/* <CardText tag='span'>
-                      ID: {selectedProduct.status}
-                    </CardText> */}
                   </div>
                   <div className='d-flex flex-wrap align-items-center'>
-                    <Button.Ripple tag={Link} to={`/product/edit/${selectedProduct.id}`} color='primary'>
+                    <Button.Ripple tag={Link} to={`/product/edit/${selectedProduct.id}`} color='primary' className='mr-1 mb-1'>
                       Edit
                     </Button.Ripple>
-                    <Button.Ripple className='ml-1' color='danger' outline onClick={() => handleDelete(selectedProduct.id)}>
+                    <Button.Ripple color='danger' outline onClick={() => handleDelete(selectedProduct.id)} className='mr-1 mb-1'>
                       Delete
+                    </Button.Ripple>
+                    <Button.Ripple color="primary" onClick={() => setModal((prev) => !prev)} className='mb-1'>
+                      Calculate Profit
                     </Button.Ripple>
                   </div>
                 </div>
               </div>
               <div className='d-flex justify-content-end'>
                 <Row className='d-flex justify-content-end'>
-                  <Col lg="4" md="6">
+                  <Col lg="12" md="12" sm="12">
                     <Flatpickr
                       value={picker}
                       id="range-picker"
@@ -171,31 +170,12 @@ const UserInfoCard = ({ selectedProduct }) => {
                       }}
                     />
                   </Col>
-                  <Col lg="4" md="6" >
-                      <Button.Ripple color="primary" onClick={() => setModal((prev) => !prev)}>Calculate Profit</Button.Ripple>
-                    <Modal isOpen={modal} toggle={() => setModal((prev) => !prev)} className={'modal-dialog-centered modal-lg'} key={1}>
-                      <ModalHeader toggle={() => setModal((prev) => !prev)}>{selectedProduct.name}'s profit from {moment(picker[0]).format('LL')} to {moment(picker[1]).format('LL')}</ModalHeader>
-                      <ModalBody>
-                        <Fragment>
-                          <h2>QTY Sold:- {profit.qty.toLocaleString()} Units</h2>
-                          <h2>Sales Value:- {profit.sales.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</h2>
-                          <h2>Profit:- {profit.profit.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</h2>
-                        </Fragment>
-                      </ModalBody>
-                      <ModalFooter>
-                        <Button color="primary" onClick={() => setModal((prev) => !prev)} outline>
-                          Accept
-                        </Button>
-                      </ModalFooter>
-                    </Modal>
-                  </Col>
                 </Row>
               </div>
             </div>
           </Col>
-          <Col xl='6' lg='12' className='d-flex flex-row justify-content-between border-container-lg'>
+          <Col xl='6' lg='12' className='d-flex flex-column justify-content-between border-container-lg'>
             <div className='user-avatar-section'>
-              {/* <h3>Product Details</h3> */}
               <div className='d-flex align-items-center mr-2 mt-1'>
                 <div className='color-box'>
                   <span>Product Cost Price: </span>
@@ -230,7 +210,6 @@ const UserInfoCard = ({ selectedProduct }) => {
               </div>
             </div>
             <div className='user-avatar-section'>
-              {/* <h3>Product Details</h3> */}
               <div className='d-flex align-items-center mr-2 mt-1'>
                 <div className='color-box'>
                   <span>Product Unit: </span>
@@ -258,6 +237,21 @@ const UserInfoCard = ({ selectedProduct }) => {
             </div>
           </Col>
         </Row>
+        <Modal isOpen={modal} toggle={() => setModal((prev) => !prev)} className={'modal-dialog-centered modal-lg'} key={1}>
+          <ModalHeader toggle={() => setModal((prev) => !prev)}>{selectedProduct.name}'s profit from {moment(picker[0]).format('LL')} to {moment(picker[1]).format('LL')}</ModalHeader>
+          <ModalBody>
+            <Fragment>
+              <h2>QTY Sold:- {profit.qty.toLocaleString()} Units</h2>
+              <h2>Sales Value:- {profit.sales.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</h2>
+              <h2>Profit:- {profit.profit.toLocaleString('en-NG', { style: 'currency', currency: 'NGN'})}</h2>
+            </Fragment>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={() => setModal((prev) => !prev)} outline>
+              Accept
+            </Button>
+          </ModalFooter>
+        </Modal>
       </CardBody>
     </Card>
   )

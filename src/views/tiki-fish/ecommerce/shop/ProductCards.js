@@ -58,7 +58,7 @@ const ProductCards = props => {
                   <div className='item-rating'>
                   <h6 className='item-name'>
                     {/* <Link className='text-body' to={`/apps/ecommerce/product-detail/${item.id}`}> */}
-                      {item.name}
+                      {item.name} ({item.unitValue}{item.unit})
                     {/* </Link> */}
                   </h6>
                   </div>
@@ -72,7 +72,7 @@ const ProductCards = props => {
                   </Link>
                 </h6> */}
                 <CardText className='item-description d-flex flex-row'>
-                  <span className='mr-auto'>{item.unitValue}{item.unit}</span>
+                  <span className='mr-auto'>₦{(Number(itemQty) * Number(item.price)).toLocaleString()}</span>
                   <Badge className='ml-auto' color={itemQty > 5 ? 'light-success' : 'light-danger'}>{itemQty} {itemQty > 5 ? 'Available' : 'Left'}</Badge>
                 </CardText>
               </CardBody>
