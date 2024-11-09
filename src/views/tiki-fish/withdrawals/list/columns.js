@@ -5,8 +5,15 @@ import moment from 'moment'
 import Avatar from '@components/avatar'
 
 // ** Third Party Components
-import { Badge } from 'reactstrap'
-import { Slack, User, Database, Edit } from 'react-feather'
+import { Badge, DropdownItem, DropdownMenu, UncontrolledDropdown, DropdownToggle } from 'reactstrap'
+import { Slack, User, Database, Edit, DollarSign, MoreVertical } from 'react-feather'
+
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import { refundWithdrawal, getAllData } from '../store/action'
+import { store } from '@store/storeConfig/store'
+
+const MySwal = withReactContent(Swal)
 
 // ** Renders Client Columns
 const renderClient = (row) => {
@@ -53,8 +60,8 @@ const renderRole = (row) => {
 }
 
 const statusObj = {
-	CASH: 'light-success',
-	REVOKED: 'light-danger',
+	SUCCESS: 'light-success',
+	REFUNDED: 'light-warning',
 }
 
 const modeObj = {
@@ -69,6 +76,37 @@ const orderStatus = {
 	completed: 'light-success',
 	cancelled: 'light-danger'
 }
+
+const handleRefund = async (id) => {
+	// const dispatch = useDispatch()
+	return MySwal.fire({
+	  title: 'Are you sure?',
+	  text: "You won't be able to revert this!",
+	  icon: 'warning',
+	  showCancelButton: true,
+	  confirmButtonText: 'Yes, refund it!',
+	  customClass: {
+		confirmButton: 'btn btn-primary',
+		cancelButton: 'btn btn-outline-danger ml-1'
+	  },
+	  buttonsStyling: false
+	}).then(async function (result) {
+	  if (result.value) {
+		const deleted = await store.dispatch(refundWithdrawal(id))
+		if (deleted?.status) {
+		  await store.dispatch(getAllData())
+			MySwal.fire({
+				icon: 'success',
+				title: 'Refunded!',
+				text: 'Withdrawal has been refunded.',
+				customClass: {
+				  confirmButton: 'btn btn-primary'
+				}
+			})
+		}
+	  }
+	})
+  }
 
 export const columns = [
 	// {
@@ -96,13 +134,17 @@ export const columns = [
 		sortable: true,
 		cell: (row) => <span className="text-capitalize">{row?.category}</span>,
 	},
-	// {
-	//   name: 'Products ',
-	//   minWidth: '150px',
-	//   selector: 'products',
-	//   sortable: true,
-	//   cell: row => <span className="text-capitalize">{getItemNames(row.products)}</span>
-	// },
+	{
+	  name: 'Status',
+	  minWidth: '150px',
+	  selector: 'status',
+	  sortable: true,
+	  cell: (row) => (
+		<Badge className="text-capitalize" color={statusObj[row.status]} pill>
+			{row.status}
+		</Badge>
+	),
+	},
 	{
 		name: 'Purpose',
 		minWidth: '150px',
@@ -133,4 +175,25 @@ export const columns = [
 			</div>
 		),
 	},
+	{
+		name: 'Actions',
+		selector: 'name',
+		sortable: true,
+		cell: row => (
+		  <UncontrolledDropdown>
+			<DropdownToggle tag='div' className='btn btn-sm'>
+			  <MoreVertical size={14} className='cursor-pointer' />
+			</DropdownToggle>
+			<DropdownMenu right>
+			  <DropdownItem 
+				className='w-100' 
+				onClick={() => handleRefund(row.id)}
+			  >
+				<DollarSign size={14} className='mr-50' />
+				<span className='align-middle'>Refund</span>
+			  </DropdownItem>
+			</DropdownMenu>
+		  </UncontrolledDropdown>
+		)
+	  }
 ]

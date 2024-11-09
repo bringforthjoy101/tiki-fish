@@ -105,3 +105,15 @@ export const getReport = (id) => {
 		}
 	}
 }
+
+export const refundWithdrawal = (withdrawalId) => {
+	return async dispatch => {
+	  const response = await apiRequest({url:`/withdrawals/reverse/${withdrawalId}`, method:'GET'}, dispatch)
+	  if (response && response.data.status) {
+		  return response.data
+	  } else {
+		console.log(response)
+		swal('Oops!', response.data.message, 'error')
+	  }
+	}
+  }

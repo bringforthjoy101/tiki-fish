@@ -449,7 +449,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> GRAND TOTAL </span>
 												</td>
 												<td>
-													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.withdrawals?.reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString()}`} </h3>
+													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.withdrawals?.filter(withdrawal => withdrawal.status === 'SUCCESS').reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString()}`} </h3>
 												</td>
 											</tr>
 											
