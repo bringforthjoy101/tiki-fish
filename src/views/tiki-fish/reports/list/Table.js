@@ -533,6 +533,15 @@ const ReportsTable = () => {
 													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersPackaging?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
 												</td>
 											</tr>
+											<tr key={'smokeHouse'}>
+												<td>Extras</td>
+												<td>
+													<span className="align-middle fw-bold"> TOTAL Smoke House </span>
+												</td>
+												<td>
+													<h5 className="align-middle fw-bold"> {`${store?.allData?.sumOfOrdersSmokeHouse?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5>
+												</td>
+											</tr>
 											<tr key={'profits'}>
 												<td>Extras</td>
 												<td>

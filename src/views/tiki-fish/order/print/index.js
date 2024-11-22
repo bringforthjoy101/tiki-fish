@@ -70,6 +70,7 @@ const { selectedOrder } = store
 					<h2 className="text-center mb-1" style={{ color: '#000000' }}>
 					TIKI FISH FARM & SMOKE HOUSE
 					</h2>
+					<span className="invoice-date-title text-center mb-1">500m Opposite Ilere Junction, Along Ijare Road, Akure South, Ondo State. Nigeria.</span>
 					<div className="mt-md-0 mt-2">
 						<h4 className="text-right mb-1" style={{ color: '#000000' }}>
 							BILL PRINT OUT #{selectedOrder?.saleNumber}
