@@ -14,7 +14,44 @@ import Select from 'react-select'
 
 const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 	const dispatch = useDispatch()
-
+	const categories = {
+		SALES: [
+			'Sea Fish Supplies',
+		'Farmed Catfish Supplies',
+		'Crayfish Supplies',
+		'Snails Supplies',
+		],
+		LOGISTICS: [
+			'GIG Wallet Funding',
+		'DHL Shipping Fees',
+		'Cargo Shipping Fees',
+		'Traditional Waybills Fees',
+		'Dispatch Riders Fees',
+		],
+		PACKAGING: [
+			'Cartons',
+		'Burble Wraps',
+		'Gusset Bags',
+		'Cookie Jars',
+		'Cellotape',
+		'Stationeries',
+		],
+		PROFIT: [
+			'Utility Vehicle Fueling',
+		'Salaries',
+		'Weekly Tips',
+		'Profit Withdrawals',
+		'Sales App Service Charges',
+		],
+		SMOKE_HOUSE: [
+			'Firewood Supplies',
+		'Salt',
+		'Skewers',
+		'Fuel at the Farm',
+		'SM Workers Salary',
+		'Maintenance'
+		]
+	}
 	
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [wallets, setWallets] = useState([])
@@ -137,17 +174,12 @@ const SidebarNewWithdrawal = ({ open, toggleSidebar }) => {
 						required
 					>
 						<option value=''>Select Category</option>
-						<option value='WAYBILL'>Waybill</option>
-						<option value='CARTON'>Carton</option>
-						<option value='BURBLE_WRAPS'>Burble Wraps</option>
-						<option value='GUSSET_BAGS'>Gusset Bags</option>
-						<option value='JARS'>Jars</option>
-						<option value='LOGISTICS'>Logistics</option>
-						<option value='FUEL'>Fuel</option>
-						<option value='PAYMENT_TO_SUPPLIERS'>Payment To Suppliers</option>
-						<option value='CELLOTAPE'>Cellotape</option>
-						<option value='STATIONARY'>Stationary</option>
-						<option value='OTHERS'>Others</option>
+						{
+							wallets && categories[wallets?.find(w => w.id === selectedWallet.value)?.name]?.map(category => (
+								<option value={category}>{category}</option>
+							))
+						}
+						<option value='Others'>Others</option>
 					</AvInput>
 				</FormGroup>
 				<FormGroup>

@@ -350,16 +350,30 @@ const ReportsTable = () => {
 			return (
 				<tr key={key}>
 					<td>
+						<span className="align-middle fw-bold">{category.walletName}</span>
+					</td>
+					<td>
 						<span className="align-middle fw-bold">{category.category}</span>
 					</td>
 					<td>
 						<span className="align-middle fw-bold">{category.count}</span>
 					</td>
-					<td>{`₦${category.totalAmount.toLocaleString()}`}</td>
+					<td>{`${category.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}</td>
 				</tr>
 			)
 		})
 	}
+
+	const exportToPDF = () => {
+		const doc = new jsPDF()
+		doc.setFontSize(24);
+		doc.setTextColor("blue");
+		doc.text("Tikifish Sales Platform.", 20, 20);
+		doc.setFontSize(12);
+		doc.text(`Withdrawal Summary from ${moment(picker[0]).format('LLL')} to ${moment(picker[1]).format('LLL')}`, 20, 30);
+		doc.autoTable({ html: '#withdrawal-table', startY: 40, startX: 80 })
+		doc.save(`withdrawal-summary-${moment(picker[0]).format('LLL')}-to-${moment(picker[1]).format('LLL')}-${new Date().getTime()}.pdf`)
+	  }
 
 	return (
 		<Fragment>
@@ -433,9 +447,10 @@ const ReportsTable = () => {
 								<ModalHeader toggle={() => toggleModal()}>Withdrawal Report Summary</ModalHeader>
 								<ModalBody>
 									<Fragment>
-										<Table bordered responsive>
+										<Table bordered responsive id="withdrawal-table">
 											<thead>
 											<tr>
+												<th>Wallet</th>
 												<th>Category</th>
 												<th>Count</th>
 												<th>Total</th>
@@ -445,11 +460,12 @@ const ReportsTable = () => {
 											{renderTable()}
 											<tr key={'total'}>
 												<td></td>
+												<td></td>
 												<td>
 													<span className="align-middle fw-bold"> GRAND TOTAL </span>
 												</td>
 												<td>
-													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.withdrawals?.filter(withdrawal => withdrawal.status === 'SUCCESS').reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString()}`} </h3>
+													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.withdrawals?.filter(withdrawal => withdrawal.status === 'SUCCESS').reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h3>
 												</td>
 											</tr>
 											
@@ -458,6 +474,9 @@ const ReportsTable = () => {
 									</Fragment>
 								</ModalBody>
 								<ModalFooter>
+									<Button color="success" onClick={exportToPDF} className="">
+										Export to PDF
+									</Button>
 									<Button color="primary" onClick={() => toggleModal()} outline>
 										Close
 									</Button>
