@@ -346,20 +346,38 @@ const ReportsTable = () => {
 	}
 
 	const renderTable = () => {
-		return store?.allData?.categorySummary?.map((category, key) => {
+		return store?.allData?.walletSummary?.map((wallet, key) => {
 			return (
-				<tr key={key}>
-					<td>
-						<span className="align-middle fw-bold">{category.walletName}</span>
-					</td>
-					<td>
-						<span className="align-middle fw-bold">{category.category}</span>
-					</td>
-					<td>
-						<span className="align-middle fw-bold">{category.count}</span>
-					</td>
-					<td>{`${category.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}</td>
-				</tr>
+				<Fragment key={key}>
+					{Object.keys(wallet.categories).map((categoryKey, index) => {
+						const category = wallet.categories[categoryKey]
+						return (
+							<tr key={index}>
+								{index === 0 && (
+									<td rowSpan={Object.keys(wallet.categories).length + 1}>
+										<h4 className="align-middle fw-bold">{wallet.wallet}</h4>
+									</td>
+								)}
+								<td>
+									<span className="align-middle fw-bold">{categoryKey}</span>
+								</td>
+								<td>
+									<span className="align-middle fw-bold">{category.count}</span>
+								</td>
+								<td>{`${category.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}</td>
+							</tr>
+						)
+					})}
+					<tr>
+						<td>
+							<h5 className="align-middle">Total</h5>
+						</td>
+						<td>
+							<h5 className="align-middle">{wallet.count}</h5>
+						</td>
+						<td> <h5 className="align-middle">{`${wallet.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h5></td>
+					</tr>
+				</Fragment>
 			)
 		})
 	}
@@ -370,9 +388,9 @@ const ReportsTable = () => {
 		doc.setTextColor("blue");
 		doc.text("Tikifish Sales Platform.", 20, 20);
 		doc.setFontSize(12);
-		doc.text(`Withdrawal Summary from ${moment(picker[0]).format('LLL')} to ${moment(picker[1]).format('LLL')}`, 20, 30);
+		doc.text(`Withdrawal Summary from ${moment(picker[0]).format('LL')} to ${moment(picker[1]).format('LL')}`, 20, 30);
 		doc.autoTable({ html: '#withdrawal-table', startY: 40, startX: 80 })
-		doc.save(`withdrawal-summary-${moment(picker[0]).format('LLL')}-to-${moment(picker[1]).format('LLL')}-${new Date().getTime()}.pdf`)
+		doc.save(`withdrawal-summary-${moment(picker[0]).format('LL')}-to-${moment(picker[1]).format('LL')}-${new Date().getTime()}.pdf`)
 	  }
 
 	return (
@@ -465,7 +483,7 @@ const ReportsTable = () => {
 													<span className="align-middle fw-bold"> GRAND TOTAL </span>
 												</td>
 												<td>
-													<h3 className="align-middle fw-bold"> {`₦${store?.allData?.withdrawals?.filter(withdrawal => withdrawal.status === 'SUCCESS').reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h3>
+													<h3 className="align-middle fw-bold"> {`${store?.allData?.withdrawals?.filter(withdrawal => withdrawal.status === 'SUCCESS').reduce((total, withdrawal) => total + withdrawal.amount, 0).toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`} </h3>
 												</td>
 											</tr>
 											
