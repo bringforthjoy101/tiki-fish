@@ -148,6 +148,22 @@ const ManagerRoutes = [
         path: '/transactions/list',
         component: lazy(() => import('../../views/tiki-fish/transactions/list')),
       },
+      {
+        path: '/wallets/list',
+        component: lazy(() => import('../../views/tiki-fish/wallets/list'))
+      },
+      {
+        path: '/wallets/view',
+        exact: true,
+        component: () => <Redirect to='/tiki-fish/wallets/view/1' />
+      },
+      {
+        path: '/wallets/view/:id',
+        component: lazy(() => import('../../views/tiki-fish/wallets/view')),
+        meta: {
+          navLink: '/tiki-fish/wallets/view'
+        }
+      },
 ]
 
 const BursaryRoutes = [
@@ -363,7 +379,7 @@ const StoreRoutes = [
   {
     path: '/transactions/list',
     component: lazy(() => import('../../views/tiki-fish/transactions/list')),
-  },
+  }
 ]
 
 export default userData?.role === 'admin' ? ManagerRoutes : userData?.role === 'store' ? BursaryRoutes : userData?.role === 'sales-rep' ? SalesRepRoutes : StoreRoutes

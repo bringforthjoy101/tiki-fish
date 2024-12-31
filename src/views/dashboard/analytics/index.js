@@ -126,6 +126,14 @@ const AnalyticsDashboard = () => {
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
+						stats={dashData.sales ? `₦${numFormatter(dashData.smokeHouseAvailableStock)}` : <Spinner className="mr-25" size="sm" />}
+						statTitle="Available Stocks - Smoke House"
+					/>
+				</Col>
+				<Col xl="4" md="6" sm="12">
+					<StatsVertical
+						icon={<TrendingUp size={21} />}
+						color="primary"
 						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.profitToday)}` : <Spinner className="mr-25" size="sm" />}
 						statTitle="Profit Today"
 					/>

@@ -10,6 +10,7 @@ import todo from '@src/views/apps/todo/store/reducer'
 import users from '@src/views/apps/user/store/reducer'
 
 import customers from '@src/views/tiki-fish/customer/store/reducer'
+import wallets from '@src/views/tiki-fish/wallets/store/reducer'
 import admins from '@src/views/tiki-fish/admin/store/reducer'
 import products from '@src/views/tiki-fish/product/store/reducer'
 import orders from '@src/views/tiki-fish/order/store/reducer'
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
   email,
   users,
   customers,
+  wallets,
   admins,
   products,
   settlements,
