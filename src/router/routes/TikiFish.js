@@ -164,6 +164,38 @@ const ManagerRoutes = [
           navLink: '/tiki-fish/wallets/view'
         }
       },
+      {
+        path: '/investments/packages/list',
+        component: lazy(() => import('../../views/tiki-fish/investment/list'))
+      },
+      {
+        path: '/investments/packages/view',
+        exact: true,
+        component: () => <Redirect to='/tiki-fish/investments/packages/view/1' />
+      },
+      {
+        path: '/investments/packages/view/:id',
+        component: lazy(() => import('../../views/tiki-fish/investment/view')),
+        meta: {
+          navLink: '/tiki-fish/investments/packages/view'
+        }
+      },
+      {
+        path: '/investments/investors/list',
+        component: lazy(() => import('../../views/tiki-fish/guests/list'))
+      },
+      {
+        path: '/investments/investors/view',
+        exact: true,
+        component: () => <Redirect to='/tiki-fish/investments/investors/view/1' />
+      },
+      {
+        path: '/investments/investors/view/:id',
+        component: lazy(() => import('../../views/tiki-fish/guests/view')),
+        meta: {
+          navLink: '/tiki-fish/investments/investors/view'
+        }
+      },
 ]
 
 const BursaryRoutes = [
