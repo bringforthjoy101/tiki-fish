@@ -196,6 +196,34 @@ const ManagerRoutes = [
           navLink: '/tiki-fish/investments/investors/view'
         }
       },
+      {
+        path: '/suppliers/list',
+        component: lazy(() => import('../../views/tiki-fish/supplier/list'))
+      },
+      {
+        path: '/supplier/view',
+        exact: true,
+        component: () => <Redirect to='/supplier/view/1' />
+      },
+      {
+        path: '/supplier/view/:id',
+        component: lazy(() => import('../../views/tiki-fish/supplier/view')),
+        meta: {
+          navLink: '/supplier/view'
+        }
+      },
+      {
+        path: '/supplier/edit',
+        exact: true,
+        component: () => <Redirect to='/supplier/edit/1' />
+      },
+      {
+        path: '/supplier/edit/:id',
+        component: lazy(() => import('../../views/tiki-fish/supplier/edit')),
+        meta: {
+          navLink: '/supplier/edit'
+        }
+      },
 ]
 
 const BursaryRoutes = [

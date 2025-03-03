@@ -11,8 +11,9 @@ import withdrawals from './withdrawals.js'
 import transactions from './transactions.js'
 import wallets from './wallets.js'
 import investments from './investments.js'
+import suppliers from './suppliers.js'
 
 const userData = JSON.parse(localStorage.getItem('userData'))
 
 // ** Merge & Export
-export default userData?.role === 'admin' ? [...dashboards, ...shop, ...investments, ...products, ...orders, ...customers, ...admins, ...withdrawals, ...transactions, ...wallets, ...reports] : userData?.role === 'store' ? [...dashboards, ...shop, ...customers, ...withdrawals, ...transactions, ...wallets] : userData?.role === 'sales-rep' ? [...dashboards, ...shop, ...customers, ...orders, ...withdrawals, ...transactions, ...wallets, ...reports] : [...dashboards, ...shop, ...withdrawals]
+export default userData?.role === 'admin' ? [...dashboards, ...shop, ...investments, ...products, ...suppliers, ...orders, ...customers, ...admins, ...withdrawals, ...transactions, ...wallets, ...reports] : userData?.role === 'store' ? [...dashboards, ...shop, ...customers, ...withdrawals, ...transactions, ...wallets] : userData?.role === 'sales-rep' ? [...dashboards, ...shop, ...customers, ...orders, ...withdrawals, ...transactions, ...wallets, ...reports] : [...dashboards, ...shop, ...withdrawals]
