@@ -64,7 +64,7 @@ const UserInfoCard = ({ selectedSupplier }) => {
   // ** Form
   const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
-      productId: '',
+      name: '',
       supplierId: selectedSupplier?.id || '',
       quantity: '',
       unitPrice: '',
@@ -299,26 +299,22 @@ const UserInfoCard = ({ selectedSupplier }) => {
                 <Row>
                   <Col md='6' sm='12'>
                     <FormGroup>
-                      <Label for='productId'>Product <span className='text-danger'>*</span></Label>
+                      <Label for='name'>Product <span className='text-danger'>*</span></Label>
                       <Controller
-                        name='productId'
+                        name='name'
                         control={control}
                         rules={{ required: true }}
                         render={({ field }) => (
-                          <Select
-                            id='productId'
-                            options={products}
-                            className={classnames('react-select', { 'is-invalid': errors.productId })}
-                            classNamePrefix='select'
-                            theme={selectThemeColors}
-                            isLoading={isLoadingProducts}
-                            placeholder="Select a product"
-                            onChange={handleProductChange}
-                            isClearable
+                          <Input
+                            type='text'
+                            id='name'
+                            placeholder='Enter product name'
+                            invalid={errors.name && true}
+                            {...field}
                           />
                         )}
                       />
-                      {errors.productId && <small className='text-danger'>Product is required</small>}
+                      {errors.name && <small className='text-danger'>Product is required</small>}
                     </FormGroup>
                   </Col>
                   <Col md='6' sm='12'>

@@ -222,7 +222,7 @@ const SupplyHistory = ({ id }) => {
             className='supply-row'
           >
             <td>
-              <span className='font-weight-bold'>{item.product.name}</span>
+              <span className='font-weight-bold'>{item.name}</span>
             </td>
             <td>{item.quantity.toLocaleString()}</td>
             <td>{item.unitPrice.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</td>
@@ -264,7 +264,7 @@ const SupplyHistory = ({ id }) => {
         <h5 className="mb-2">Supply Information</h5>
         <Row className="mb-2">
           <Col xs="6" md="4" className="font-weight-bold">Product:</Col>
-          <Col xs="6" md="8">{selectedSupply.product?.name || 'N/A'}</Col>
+          <Col xs="6" md="8">{selectedSupply.name || 'N/A'}</Col>
         </Row>
         <Row className="mb-2">
           <Col xs="6" md="4" className="font-weight-bold">Quantity:</Col>
@@ -289,6 +289,10 @@ const SupplyHistory = ({ id }) => {
               {selectedSupply.status || 'N/A'}
             </Badge>
           </Col>
+        </Row>
+        <Row className="mb-2">
+          <Col xs="6" md="4" className="font-weight-bold">Notes:</Col>
+          <Col xs="6" md="8">{selectedSupply.notes || 'N/A'}</Col>
         </Row>
 
         <h5 className="mt-3 mb-2">Payment Information</h5>
