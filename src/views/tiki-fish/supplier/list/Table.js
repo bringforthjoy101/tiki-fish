@@ -16,7 +16,7 @@ import Select from 'react-select'
 import ReactPaginate from 'react-paginate'
 import { ChevronDown, Plus } from 'react-feather'
 import DataTable from 'react-data-table-component'
-import { selectThemeColors } from '@utils'
+import { selectThemeColors, apiRequest } from '@utils'
 import { Card, CardHeader, CardTitle, CardBody, Input, Row, Col, Label, CustomInput, Button } from 'reactstrap'
 
 // ** Styles
@@ -87,6 +87,23 @@ const SuppliersList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentStatus, setCurrentStatus] = useState({ value: '', label: 'Select Status', number: 0 })
+  const [totalOwed, setTotalOwed] = useState(0)
+
+  // ** Function to fetch total owed
+  const fetchTotalOwed = async () => {
+    try {
+      const response = await apiRequest({url: '/suppliers', method: 'GET'})
+      
+      if (response?.data?.data && response.data.status) {
+        const total = response.data.data.reduce((total, supplier) => {
+          return total + (supplier.statistics?.totalOwed || 0)
+        }, 0)
+        setTotalOwed(total)
+      }
+    } catch (error) {
+      console.error('Error fetching total owed:', error)
+    }
+  }
 
   // ** Function to toggle sidebar
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
@@ -102,6 +119,7 @@ const SuppliersList = () => {
         q: searchTerm
       })
     )
+    fetchTotalOwed()
   }, [dispatch, store.data.length])
 
   // ** Function in get data on page change
@@ -232,7 +250,7 @@ const SuppliersList = () => {
           subHeader
           responsive
           paginationServer
-          columns={columns}
+          columns={columns(totalOwed)}
           sortIcon={<ChevronDown />}
           className='react-dataTable'
           paginationComponent={CustomPagination}

@@ -12,6 +12,7 @@ import { store } from '@store/storeConfig/store'
 import { Badge, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
 import { Slack, User, Settings, Database, Edit2, MoreVertical, FileText, Trash2, Archive } from 'react-feather'
 import moment from 'moment'
+import { apiRequest, swal } from '@utils'
 
 // ** Renders Client Columns
 const renderClient = row => {
@@ -48,7 +49,7 @@ const renderStatus = row => {
   </Badge>
 }
 
-export const columns = [
+export const columns = (totalOwed = 0) => [
   {
     name: 'Supplier',
     minWidth: '297px',
@@ -71,11 +72,20 @@ export const columns = [
     )
   },
   {
-    name: 'Total Owed',
+    name: (
+      <div>
+        Total Owed{' '}
+        <Badge color={totalOwed > 0 ? 'light-danger' : 'light-success'} pill>
+          {totalOwed.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}
+        </Badge>
+      </div>
+    ),
     minWidth: '250px',
     selector: 'totalOwed',
     sortable: true,
-    cell: row => <span className={row.statistics.totalOwed > 0 ? 'text-danger' : 'text-success'}>{(row.statistics.totalOwed || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
+    cell: row => <span className={row.statistics.totalOwed > 0 ? 'text-danger' : 'text-success'}>
+      {(row.statistics.totalOwed || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}
+    </span>
   },
   {
     name: 'Total Paid',
