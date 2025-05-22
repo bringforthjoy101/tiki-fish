@@ -174,6 +174,7 @@ export const fundWallet = (walletId, amount, narration) => {
 	return async (dispatch) => {
 		const body = JSON.stringify({ amount, narration })
 		const response = await apiRequest({ url: `/wallets/fund/${walletId}`, method: 'POST', body }, dispatch)
+		console.log({response})
 		if (response && response.data.success) {
 			swal('Good!', `Wallet Sucessfully.`, 'success')
 		} else {

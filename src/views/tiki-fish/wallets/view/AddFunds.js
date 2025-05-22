@@ -8,7 +8,7 @@ import { fundWallet, getAllData, getWalletDetails } from '../store/action'
 
 const AddFundsSchema = Yup.object().shape({
   amount: Yup.number()
-    .lessThan(100000, `You cant add funds more than 100000`)
+    .lessThan(100000000, `You cant add funds more than 100,000,000`)
     .required('Amount is required').positive().integer(),
   narration: Yup.string()
     .min(3, "Reason too Short!")
@@ -36,11 +36,11 @@ export const AddFunds = ({ walletDetails }) => {
           validationSchema={AddFundsSchema}
           onSubmit={async (values, { setSubmitting }) => {
             console.log(values)
-            setSubmitting(false)
-            setFormModal(!formModal)
-            await fundWallet(walletDetails.id, values.amount, values.narration)
+            await dispatch(fundWallet(walletDetails.id, values.amount, values.narration))
             await dispatch(getAllData())
             await dispatch(getWalletDetails(walletDetails.id))
+            setFormModal(!formModal)
+            setSubmitting(false)
           }}
         >
 
