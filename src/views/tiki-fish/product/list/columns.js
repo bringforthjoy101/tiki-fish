@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 // ** Custom Components
 import Avatar from '@components/avatar'
 import moment from 'moment'
+import { Badge, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
+import { Package, TrendingUp, AlertTriangle, MoreVertical, FileText, Archive, Trash2 } from 'react-feather'
 import { getAllData, deleteProduct } from '../store/action'
 import { store } from '@store/storeConfig/store'
 
@@ -11,11 +13,6 @@ import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 
 const MySwal = withReactContent(Swal)
-
-// ** Third Party Components
-import { UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
-import { MoreVertical, FileText, Trash2, Archive } from 'react-feather'
-
 
 // ** Third Party Components
 
@@ -78,8 +75,9 @@ export const columns = [
             to={`/product/view/${row.id}`}
             className='user-name text-truncate mb-0'
           >
-            <span className='font-weight-bold'>{row.name.slice(0, 20).trim()}{row.name.length > 20 ? '...' : ''}</span>
+            <span className='font-weight-bold'>{row.name}</span>
           </Link>
+          <small className='text-muted'>{row.description ? `${row.description.slice(0, 50)}...` : 'No description'}</small>
         </div>
       </div>
     )
@@ -93,11 +91,29 @@ export const columns = [
     cell: row => <span>{(row.price || 0).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
   },
   {
-    name: 'Qty',
+    name: 'Stock',
     selector: 'qty',
-    minWidth: '50px',
+    minWidth: '150px',
     sortable: true,
-    cell: row => <span className="text-capitalize">{Number(row.qty).toLocaleString()}</span>
+    cell: row => {
+      const qty = Number(row.qty)
+      let stockStatus = { color: 'success', text: 'In Stock', icon: <Package size={14} /> }
+      
+      if (qty === 0) {
+        stockStatus = { color: 'danger', text: 'Out of Stock', icon: <AlertTriangle size={14} /> }
+      } else if (qty < 10) {
+        stockStatus = { color: 'warning', text: 'Low Stock', icon: <AlertTriangle size={14} /> }
+      }
+      
+      return (
+        <div>
+          <Badge color={`light-${stockStatus.color}`} className='mb-1'>
+            {stockStatus.icon} {stockStatus.text}
+          </Badge>
+          <div className='small'>{qty.toLocaleString()} {row.unit}</div>
+        </div>
+      )
+    }
   },
   {
     name: 'Unit',
@@ -112,12 +128,37 @@ export const columns = [
     cell: row => <span className="text-capitalize">{row.category}</span>
   },
   {
-    name: 'Cretaed Date',
+    name: 'Profit Margin',
+    selector: 'profit',
+    minWidth: '150px',
+    sortable: true,
+    cell: row => {
+      const totalCost = Number(row.costPrice || 0) + Number(row.smokeHousePrice || 0) + Number(row.packagingPrice || 0)
+      const profit = Number(row.price || 0) - totalCost
+      const margin = totalCost > 0 ? (profit / totalCost) * 100 : 0
+      
+      return (
+        <div>
+          <Badge color={margin > 30 ? 'light-success' : margin > 15 ? 'light-warning' : 'light-danger'}>
+            <TrendingUp size={12} /> {margin.toFixed(1)}%
+          </Badge>
+          <div className='small text-muted'>{profit.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</div>
+        </div>
+      )
+    }
+  },
+  {
+    name: 'Created Date',
     selector: 'createdAt',
     sortable: true,
-    minWidth: '200px',
+    minWidth: '150px',
     wrap: true,
-    cell: row => moment(row.createdAt).format('lll')
+    cell: row => (
+      <div>
+        <div>{moment(row.createdAt).format('DD MMM YYYY')}</div>
+        <small className='text-muted'>{moment(row.createdAt).format('HH:mm')}</small>
+      </div>
+    )
   },
   {
     name: 'Actions',

@@ -6,13 +6,15 @@ import { useParams, Link } from 'react-router-dom'
 import SocialTab from './Social'
 import AccountTab from './Account'
 import InfoTab from './Information'
+import ImageUploader from '../components/ImageUploader'
+import CategorySelector from '../components/CategorySelector'
 
 // ** Store & Actions
 import { getProduct } from '../store/action'
 import { useSelector, useDispatch } from 'react-redux'
 
 // ** Third Party Components
-import { User, Info, Share2 } from 'react-feather'
+import { User, Info, Share2, Image, Folder } from 'react-feather'
 import { Card, CardBody, Row, Col, Nav, NavItem, NavLink, TabContent, TabPane, Alert } from 'reactstrap'
 
 // ** Styles
@@ -45,29 +47,33 @@ const UserEdit = () => {
                   <span className='align-middle d-none d-sm-block'>Product</span>
                 </NavLink>
               </NavItem>
-              {/* <NavItem>
+              <NavItem>
                 <NavLink active={activeTab === '2'} onClick={() => toggle('2')}>
-                  <Info size={14} />
-                  <span className='align-middle d-none d-sm-block'>Information</span>
+                  <Folder size={14} />
+                  <span className='align-middle d-none d-sm-block'>Categories</span>
                 </NavLink>
               </NavItem>
               <NavItem>
                 <NavLink active={activeTab === '3'} onClick={() => toggle('3')}>
-                  <Share2 size={14} />
-                  <span className='align-middle d-none d-sm-block'>Social</span>
+                  <Image size={14} />
+                  <span className='align-middle d-none d-sm-block'>Images</span>
                 </NavLink>
-              </NavItem> */}
+              </NavItem>
             </Nav>
             <TabContent activeTab={activeTab}>
               <TabPane tabId='1'>
                 <AccountTab selectedProduct={store.selectedProduct} />
               </TabPane>
-              {/* <TabPane tabId='2'>
-                <InfoTab />
+              <TabPane tabId='2'>
+                <CategorySelector 
+                  productId={id} 
+                  selectedCategories={store.selectedProduct?.categories || []}
+                  onCategoriesUpdate={(categories) => console.log('Categories updated:', categories)}
+                />
               </TabPane>
               <TabPane tabId='3'>
-                <SocialTab />
-              </TabPane> */}
+                <ImageUploader productId={id} />
+              </TabPane>
             </TabContent>
           </CardBody>
         </Card>

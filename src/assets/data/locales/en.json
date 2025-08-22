@@ -1,3 +1,15 @@
 {
-  "Dashboard": "Dashboard"
+  "Dashboard": "Dashboard",
+  "Investments": "Investments",
+  "Packages": "Packages",
+  "Investors": "Investors",
+  "Subscriptions": "Subscriptions",
+  "All Products": "All Products",
+  "Suppliers": "Suppliers",
+  "All Orders": "All Orders",
+  "Customers": "Customers",
+  "Withdrawals": "Withdrawals",
+  "Transactions": "Transactions",
+  "Wallets": "Wallets",
+  "Reports": "Reports"
 }

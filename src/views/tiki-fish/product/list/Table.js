@@ -4,6 +4,7 @@ import { Fragment, useState, useEffect } from 'react'
 // ** Columns
 import { columns } from './columns'
 import Sidebar from './Sidebar'
+import ProductListHeader from './ProductListHeader'
 
 // ** Store & Actions
 import { getAllData, getFilteredData } from '../store/action'
@@ -228,6 +229,7 @@ const ProductTable = () => {
 
   return (
     <Fragment>
+      <ProductListHeader />
       <Card>
         <CardHeader>
           <CardTitle tag='h4'>Search Filter</CardTitle>

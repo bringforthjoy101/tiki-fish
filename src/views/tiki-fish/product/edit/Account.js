@@ -6,8 +6,8 @@ import { useDispatch } from 'react-redux'
 import Avatar from '@components/avatar'
 
 // ** Third Party Components
-import { Lock, Edit, Trash2 } from 'react-feather'
-import { Media, Row, Col, Button, Form, Input, Label, FormGroup, Table, CustomInput } from 'reactstrap'
+import { Lock, Edit, Trash2, DollarSign, Package, Info, BarChart } from 'react-feather'
+import { Media, Row, Col, Button, Form, Input, Label, FormGroup, Table, CustomInput, Card, CardBody, CardHeader, CardTitle, Badge } from 'reactstrap'
 import { AvForm, AvInput } from 'availity-reactstrap-validation-safe'
 import { getAllData, getProduct } from '../store/action'
 import { swal, apiRequest } from '@utils'
@@ -18,6 +18,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 	const [img, setImg] = useState(null)
 	const [productData, setProductData] = useState({
 		name: selectedProduct.name,
+		description: selectedProduct.description || '',
 		qty: selectedProduct.qty,
 		price: selectedProduct.price,
 		costPrice: selectedProduct.costPrice,
@@ -25,7 +26,8 @@ const UserAccountTab = ({ selectedProduct }) => {
 		smokeHousePrice: selectedProduct.smokeHousePrice,
 		unit: selectedProduct.unit,
 		unitValue: selectedProduct.unitValue,
-		category: selectedProduct.category
+		category: selectedProduct.category,
+		status: selectedProduct.status || 'in-stock'
 	})
 
 	const onSubmit = async (event, errors) => {
@@ -43,23 +45,29 @@ const UserAccountTab = ({ selectedProduct }) => {
 					dispatch(getProduct(selectedProduct.id))
 					setProductData({
 						name: selectedProduct.name,
+						description: selectedProduct.description || '',
 						qty: selectedProduct.qty,
 						price: selectedProduct.price,
 						costPrice: selectedProduct.costPrice,
 						packagingPrice: selectedProduct.packagingPrice,
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
+						category: selectedProduct.category,
+						status: selectedProduct.status || 'in-stock'
 					})
 				} else {
 					swal('Oops!', response.data.message, 'error')
 					setProductData({
 						name: selectedProduct.name,
+						description: selectedProduct.description || '',
 						qty: selectedProduct.qty,
 						price: selectedProduct.price,
 						costPrice: selectedProduct.costPrice,
 						packagingPrice: selectedProduct.packagingPrice,
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
+						category: selectedProduct.category,
+						status: selectedProduct.status || 'in-stock'
 					})
 				}
 			} catch (error) {
@@ -118,141 +126,252 @@ const UserAccountTab = ({ selectedProduct }) => {
 		}
 	}
 
+	// Calculate profit margin
+	const calculateProfitMargin = () => {
+		const totalCost = Number(productData.costPrice || 0) + Number(productData.smokeHousePrice || 0) + Number(productData.packagingPrice || 0)
+		const profit = Number(productData.price || 0) - totalCost
+		const margin = totalCost > 0 ? (profit / totalCost) * 100 : 0
+		return { profit, margin }
+	}
+
+	const { profit, margin } = calculateProfitMargin()
+
 	return (
 		<Row>
 			<Col sm="12">
-				<Media className="mb-2">
-					{renderUserAvatar()}
-					<Media className="mt-50" body>
-						<h4>{selectedProduct.fullName} </h4>
-						<div className="d-flex flex-wrap mt-1 px-0">
-							{/* <Button.Ripple id='change-img' tag={Label} className='mr-75 mb-0' color='primary'>
-                <span className='d-none d-sm-block'>Change</span>
-                <span className='d-block d-sm-none'>
-                  <Edit size={14} />
-                </span>
-                <input type='file' hidden id='change-img' onChange={onChange} accept='image/*' />
-              </Button.Ripple>
-              <Button.Ripple color='secondary' outline>
-                <span className='d-none d-sm-block'>Remove</span>
-                <span className='d-block d-sm-none'>
-                  <Trash2 size={14} />
-                </span>
-              </Button.Ripple> */}
-						</div>
-					</Media>
-				</Media>
-			</Col>
-			<Col sm="12">
 				<AvForm onSubmit={onSubmit}>
 					<Row>
-						<Col md="6" sm="12">
-							<FormGroup>
-								<Label for="name">Product Name</Label>
-								<AvInput
-									name="name"
-									id="name"
-									placeholder="Product Name"
-									value={selectedProduct.name}
-									onChange={(e) => setProductData({ ...productData, name: e.target.value })}
-									required
-								/>
-								{/* <Input type='text' id='name' placeholder='Name' defaultValue={selectedProduct.name} /> */}
-							</FormGroup>
+						{/* Basic Information Card */}
+						<Col lg="12">
+							<Card>
+								<CardHeader>
+									<CardTitle tag='h4'>
+										<Info size={20} className='mr-1' />
+										Basic Information
+									</CardTitle>
+								</CardHeader>
+								<CardBody>
+									<Row>
+										<Col md="6">
+											<FormGroup>
+												<Label for="name">Product Name *</Label>
+												<AvInput
+													name="name"
+													id="name"
+													placeholder="Enter product name"
+													value={productData.name}
+													onChange={(e) => setProductData({ ...productData, name: e.target.value })}
+													required
+												/>
+											</FormGroup>
+										</Col>
+										<Col md="6">
+											<FormGroup>
+												<Label for="status">Product Status</Label>
+												<AvInput
+													type="select"
+													id="status"
+													name="status"
+													value={productData.status}
+													onChange={(e) => setProductData({ ...productData, status: e.target.value })}
+												>
+													<option value="in-stock">In Stock</option>
+													<option value="out-of-stock">Out of Stock</option>
+												</AvInput>
+											</FormGroup>
+										</Col>
+										<Col md="12">
+											<FormGroup>
+												<Label for="description">Product Description</Label>
+												<AvInput
+													type="textarea"
+													name="description"
+													id="description"
+													rows="4"
+													placeholder="Enter product description"
+													value={productData.description}
+													onChange={(e) => setProductData({ ...productData, description: e.target.value })}
+												/>
+											</FormGroup>
+										</Col>
+										<Col md="6">
+											<FormGroup>
+												<Label for="category">Category</Label>
+												<AvInput
+													type="select"
+													id="category"
+													name="category"
+													value={productData.category}
+													onChange={(e) => setProductData({ ...productData, category: e.target.value })}
+												>
+													<option value="shop">Shop</option>
+													<option value="store">Store</option>
+												</AvInput>
+											</FormGroup>
+										</Col>
+									</Row>
+								</CardBody>
+							</Card>
 						</Col>
-						<Col md="6" sm="12">
-							<FormGroup>
-								<Label for="costPrice">Product Cost Price</Label>
-								<AvInput
-									name="costPrice"
-									id="costPrice"
-									placeholder="Product Cost Price"
-									value={selectedProduct.costPrice || 0}
-									onChange={(e) => setProductData({ ...productData, costPrice: e.target.value })}
-									required
-								/>
-							</FormGroup>
+
+						{/* Pricing Information Card */}
+						<Col lg="12">
+							<Card>
+								<CardHeader>
+									<CardTitle tag='h4'>
+										<DollarSign size={20} className='mr-1' />
+										Pricing Strategy
+									</CardTitle>
+									<div>
+										<Badge color="light-success" className="mr-1">
+											Profit: {profit.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}
+										</Badge>
+										<Badge color={margin > 30 ? "light-success" : margin > 15 ? "light-warning" : "light-danger"}>
+											Margin: {margin.toFixed(1)}%
+										</Badge>
+									</div>
+								</CardHeader>
+								<CardBody>
+									<Row>
+										<Col md="6">
+											<FormGroup>
+												<Label for="costPrice">Cost Price (₦) *</Label>
+												<AvInput
+													type="number"
+													name="costPrice"
+													id="costPrice"
+													placeholder="0.00"
+													value={productData.costPrice}
+													onChange={(e) => setProductData({ ...productData, costPrice: e.target.value })}
+													required
+												/>
+												<small className="text-muted">Base cost of the product</small>
+											</FormGroup>
+										</Col>
+										<Col md="6">
+											<FormGroup>
+												<Label for="price">Selling Price (₦) *</Label>
+												<AvInput
+													type="number"
+													name="price"
+													id="price"
+													placeholder="0.00"
+													value={productData.price}
+													onChange={(e) => setProductData({ ...productData, price: e.target.value })}
+													required
+												/>
+												<small className="text-muted">Final price for customers</small>
+											</FormGroup>
+										</Col>
+										<Col md="6">
+											<FormGroup>
+												<Label for="smokeHousePrice">Smoke House Price (₦)</Label>
+												<AvInput
+													type="number"
+													name="smokeHousePrice"
+													id="smokeHousePrice"
+													placeholder="0.00"
+													value={productData.smokeHousePrice}
+													onChange={(e) => setProductData({ ...productData, smokeHousePrice: e.target.value })}
+												/>
+												<small className="text-muted">Additional processing cost</small>
+											</FormGroup>
+										</Col>
+										<Col md="6">
+											<FormGroup>
+												<Label for="packagingPrice">Packaging Price (₦)</Label>
+												<AvInput
+													type="number"
+													name="packagingPrice"
+													id="packagingPrice"
+													placeholder="0.00"
+													value={productData.packagingPrice}
+													onChange={(e) => setProductData({ ...productData, packagingPrice: e.target.value })}
+												/>
+												<small className="text-muted">Cost of packaging materials</small>
+											</FormGroup>
+										</Col>
+									</Row>
+								</CardBody>
+							</Card>
 						</Col>
-						<Col md="6" sm="12">
-							<FormGroup>
-								<Label for="price">Product Selling Price</Label>
-								<AvInput
-									name="price"
-									id="price"
-									placeholder="Product Selling Price"
-									value={selectedProduct.price || 0}
-									onChange={(e) => setProductData({ ...productData, price: e.target.value })}
-									required
-								/>
-							</FormGroup>
-						</Col>
-						<Col md="6" sm="12">
-							<FormGroup>
-								<Label for="smokeHousePrice">Smoke House Price</Label>
-								<AvInput
-									name="smokeHousePrice"
-									id="smokeHousePrice"
-									placeholder="Smoke House Price"
-									value={selectedProduct.smokeHousePrice || 0}
-									onChange={(e) => setProductData({ ...productData, smokeHousePrice: e.target.value })}
-									required
-								/>
-							</FormGroup>
-						</Col>
-						<Col md="6" sm="12">
-							<FormGroup>
-								<Label for="packagingPrice">Product Packaging Price</Label>
-								<AvInput
-									name="packagingPrice"
-									id="packagingPrice"
-									placeholder="Product Packaging Price"
-									value={selectedProduct.packagingPrice || 0}
-									onChange={(e) => setProductData({ ...productData, packagingPrice: e.target.value })}
-									required
-								/>
-							</FormGroup>
-						</Col>
-						<Col md='6' sm='12'>
-							<FormGroup>
-								<Label for='unitValue'>Product Unit Value</Label>
-								<AvInput 
-									name='unitValue' 
-									id='unitValue' 
-									placeholder='Product Unit Value' 
-									value={selectedProduct.unitValue}
-									onChange={e => setProductData({...productData, unitValue: e.target.value})}
-									required 
-								/>
-							</FormGroup>
-						</Col>
-						<Col md="6" sm="12">
-							<FormGroup>
-								<Label for="unit">Unit</Label>
-								<AvInput
-									type="select"
-									id="unit"
-									name="unit"
-									value={selectedProduct.unit}
-									onChange={(e) => setProductData({ ...productData, unit: e.target.value })}
-									required
-								>
-									<option value={selectedProduct.unit} className="text-cpitalize">
-										{selectedProduct.unit}
-									</option>
-									<option value="kg">Kilogram</option>
-									<option value="pck">Pack</option>
-									<option value="pcs">Pieces</option>
-									<option value="l">Litre</option>
-									<option value="g">Gram</option>
-									<option value="crate">Crate</option>
-									<option value="carton">Carton</option>
-								</AvInput>
-							</FormGroup>
+
+						{/* Inventory Management Card */}
+						<Col lg="12">
+							<Card>
+								<CardHeader>
+									<CardTitle tag='h4'>
+										<Package size={20} className='mr-1' />
+										Inventory Management
+									</CardTitle>
+									<Badge color={productData.qty > 10 ? "light-success" : productData.qty > 5 ? "light-warning" : "light-danger"}>
+										Current Stock: {productData.qty} units
+									</Badge>
+								</CardHeader>
+								<CardBody>
+									<Row>
+										<Col md="4">
+											<FormGroup>
+												<Label for="qty">Current Quantity *</Label>
+												<AvInput
+													type="number"
+													name="qty"
+													id="qty"
+													placeholder="0"
+													value={productData.qty}
+													onChange={(e) => setProductData({ ...productData, qty: e.target.value })}
+													disabled
+												/>
+												<small className="text-muted">Use inventory management to update</small>
+											</FormGroup>
+										</Col>
+										<Col md="4">
+											<FormGroup>
+												<Label for="unitValue">Unit Value *</Label>
+												<AvInput
+													type="number"
+													name="unitValue"
+													id="unitValue"
+													placeholder="1"
+													value={productData.unitValue}
+													onChange={(e) => setProductData({ ...productData, unitValue: e.target.value })}
+													required
+												/>
+												<small className="text-muted">Quantity per unit</small>
+											</FormGroup>
+										</Col>
+										<Col md="4">
+											<FormGroup>
+												<Label for="unit">Unit Type *</Label>
+												<AvInput
+													type="select"
+													id="unit"
+													name="unit"
+													value={productData.unit}
+													onChange={(e) => setProductData({ ...productData, unit: e.target.value })}
+													required
+												>
+													<option value="kg">Kilogram (kg)</option>
+													<option value="pck">Pack (pck)</option>
+													<option value="pcs">Pieces (pcs)</option>
+													<option value="l">Litre (l)</option>
+													<option value="g">Gram (g)</option>
+													<option value="crate">Crate</option>
+													<option value="carton">Carton</option>
+												</AvInput>
+											</FormGroup>
+										</Col>
+									</Row>
+								</CardBody>
+							</Card>
 						</Col>
 
 						<Col className="d-flex flex-sm-row flex-column mt-2" sm="12">
 							<Button className="mb-1 mb-sm-0 mr-0 mr-sm-1" type="submit" color="primary">
 								Save Changes
+							</Button>
+							<Button className="mb-1 mb-sm-0" color="secondary" outline onClick={() => window.location.reload()}>
+								Cancel
 							</Button>
 						</Col>
 					</Row>
