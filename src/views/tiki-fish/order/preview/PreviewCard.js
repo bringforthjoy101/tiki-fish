@@ -1,5 +1,6 @@
 // ** Third Party Components
-import { Badge, Card, CardBody, CardText, Button, Row, Col, Table, Media } from 'reactstrap'
+import { Badge, Card, CardBody, CardText, CardTitle, Button, Row, Col, Table, Media, Progress } from 'reactstrap'
+import { Package, User, MapPin, CreditCard, Calendar, Hash, Phone, Mail, Truck, DollarSign, ShoppingBag, Info, CheckCircle, AlertCircle, Clock, FileText, TrendingUp, Shield } from 'react-feather'
 import moment from 'moment'
 import { isUserLoggedIn } from '@utils'
 import {useState, useEffect} from 'react'
@@ -18,23 +19,42 @@ const PreviewCard = ({ data }) => {
 		if (isUserLoggedIn()) setUserData(JSON.parse(localStorage.getItem('userData')))
 	}, [])
 	const renderTable = (products) => {
-		console.log(process.env.NODE_ENV)
-		// products = process.env.NODE_ENV === 'production' ? JSON.parse(products) : products
-		// products = JSON.parse(products)
-		return products.map((product) => {
+		return products.map((product, index) => {
+			// Map field names to handle both old and new API response formats
+			const productName = product.productName || product.name || 'Unknown Product'
+			const productPrice = product.unitPrice || product.price || 0
+			const productQuantity = product.quantity || product.qty || 0
+			const productSubtotal = product.subtotal || product.amount || 0
+			const productUnit = product.unit || 'kg'
+			const productUnitValue = product.unitValue || ''
+			
 			return (
-				<tr key={product.id}>
-					<td className="py-1">
-						<p className="card-text font-weight-bold mb-25">{product.name} - {product.unitValue}{product.unit}</p>
+				<tr key={product.id || index} className="align-middle">
+					<td className="py-2">
+						<div className="d-flex align-items-center">
+							<div className="avatar avatar-sm bg-light-primary rounded p-1 mr-2">
+								<Package size={16} className="text-primary" />
+							</div>
+							<div>
+								<h6 className="mb-0">{productName}</h6>
+								{productUnitValue && (
+									<Badge color="light-info" pill className="mt-1">
+										{productUnitValue}{productUnit}
+									</Badge>
+								)}
+							</div>
+						</div>
 					</td>
-					<td className="py-1">
-						<span className="font-weight-bold">₦{product.price.toLocaleString()}</span>
+					<td className="py-2 text-center">
+						<span className="font-weight-bold">₦{Number(productPrice).toLocaleString()}</span>
 					</td>
-					<td className="py-1">
-						<span className="font-weight-bold">{product.qty.toLocaleString()}</span>
+					<td className="py-2 text-center">
+						<Badge color="light-primary" pill className="px-2 py-1">
+							{Number(productQuantity).toLocaleString()}
+						</Badge>
 					</td>
-					<td className="py-1">
-						<span className="font-weight-bold">₦{product.amount.toLocaleString()}</span>
+					<td className="py-2 text-right">
+						<h6 className="mb-0 text-primary">₦{Number(productSubtotal).toLocaleString()}</h6>
 					</td>
 				</tr>
 			)
@@ -42,9 +62,29 @@ const PreviewCard = ({ data }) => {
 	}
 
 	const statusObj = {
+		pending: 'light-secondary',
 		processing: 'light-warning',
+		ready: 'light-primary',
+		out_for_delivery: 'light-info',
+		delivered: 'light-info',
 		completed: 'light-success',
-		cancelled: 'light-danger'
+		cancelled: 'light-danger',
+		failed: 'light-danger',
+		refunded: 'light-dark',
+		on_hold: 'light-warning'
+	}
+
+	const paymentStatusObj = {
+		pending: 'light-warning',
+		processing: 'light-info',
+		paid: 'light-success',
+		partial: 'light-primary',
+		success: 'light-success',
+		failed: 'light-danger',
+		cancelled: 'light-secondary',
+		refunded: 'light-dark',
+		cod: 'light-info',
+		wallet: 'light-primary'
 	}
 
 
@@ -52,169 +92,300 @@ const PreviewCard = ({ data }) => {
 	// const taxedAmount = ((Number(orderData.tax) / 100) * Number(discountedAmount))
 	// const totalAmount = Number(discountedAmount) + Number(taxedAmount) + Number(orderData.shipping)
 
+	// Get status icon
+	const getStatusIcon = (status) => {
+		switch (status) {
+			case 'pending': return <Clock size={14} />
+			case 'processing': return <Package size={14} />
+			case 'ready': return <CheckCircle size={14} />
+			case 'delivered': return <Truck size={14} />
+			case 'completed': return <CheckCircle size={14} />
+			case 'cancelled': return <AlertCircle size={14} />
+			default: return <Info size={14} />
+		}
+	}
+
 	return data !== null ? (
-		<Card className="invoice-preview-card">
-			<CardBody className="invoice-padding pb-0">
-				{/* Header */}
-				<div className="d-flex justify-content-between flex-md-row flex-column invoice-spacing mt-0">
-					<div>
-						{/* <h4 className="invoice-title">{'DEMO'}</h4> */}
-						<div className="logo-wrapper">
-							<Media className="mr-25" left>
-								<Media
-									object
-									className="rounded mr-50"
-									src={`${process.env.REACT_APP_IMAGE_PLACEHOLDER}/placeholder.png`}
-									alt="Generic placeholder image"
-									height="200"
-								/>
-							</Media>
-						</div>
-						{/* <div className='d-flex flex-wrap align-items-start'>
-							<Button.Ripple color='success' onClick={() => handleCompleteOrder(data.id)} disabled={data.status !== 'processing'}>
-								Complete Order
-							</Button.Ripple>
-							<Button.Ripple className='ml-1' color='danger' outline onClick={() => handleNullifyOrder(data.id)} disabled={data.status !== 'processing'}>
-								Cancel Order
-							</Button.Ripple>
-						</div>
-						<CardText className="mb-25">{data?.customer?.firstName || ''} {data?.customer?.lastName || ''}</CardText>
-						<CardText className="mb-25">{data?.business?.address || ''}</CardText>
-						<CardText className="mb-0">{data?.business?.phone || ''}</CardText> */}
-					</div>
-					<div className="mt-md-0 mt-2">
-						<h4 className="invoice-title">
-							BILL PRINT OUT <span className="invoice-number">#{data.orderNumber}</span>
-						</h4>
-						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Date:</p>
-							<p className="invoice-date">{moment(data.createdAt).format('LLL')}</p>
-						</div>
-						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Customer:</p>
-							<p className="invoice-date">{data.customer.fullName} - {data.customer.phone}</p>
-						</div>
-						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Location:</p>
-							<p className="invoice-date">{data.location}</p>
-						</div>
-						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Payment Mode:</p>
-							<p className="invoice-date">{data.paymentMode.toUpperCase()}</p>
-						</div>
-						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Order Status:</p>
-							<Badge className='invoice-date' color={statusObj[data.status]}>{data.status.toUpperCase()}</Badge>
-							{/* <p className="invoice-date">{data.paymentMode.toUpperCase()}</p> */}
-						</div>
-					</div>
-				</div>
-				{/* /Header */}
-			</CardBody>
+		<div>
+			{/* Enhanced Order Header Card */}
+			<Card className="mb-3 border-0 shadow-sm">
+				<CardBody>
+					<Row className="align-items-center">
+						<Col md="8">
+							<div className="d-flex align-items-center mb-2">
+								<div className="avatar avatar-xl bg-light-primary rounded p-2 mr-3">
+									<Hash className="text-primary" size={28} />
+								</div>
+								<div>
+									<h2 className="mb-0">Order #{data.orderNumber}</h2>
+									<p className="text-muted mb-0">
+										<Calendar size={14} className="mr-1" />
+										{moment(data.createdAt).format('MMMM DD, YYYY at h:mm A')}
+									</p>
+								</div>
+							</div>
+						</Col>
+						<Col md="4" className="text-md-right">
+							<Badge 
+								color={statusObj[data.status]} 
+								pill 
+								className="px-3 py-1 mb-1"
+								style={{fontSize: '0.9rem'}}
+							>
+								{getStatusIcon(data.status)}
+								<span className="ml-1">{data.status.toUpperCase()}</span>
+							</Badge>
+							<br />
+							<Badge 
+								color={paymentStatusObj[data.paymentStatus || 'pending']} 
+								pill 
+								className="px-3 py-1"
+							>
+								<CreditCard size={14} className="mr-1" />
+								{(data.paymentStatus || 'pending').toUpperCase()}
+							</Badge>
+						</Col>
+					</Row>
+					
+					{/* Quick Stats Row */}
+					<Row className="text-center mt-3 pt-3 border-top">
+						<Col xs="3">
+							<h4 className="mb-0">{data.products.length}</h4>
+							<small className="text-muted">Items</small>
+						</Col>
+						<Col xs="3">
+							<h4 className="mb-0">₦{data.amount.toLocaleString()}</h4>
+							<small className="text-muted">Total Amount</small>
+						</Col>
+						<Col xs="3">
+							<h4 className="mb-0">{data.paymentMode.toUpperCase()}</h4>
+							<small className="text-muted">Payment Mode</small>
+						</Col>
+						<Col xs="3">
+							<h4 className="mb-0">{moment(data.createdAt).fromNow()}</h4>
+							<small className="text-muted">Order Age</small>
+						</Col>
+					</Row>
+				</CardBody>
+			</Card>
 
-			<hr className="invoice-spacing" />
+			{/* Customer & Delivery Information Cards */}
+			<Row>
+				<Col lg="6" className="mb-3">
+					<Card className="h-100 border-0 shadow-sm">
+						<CardBody>
+							<CardTitle tag="h5" className="mb-3">
+								<User size={20} className="mr-2" />
+								Customer Information
+							</CardTitle>
+							<div className="d-flex align-items-center mb-2">
+								<div className="avatar avatar-sm bg-light-primary rounded p-1 mr-2">
+									<User size={16} className="text-primary" />
+								</div>
+								<div>
+									<h6 className="mb-0">{data.customer.fullName}</h6>
+									<small className="text-muted">Customer Name</small>
+								</div>
+							</div>
+							<div className="d-flex align-items-center mb-2">
+								<div className="avatar avatar-sm bg-light-success rounded p-1 mr-2">
+									<Phone size={16} className="text-success" />
+								</div>
+								<div>
+									<h6 className="mb-0">{data.customer.phone}</h6>
+									<small className="text-muted">Phone Number</small>
+								</div>
+							</div>
+							<div className="d-flex align-items-center">
+								<div className="avatar avatar-sm bg-light-warning rounded p-1 mr-2">
+									<MapPin size={16} className="text-warning" />
+								</div>
+								<div>
+									<h6 className="mb-0">{data.location}</h6>
+									<small className="text-muted">Delivery Location</small>
+								</div>
+							</div>
+						</CardBody>
+					</Card>
+				</Col>
+				<Col lg="6" className="mb-3">
+					<Card className="h-100 border-0 shadow-sm">
+						<CardBody>
+							<CardTitle tag="h5" className="mb-3">
+								<Truck size={20} className="mr-2" />
+								Shipping Details
+							</CardTitle>
+							{data.shippingAddress ? (
+								<div>
+									<div className="d-flex align-items-start mb-2">
+										<div className="avatar avatar-sm bg-light-info rounded p-1 mr-2">
+											<MapPin size={16} className="text-info" />
+										</div>
+										<div>
+											<h6 className="mb-0">Delivery Address</h6>
+											<small className="text-muted">
+												{data.shippingAddress.streetAddress && `${data.shippingAddress.streetAddress}, `}
+												{data.shippingAddress.city && `${data.shippingAddress.city}, `}
+												{data.shippingAddress.state && `${data.shippingAddress.state} `}
+												{data.shippingAddress.zipCode && `${data.shippingAddress.zipCode}`}
+											</small>
+										</div>
+									</div>
+								</div>
+							) : (
+								<div className="d-flex align-items-center mb-2">
+									<div className="avatar avatar-sm bg-light-info rounded p-1 mr-2">
+										<MapPin size={16} className="text-info" />
+									</div>
+									<div>
+										<h6 className="mb-0">{data.location}</h6>
+										<small className="text-muted">Delivery Location</small>
+									</div>
+								</div>
+							)}
+							{data.trackingNumber && (
+								<div className="d-flex align-items-center mb-2">
+									<div className="avatar avatar-sm bg-light-primary rounded p-1 mr-2">
+										<Package size={16} className="text-primary" />
+									</div>
+									<div>
+										<h6 className="mb-0">{data.trackingNumber}</h6>
+										<small className="text-muted">Tracking Number</small>
+									</div>
+								</div>
+							)}
+							<div className="d-flex align-items-center">
+								<div className="avatar avatar-sm bg-light-danger rounded p-1 mr-2">
+									<Clock size={16} className="text-danger" />
+								</div>
+								<div>
+									<h6 className="mb-0">{data.updatedAt ? moment(data.updatedAt).fromNow() : 'Not updated'}</h6>
+									<small className="text-muted">Last Updated</small>
+								</div>
+							</div>
+						</CardBody>
+					</Card>
+				</Col>
+			</Row>
 
-			{/* Address and Contact */}
-			{/* <CardBody className="invoice-padding pt-0">
-				<Row className="invoice-spacing">
-					<Col className="p-0" lg="6">
-						<h6 className="mb-2">Invoice To:</h6>
-						<h6 className="mb-25">{data.client.names}</h6>
-						<CardText className="mb-25">{data.client.phone}</CardText>
-						<CardText className="mb-25">{data.client.location}</CardText>
-					</Col>
-					<Col className="p-0 mt-xl-0 mt-2" lg="6">
-						<h6 className="mb-2">Payment Details:</h6>
-						<table>
-							<tbody>
-								<tr>
-									<td className="pr-1">Total Due:</td>
-									<td>
-										<span className="font-weight-bolder">{data.amount.toLocaleString()}</span>
-									</td>
-								</tr>
-								<tr>
-									<td className="pr-1">Bank Name:</td>
-									<td>{data.business.bankName}</td>
-								</tr>
-								<tr>
-									<td className="pr-1">Account Name:</td>
-									<td>{data.business.accountName}</td>
-								</tr>
-								<tr>
-									<td className="pr-1">Account Number:</td>
-									<td>{data.business.bankAccountNumber}</td>
-								</tr>
-							</tbody>
-						</table>
-					</Col>
-				</Row>
-			</CardBody> */}
-			{/* /Address and Contact */}
-
-			{/* Invoice Description */}
-			<Table responsive>
-				<thead>
-					<tr>
-						<th className="py-1">Product</th>
-						<th className="py-1">Price</th>
-						<th className="py-1">Quantity</th>
-						<th className="py-1">Total</th>
-					</tr>
-				</thead>
-				<tbody>{renderTable(data.products)}</tbody>
-			</Table>
+			{/* Enhanced Products Table Card */}
+			<Card className="mb-3 border-0 shadow-sm">
+				<CardBody>
+					<CardTitle tag="h5" className="mb-3">
+						<ShoppingBag size={20} className="mr-2" />
+						Order Items
+					</CardTitle>
+					<Table responsive hover className="mb-0">
+						<thead className="bg-light">
+							<tr>
+								<th className="py-2">Product</th>
+								<th className="py-2 text-center">Price</th>
+								<th className="py-2 text-center">Quantity</th>
+								<th className="py-2 text-right">Total</th>
+							</tr>
+						</thead>
+						<tbody>{renderTable(data.products)}</tbody>
+					</Table>
+				</CardBody>
+			</Card>
 			{/* /Invoice Description */}
 
-			{/* Total & Sales Person */}
-			<CardBody className="invoice-padding pb-0">
-				<Row className="invoice-sales-total-wrapper">
-					<Col className="mt-md-0 mt-3" md="6" order={{ md: 1, lg: 2 }}>
-						{/* <CardText className="mb-0">
-							<span className="font-weight-bold">Waiter:</span> <span className="ml-75">{data.server.fullName}</span>
-						</CardText> */}
-						<CardText className="mb-0">
-							<span className="font-weight-bold">Initiated By:</span> <span className="ml-75">{data.admin.firstName} {data.admin.lastName}</span>
-						</CardText>
-					</Col>
-					<Col className="d-flex justify-content-end" md="6" order={{ md: 2, lg: 1 }}>
-						<div className="invoice-total-wrapper">
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Subtotal:</p>
-								<p className="invoice-total-amount">₦{data.subTotal.toLocaleString()}</p>
+			{/* Enhanced Order Summary Card */}
+			<Card className="border-0 shadow-sm">
+				<CardBody>
+					<Row>
+						<Col lg="6">
+							<CardTitle tag="h5" className="mb-3">
+								<FileText size={20} className="mr-2" />
+								Order Summary
+							</CardTitle>
+							<div className="order-summary-item d-flex justify-content-between py-2 border-bottom">
+								<span className="text-muted">Subtotal</span>
+								<span className="font-weight-bold">₦{data.subTotal.toLocaleString()}</span>
 							</div>
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Logistics:</p>
-								<p className="invoice-total-amount">₦{data.logistics?.toLocaleString() || 0}</p>
+							{data.logistics > 0 && (
+								<div className="order-summary-item d-flex justify-content-between py-2 border-bottom">
+									<span className="text-muted">
+										<Truck size={14} className="mr-1" />
+										Logistics
+									</span>
+									<span className="font-weight-bold">₦{data.logistics.toLocaleString()}</span>
+								</div>
+							)}
+							{data.discount > 0 && (
+								<div className="order-summary-item d-flex justify-content-between py-2 border-bottom">
+									<span className="text-muted">
+										<TrendingUp size={14} className="mr-1" />
+										Discount
+									</span>
+									<span className="font-weight-bold text-success">-₦{data.discount.toLocaleString()}</span>
+								</div>
+							)}
+							<div className="order-summary-item d-flex justify-content-between py-3">
+								<h5 className="mb-0">Total Amount</h5>
+								<h4 className="mb-0 text-primary">₦{data.amount.toLocaleString()}</h4>
 							</div>
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Discount:</p>
-								<p className="invoice-total-amount">₦{data.discount.toLocaleString()}</p>
+							
+							{/* Payment Progress */}
+							<div className="mt-3">
+								<div className="d-flex justify-content-between mb-1">
+									<small className="text-muted">Payment Progress</small>
+									<small className="font-weight-bold">
+										{data.paymentStatus === 'paid' ? '100%' : data.paymentStatus === 'partial' ? '50%' : '0%'}
+									</small>
+								</div>
+								<Progress 
+									value={data.paymentStatus === 'paid' ? 100 : data.paymentStatus === 'partial' ? 50 : 0} 
+									color={data.paymentStatus === 'paid' ? 'success' : data.paymentStatus === 'partial' ? 'warning' : 'danger'}
+									style={{height: '8px'}}
+								/>
 							</div>
-							<hr className="my-50" />
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Total:</p>
-								<p className="invoice-total-amount">₦{data.amount.toLocaleString()}</p>
+						</Col>
+						<Col lg="6">
+							<CardTitle tag="h5" className="mb-3">
+								<Info size={20} className="mr-2" />
+								Additional Information
+							</CardTitle>
+							<div className="d-flex align-items-center mb-3">
+								<div className="avatar avatar-sm bg-light-primary rounded p-1 mr-2">
+									<User size={16} className="text-primary" />
+								</div>
+								<div>
+									<small className="text-muted d-block">Initiated By</small>
+									<span className="font-weight-bold">{data.admin.firstName} {data.admin.lastName}</span>
+								</div>
 							</div>
-						</div>
-					</Col>
-				</Row>
-			</CardBody>
-			{/* /Total & Sales Person */}
-
-			<hr className="invoice-spacing" />
-
-			{/* Invoice Note */}
-			<CardBody className="invoice-padding pt-0">
-				<Row>
-					<Col sm="12">
-						<span className="font-weight-bold">Note: </span>
-						<span>Thank you for your patronage, We hope to see you again.</span>
-					</Col>
-				</Row>
-			</CardBody>
-			{/* /Invoice Note */}
-		</Card>
+							<div className="d-flex align-items-center mb-3">
+								<div className="avatar avatar-sm bg-light-success rounded p-1 mr-2">
+									<CreditCard size={16} className="text-success" />
+								</div>
+								<div>
+									<small className="text-muted d-block">Payment Method</small>
+									<span className="font-weight-bold">{data.paymentMode.toUpperCase()}</span>
+								</div>
+							</div>
+							<div className="d-flex align-items-center">
+								<div className="avatar avatar-sm bg-light-warning rounded p-1 mr-2">
+									<Shield size={16} className="text-warning" />
+								</div>
+								<div>
+									<small className="text-muted d-block">Order ID</small>
+									<span className="font-weight-bold">#{data.orderNumber}</span>
+								</div>
+							</div>
+							
+							{/* Note Section */}
+							<div className="mt-3 p-2 bg-light rounded">
+								<small className="text-muted">
+									<Info size={14} className="mr-1" />
+									Thank you for your patronage. We hope to see you again!
+								</small>
+							</div>
+						</Col>
+					</Row>
+				</CardBody>
+			</Card>
+		</div>
 	) : null
 }
 

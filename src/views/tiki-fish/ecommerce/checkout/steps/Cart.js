@@ -15,6 +15,8 @@ import { swal, apiRequest, selectThemeColors } from '@utils'
 import NumberInput from '@components/number-input'
 import { getAllData } from '../../../customer/store/action'
 import { deleteAllCartItem } from '../../store/actions'
+import AddressSelector from '../components/AddressSelector'
+import AddAddressModal from '../components/AddAddressModal'
 
 const Cart = (props) => {
 	// ** Props
@@ -127,8 +129,12 @@ const Cart = (props) => {
 	const [selectedPaymentMode, setSelectedPaymentMode] = useState({ value: 'cash', label: 'CASH' })
 	const [discount, setDiscount] = useState(0)
 	const [logistics, setLogistics] = useState(0)
+	const [selectedAddress, setSelectedAddress] = useState(null)
+	const [showAddAddressModal, setShowAddAddressModal] = useState(false)
 	const [orderData, setOrderData] = useState({
 		location: '',
+		addressId: null,
+		shippingAddress: null,
 		logistics,
 		discount,
 		subTotal,
@@ -159,8 +165,11 @@ const Cart = (props) => {
 			customerId: selectedOption.value,
 			paymentMode: selectedPaymentMode.value,
 			subTotal: products.reduce((n, { amount }) => n + amount, 0),
+			addressId: selectedAddress?.id || null,
+			shippingAddress: selectedAddress || null,
+			location: selectedAddress ? `${selectedAddress.city}, ${selectedAddress.state}` : ''
 		})
-	}, [dispatch, subTotal, products, selectedOption, selectedPaymentMode, discount, logistics])
+	}, [dispatch, subTotal, products, selectedOption, selectedPaymentMode, discount, logistics, selectedAddress])
 
 	
 	const renderCustomers = (customers) => {
@@ -172,17 +181,58 @@ const Cart = (props) => {
 			})
 	}
 
+	// Handler for address selection
+	const handleAddressSelect = (address) => {
+		setSelectedAddress(address)
+	}
+
+	// Handler for successful address addition
+	const handleAddressAdded = () => {
+		// The AddressSelector component will automatically refresh
+		setShowAddAddressModal(false)
+	}
+
+	// Handler for customer change - reset address selection
+	const handleCustomerChange = (customer) => {
+		setSelectedOption(customer)
+		setSelectedAddress(null) // Reset address when customer changes
+	}
+
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	// ** Function to handle form submit
 	const onSubmit = async (event, errors) => {
 		event.preventDefault()
 		console.log({ errors })
+		
+		// Validate address selection
+		if (!selectedAddress) {
+			swal('Oops!', 'Please select a delivery address', 'error')
+			return
+		}
+		
 		setIsSubmitting(true)
 		if (errors && !errors.length) {
 			setIsSubmitting(true)
 			console.log({ orderData })
-			const body = JSON.stringify({...orderData, logistics, discount, amount: totalAmount})
+			
+			// Include address information in the order
+			const body = JSON.stringify({
+				...orderData, 
+				logistics, 
+				discount, 
+				amount: totalAmount,
+				addressId: selectedAddress.id,
+				location: `${selectedAddress.city}, ${selectedAddress.state}`,
+				shippingAddress: {
+					streetAddress: selectedAddress.streetAddress,
+					city: selectedAddress.city,
+					state: selectedAddress.state,
+					country: selectedAddress.country,
+					zipCode: selectedAddress.zipCode
+				}
+			})
+			
 			try {
 				const response = await apiRequest({ url: '/orders/create', method: 'POST', body }, dispatch)
 				console.log({ response })
@@ -195,11 +245,14 @@ const Cart = (props) => {
 						subTotal,
 						discount: 0,
 						location: '',
+						addressId: null,
+						shippingAddress: null,
 						logistics: 0,
 						products,
 						paymentMode: selectedPaymentMode?.value,
 						customerId: selectedOption?.value,
 					})
+					setSelectedAddress(null)
 					history.push(`/order/preview/${response.data.data}`)
 				} else {
 					setIsSubmitting(false)
@@ -209,6 +262,8 @@ const Cart = (props) => {
 						subTotal,
 						discount: 0,
 						location: '',
+						addressId: null,
+						shippingAddress: null,
 						logistics: 0,
 						products,
 						paymentMode: selectedPaymentMode?.value,
@@ -240,19 +295,19 @@ const Cart = (props) => {
 									defaultValue={selectedOption}
 									options={renderCustomers(customers)}
 									isClearable={false}
-									onChange={setSelectedOption}
+									onChange={handleCustomerChange}
 									required
 								/>
 							</FormGroup>
+							
+							{/* Address Selector Component */}
 							<FormGroup>
-								<Label for="location">Location</Label>
-								<AvInput
-									name="location"
-									id="location"
-									placeholder="Akure, Ondo State"
-									value={orderData.location}
-									onChange={(e) => setOrderData({ ...orderData, location: e.target.value })}
-									required
+								<AddressSelector
+									customerId={selectedOption?.value}
+									selectedAddress={selectedAddress}
+									onAddressSelect={handleAddressSelect}
+									onAddNew={() => setShowAddAddressModal(true)}
+									dispatch={dispatch}
 								/>
 							</FormGroup>
 							<FormGroup>
@@ -330,6 +385,15 @@ const Cart = (props) => {
 					</CardBody>
 				</Card>
 			</div>
+			
+			{/* Add Address Modal */}
+			<AddAddressModal
+				isOpen={showAddAddressModal}
+				toggle={() => setShowAddAddressModal(false)}
+				customerId={selectedOption?.value}
+				onSuccess={handleAddressAdded}
+				dispatch={dispatch}
+			/>
 		</div>
 	)
 }

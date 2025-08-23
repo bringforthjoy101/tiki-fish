@@ -9,6 +9,8 @@ import { Row, Col, Alert } from 'reactstrap'
 // ** Invoice Preview Components
 import PreviewCard from './PreviewCard'
 import PreviewActions from './PreviewActions'
+import OrderTimeline from './OrderTimeline'
+import OrderNotes from './OrderNotes'
 import SpinnerComponent from '@src/@core/components/spinner/Loading-spinner'
 // import SendInvoiceSidebar from '../shared-sidebar/SidebarSendInvoice'
 // import AddPaymentSidebar from '../shared-sidebar/SidebarAddPayment'
@@ -49,6 +51,8 @@ const InvoicePreview = () => {
 			<Row className="invoice-preview">
 				<Col xl={9} md={8} sm={12}>
 					<PreviewCard data={selectedOrder} />
+					<OrderTimeline order={selectedOrder} />
+					<OrderNotes order={selectedOrder} />
 				</Col>
 				<Col xl={3} md={4} sm={12}>
 					<PreviewActions id={id} data={selectedOrder} />

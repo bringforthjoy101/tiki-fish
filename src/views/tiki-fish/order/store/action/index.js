@@ -13,9 +13,11 @@ export const getAllData = () => {
 				type: 'GET_ALL_ORDERS_DATA',
 				data: response.data.data,
 			})
+			return response.data.data
 		} else {
 			console.log(response)
 			swal('Oops!', 'Something went wrong.', 'error')
+			return []
 		}
 	}
 }
@@ -47,16 +49,25 @@ export const nullifyOrder = (orderId) => {
 // All Users Filtered Data
 export const getFilteredData = (orders, params) => {
 	return async (dispatch) => {
-		const { q = '', perPage = 100, page = 1 } = params
+		const { q = '', perPage = 100, page = 1, status = '', paymentStatus = '' } = params
 
 		/* eslint-disable  */
 		const queryLowered = q?.toLowerCase()
-		let filteredData = orders?.filter(
-			(order) =>
+		let filteredData = orders?.filter((order) => {
+			// Text search filter
+			const matchesSearch = !q || 
 				order?.orderNumber?.toLowerCase()?.includes(queryLowered) ||
-				order?.student.firstName?.toLowerCase()?.includes(queryLowered) ||
+				order?.customer?.fullName?.toLowerCase()?.includes(queryLowered) ||
 				moment(order.createdAt).format('lll').includes(q)
-		)
+			
+			// Status filter
+			const matchesStatus = !status || order?.status === status
+			
+			// Payment status filter
+			const matchesPaymentStatus = !paymentStatus || order?.paymentStatus === paymentStatus
+			
+			return matchesSearch && matchesStatus && matchesPaymentStatus
+		})
 
 		/* eslint-enable  */
 		dispatch({

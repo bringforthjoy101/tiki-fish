@@ -7,149 +7,233 @@ import { getOrder } from '../store/action'
 import { isUserLoggedIn } from '@utils'
 import SpinnerComponent from '@src/@core/components/spinner/Loading-spinner'
 
-// ** Third Party Components
-import { Row, Col, Table, Media, Badge } from 'reactstrap'
-
 // ** Styles
-import '@styles/base/pages/app-invoice-print.scss'
+import '@styles/base/pages/thermal-print.scss'
 
 const Print = () => {
-	// ** Print on mount
-	// useEffect(() => window.print(), [])
-	const store = useSelector((state) => state.orders),
-		dispatch = useDispatch(),
-		{ id } = useParams()
-	// const [userData, setUserData] = useState(null)
+	const store = useSelector((state) => state.orders)
+	const dispatch = useDispatch()
+	const { id } = useParams()
 	const userData = JSON.parse(localStorage.getItem('userData'))
-const { selectedOrder } = store
+	const { selectedOrder } = store
+
 	useEffect(() => {
-		// axios.get(`/api/invoice/invoices/${id}`).then(response => {
-		//   setData(response.data)
-		// })
 		dispatch(getOrder(id))
-		// if (isUserLoggedIn()) setUserData(JSON.parse(localStorage.getItem('userData')))
-		// 
+	}, [dispatch, id])
+
+	useEffect(() => {
+		if (selectedOrder) {
+			// Delay print to ensure content is rendered
+			setTimeout(() => {
+				window.print()
+			}, 500)
+		}
+	}, [selectedOrder])
+
+	const formatCurrency = (amount) => {
+		return `₦${amount?.toLocaleString() || '0'}`
+	}
+
+	const renderProducts = (products) => {
+		if (!products) return null
 		
-	}, [])
-	if (selectedOrder) {
-		setTimeout(window.print(), 3000)
-	} 
-
-	const renderTable = (products) => {
-		// products = process.env.NODE_ENV === 'production' ? JSON.parse(products) : products
-		return products.map((product) => {
-			return (
-				<tr key={product.id}>
-					<td className="ml-0 mr-0">
-						<p className="card-text font-weight-bold mb-25">{product.name}</p>
-					</td>
-					<td className="">
-						<span className="font-weight-bold">₦{product.price.toLocaleString()}</span>
-					</td>
-					<td className="">
-						<span className="font-weight-bold">{product.qty.toLocaleString()}</span>
-					</td>
-					<td className="">
-						<span className="font-weight-bold">₦{product.amount.toLocaleString()}</span>
-					</td>
-				</tr>
-			)
-		})
+		return products.map((product, index) => (
+			<tr key={product.id || index}>
+				<td>
+					<div className="product-name">{product.name}</div>
+					<div className="product-details">
+						{product.qty} x {formatCurrency(product.price)}
+					</div>
+				</td>
+				<td className="text-right">{formatCurrency(product.amount)}</td>
+			</tr>
+		))
 	}
 
-	const statusObj = {
-		pending: 'light-warning',
-		delivered: 'light-success',
+	const getStatusDisplay = (status) => {
+		const statusMap = {
+			pending: 'PENDING',
+			processing: 'PROCESSING',
+			ready: 'READY',
+			delivered: 'DELIVERED',
+			completed: 'COMPLETED',
+			cancelled: 'CANCELLED'
+		}
+		return statusMap[status] || status?.toUpperCase()
 	}
 
-	return selectedOrder !== null ?  (
-		<div className="invoice-print" style={{ color: 'black' }}>
-			<div className="row ml-1" style={{ width: '302px' }}>
-				{/* <div className='col-md-3'> */}
-				<div className="d-flex justify-content-between flex-column pb-2">
-					<h2 className="text-center mb-1" style={{ color: '#000000' }}>
-					TIKI FISH FARM & SMOKE HOUSE
-					</h2>
-					<span className="invoice-date-title text-center mb-1">500m Opposite Ilere Junction, Along Ijare Road, Akure South, Ondo State. Nigeria.</span>
-					<div className="mt-md-0 mt-2">
-						<h4 className="text-right mb-1" style={{ color: '#000000' }}>
-							BILL PRINT OUT #{selectedOrder?.saleNumber}
-						</h4>
-						<div className="invoice-date-wrapper mb-50">
-							<span className="invoice-date-title">Date:</span>
-							<span className="font-weight-bold"> {moment(selectedOrder?.createdAt).format('lll')}</span>
+	const getPaymentStatusDisplay = (status) => {
+		const statusMap = {
+			pending: 'PENDING',
+			paid: 'PAID',
+			partial: 'PARTIAL',
+			failed: 'FAILED'
+		}
+		return statusMap[status] || status?.toUpperCase()
+	}
+
+	if (!selectedOrder) {
+		return <SpinnerComponent />
+	}
+
+	return (
+		<div className="thermal-receipt-preview">
+			<div className="thermal-receipt">
+				{/* Header Section */}
+				<div className="receipt-header">
+					<h1 className="company-name">TIKI FISH FARM</h1>
+					<div className="company-info">& SMOKE HOUSE</div>
+					<div className="company-info">500m Opp. Ilere Junction</div>
+					<div className="company-info">Along Ijare Road, Akure South</div>
+					<div className="company-info">Ondo State, Nigeria</div>
+					<div className="company-info">Tel: +234 XXX XXX XXXX</div>
+					<div className="receipt-title mt-2">SALES RECEIPT</div>
+				</div>
+
+				<hr className="receipt-divider" />
+
+				{/* Order Information */}
+				<div className="receipt-info">
+					<div className="info-row">
+						<span className="info-label">Order No:</span>
+						<span className="info-value">#{selectedOrder.orderNumber || selectedOrder.saleNumber}</span>
+					</div>
+					<div className="info-row">
+						<span className="info-label">Date:</span>
+						<span className="info-value">{moment(selectedOrder.createdAt).format('DD/MM/YYYY')}</span>
+					</div>
+					<div className="info-row">
+						<span className="info-label">Time:</span>
+						<span className="info-value">{moment(selectedOrder.createdAt).format('HH:mm:ss')}</span>
+					</div>
+					<div className="info-row">
+						<span className="info-label">Status:</span>
+						<span className="info-value">{getStatusDisplay(selectedOrder.status)}</span>
+					</div>
+					<div className="info-row">
+						<span className="info-label">Payment:</span>
+						<span className="info-value">{selectedOrder.paymentMode?.toUpperCase()}</span>
+					</div>
+					{selectedOrder.paymentStatus && (
+						<div className="info-row">
+							<span className="info-label">Pay Status:</span>
+							<span className="info-value">{getPaymentStatusDisplay(selectedOrder.paymentStatus)}</span>
 						</div>
-						<div className="invoice-date-wrapper mb-50">
-							<span className="invoice-date-title">Location:</span>
-							<span className="font-weight-bold"> {selectedOrder?.location}</span>
+					)}
+				</div>
+
+				<hr className="receipt-divider" />
+
+				{/* Customer Information */}
+				<div className="receipt-info">
+					<div className="info-row">
+						<span className="info-label">Customer:</span>
+						<span className="info-value">{selectedOrder.customer?.fullName}</span>
+					</div>
+					<div className="info-row">
+						<span className="info-label">Phone:</span>
+						<span className="info-value">{selectedOrder.customer?.phone}</span>
+					</div>
+					{selectedOrder.location && (
+						<div className="info-row">
+							<span className="info-label">Location:</span>
+							<span className="info-value">{selectedOrder.location}</span>
 						</div>
-						<div className="invoice-date-wrapper mb-50">
-							<p className="invoice-date-title">Customer:</p>
-							<p className="font-weight-bold">{selectedOrder?.customer.fullName} - {selectedOrder?.customer.phone}</p>
+					)}
+				</div>
+
+				<hr className="receipt-divider" />
+
+				{/* Products Table */}
+				<table className="receipt-table">
+					<thead>
+						<tr>
+							<th>ITEM</th>
+							<th>AMOUNT</th>
+						</tr>
+					</thead>
+					<tbody>
+						{renderProducts(selectedOrder.products)}
+					</tbody>
+				</table>
+
+				<hr className="receipt-divider" />
+
+				{/* Totals Section */}
+				<div className="receipt-totals">
+					<div className="total-row">
+						<span className="total-label">Subtotal:</span>
+						<span className="total-value">{formatCurrency(selectedOrder.subTotal)}</span>
+					</div>
+					{selectedOrder.logistics > 0 && (
+						<div className="total-row">
+							<span className="total-label">Logistics:</span>
+							<span className="total-value">{formatCurrency(selectedOrder.logistics)}</span>
 						</div>
-						<div className="invoice-date-wrapper">
-							<p className="invoice-date-title">Payment Mode:</p>
-							<p className="font-weight-bold">{selectedOrder?.paymentMode.toUpperCase()}</p>
+					)}
+					{selectedOrder.discount > 0 && (
+						<div className="total-row">
+							<span className="total-label">Discount:</span>
+							<span className="total-value">-{formatCurrency(selectedOrder.discount)}</span>
 						</div>
+					)}
+					<div className="total-row total-final">
+						<span className="total-label">TOTAL:</span>
+						<span className="total-value">{formatCurrency(selectedOrder.amount)}</span>
 					</div>
 				</div>
 
-				{/* <hr className="my-2" /> */}
-
-				<Table className="mt-2 mb-0 mr-2" size="100">
-					<thead>
-						<tr>
-							<th className="">Product</th>
-							<th className="">Price</th>
-							<th className="">Qty</th>
-							<th className="">Total</th>
-						</tr>
-					</thead>
-					<tbody>{renderTable(selectedOrder?.products)}</tbody>
-				</Table>
-
-				<Row className="invoice-sales-total-wrapper mt-3">
-					<Col className="ml-auto" md="12">
-						<div className="invoice-total-wrapper d-flex flex-column align-items-end">
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Subtotal:</p>
-								<p className="invoice-total-amount">₦{selectedOrder?.subTotal.toLocaleString()}</p>
+				{/* Payment Information */}
+				{selectedOrder.amountPaid !== undefined && (
+					<>
+						<hr className="receipt-divider" />
+						<div className="receipt-payment">
+							<div className="payment-row">
+								<span>Amount Paid:</span>
+								<span className="text-bold">{formatCurrency(selectedOrder.amountPaid)}</span>
 							</div>
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Logistics:</p>
-								<p className="invoice-total-amount">₦{selectedOrder?.logistics.toLocaleString()}</p>
-							</div>
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Discount:</p>
-								<p className="invoice-total-amount">₦{selectedOrder?.discount.toLocaleString()}</p>
-							</div>
-							<hr className="my-50" />
-							<div className="invoice-total-item">
-								<p className="invoice-total-title">Total:</p>
-								<p className="invoice-total-amount">₦{selectedOrder?.amount.toLocaleString()}</p>
-							</div>
+							{selectedOrder.balance !== undefined && selectedOrder.balance > 0 && (
+								<div className="payment-row">
+									<span>Balance:</span>
+									<span className="text-bold">{formatCurrency(selectedOrder.balance)}</span>
+								</div>
+							)}
 						</div>
-					</Col>
-					<Col className="mt-md-0 mt-3" md="12">
-						<p className="mb-0">
-							<span className="font-weight-bold">Attendant:</span> <span className="ml-75">{selectedOrder?.admin.firstName} {selectedOrder?.admin.lastName}</span>
-						</p>
-					</Col>
-				</Row>
+					</>
+				)}
 
-				<hr className="my-2" />
+				<hr className="receipt-divider" />
 
-				<Row className="">
-					<Col md="12">
-						<span className="font-weight-bold">Thanks for your patronage, we hope to see you again.</span>
-					</Col>
-				</Row>
-				{/* </div> */}
-				{/* <div className='col-md-9'></div> */}
+				{/* Attendant Information */}
+				<div className="receipt-info">
+					<div className="info-row">
+						<span className="info-label">Attendant:</span>
+						<span className="info-value">
+							{selectedOrder.admin?.firstName} {selectedOrder.admin?.lastName}
+						</span>
+					</div>
+				</div>
+
+				{/* Footer Section */}
+				<div className="receipt-footer">
+					<div className="thank-you">THANK YOU!</div>
+					<div className="footer-info">Thanks for your patronage</div>
+					<div className="footer-info">We hope to see you again</div>
+					<div className="footer-info mt-2">www.tikifishfarm.com</div>
+					
+					{/* Barcode Section */}
+					<div className="barcode-section">
+						<div className="barcode-text">
+							*{selectedOrder.orderNumber || selectedOrder.saleNumber}*
+						</div>
+					</div>
+
+					<div className="footer-info mt-2">
+						Printed: {moment().format('DD/MM/YYYY HH:mm')}
+					</div>
+				</div>
 			</div>
 		</div>
-	) : (
-		<SpinnerComponent />
 	)
 }
 
