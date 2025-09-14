@@ -64,16 +64,44 @@ const AnalyticsDashboard = () => {
 			</Row>
 			<Row className="match-height">
 				<Col xl="4" md="6" sm="12">
-					<StatsVertical icon={<DollarSign size={21} />} color="success" stats={dashData.businessBalance ? Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="s" />} statTitle="Total Account Balance" />
-				</Col>
-				<Col xl="4" md="6" sm="12">
-					<StatsVertical icon={<DollarSign size={21} />} color="success" stats={dashData.logisticsBalance ? Number(dashData?.logisticsBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="s" />} statTitle="Logistics Balance" />
+					<StatsVertical
+						icon={<DollarSign size={21} />}
+						color="success"
+						stats={
+							dashData.businessBalance ? (
+								Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+							) : (
+								<Spinner className="mr-25" size="s" />
+							)
+						}
+						statTitle="Total Account Balance"
+					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={dashData.packagingBalance ? Number(dashData?.packagingBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						stats={
+							dashData.logisticsBalance ? (
+								Number(dashData?.logisticsBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+							) : (
+								<Spinner className="mr-25" size="s" />
+							)
+						}
+						statTitle="Logistics Balance"
+					/>
+				</Col>
+				<Col xl="4" md="6" sm="12">
+					<StatsVertical
+						icon={<DollarSign size={21} />}
+						color="success"
+						stats={
+							dashData.packagingBalance ? (
+								Number(dashData?.packagingBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+							) : (
+								<Spinner className="mr-25" size="sm" />
+							)
+						}
 						statTitle="Packaging Balance"
 					/>
 				</Col>
@@ -81,7 +109,13 @@ const AnalyticsDashboard = () => {
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={dashData.profitBalance ? Number(dashData?.profitBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						stats={
+							dashData.profitBalance ? (
+								Number(dashData?.profitBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+							) : (
+								<Spinner className="mr-25" size="sm" />
+							)
+						}
 						statTitle="Profit Balance"
 					/>
 				</Col>
@@ -89,7 +123,13 @@ const AnalyticsDashboard = () => {
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={dashData.salesBalance ? Number(dashData?.salesBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						stats={
+							dashData.salesBalance ? (
+								Number(dashData?.salesBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+							) : (
+								<Spinner className="mr-25" size="sm" />
+							)
+						}
 						statTitle="Sales Balance"
 					/>
 				</Col>
@@ -97,14 +137,25 @@ const AnalyticsDashboard = () => {
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={dashData.smokeHouseBalance ? Number(dashData?.smokeHouseBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN'}) : <Spinner className="mr-25" size="sm" />}
+						stats={
+							dashData.smokeHouseBalance ? (
+								Number(dashData?.smokeHouseBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+							) : (
+								<Spinner className="mr-25" size="sm" />
+							)
+						}
 						statTitle="Smoke House Balance"
 					/>
 				</Col>
 			</Row>
 			<Row className="match-height">
 				<Col xl="4" md="6" sm="12">
-					<StatsVertical icon={<TrendingUp size={21} />} color="primary" stats={dashData.stock ? Number(dashData?.stock.stockVolume).toLocaleString() : <Spinner className="mr-25" size="s" />} statTitle="Total Stocks Available" />
+					<StatsVertical
+						icon={<TrendingUp size={21} />}
+						color="primary"
+						stats={dashData.stock ? Number(dashData?.stock.stockVolume).toLocaleString() : <Spinner className="mr-25" size="s" />}
+						statTitle="Total Stocks Available"
+					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
@@ -142,7 +193,7 @@ const AnalyticsDashboard = () => {
 					<StatsVertical
 						icon={<TrendingUp size={21} />}
 						color="primary"
-						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.totalProfit.toFixed(0))}` : <Spinner className="mr-25" size="sm" />}
+						stats={dashData.sales ? `₦${numFormatter(dashData.sales?.totalProfit?.toFixed(0))}` : <Spinner className="mr-25" size="sm" />}
 						statTitle="Profit So Far"
 					/>
 				</Col>
