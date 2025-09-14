@@ -1,10 +1,29 @@
 // ** Third Party Components
 import { Badge, Card, CardBody, CardText, CardTitle, Button, Row, Col, Table, Media, Progress } from 'reactstrap'
-import { Package, User, MapPin, CreditCard, Calendar, Hash, Phone, Mail, Truck, DollarSign, ShoppingBag, Info, CheckCircle, AlertCircle, Clock, FileText, TrendingUp, Shield } from 'react-feather'
+import {
+	Package,
+	User,
+	MapPin,
+	CreditCard,
+	Calendar,
+	Hash,
+	Phone,
+	Mail,
+	Truck,
+	DollarSign,
+	ShoppingBag,
+	Info,
+	CheckCircle,
+	AlertCircle,
+	Clock,
+	FileText,
+	TrendingUp,
+	Shield,
+} from 'react-feather'
 import moment from 'moment'
 import { isUserLoggedIn } from '@utils'
-import {useState, useEffect} from 'react'
-import {useHistory } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useHistory } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -14,7 +33,7 @@ const PreviewCard = ({ data }) => {
 	const [userData, setUserData] = useState(null)
 	const MySwal = withReactContent(Swal)
 	// const history = useHistory()
-  const dispatch = useDispatch()
+	const dispatch = useDispatch()
 	useEffect(() => {
 		if (isUserLoggedIn()) setUserData(JSON.parse(localStorage.getItem('userData')))
 	}, [])
@@ -27,7 +46,7 @@ const PreviewCard = ({ data }) => {
 			const productSubtotal = product.subtotal || product.amount || 0
 			const productUnit = product.unit || 'kg'
 			const productUnitValue = product.unitValue || ''
-			
+
 			return (
 				<tr key={product.id || index} className="align-middle">
 					<td className="py-2">
@@ -39,7 +58,8 @@ const PreviewCard = ({ data }) => {
 								<h6 className="mb-0">{productName}</h6>
 								{productUnitValue && (
 									<Badge color="light-info" pill className="mt-1">
-										{productUnitValue}{productUnit}
+										{productUnitValue}
+										{productUnit}
 									</Badge>
 								)}
 							</div>
@@ -71,7 +91,7 @@ const PreviewCard = ({ data }) => {
 		cancelled: 'light-danger',
 		failed: 'light-danger',
 		refunded: 'light-dark',
-		on_hold: 'light-warning'
+		on_hold: 'light-warning',
 	}
 
 	const paymentStatusObj = {
@@ -84,9 +104,8 @@ const PreviewCard = ({ data }) => {
 		cancelled: 'light-secondary',
 		refunded: 'light-dark',
 		cod: 'light-info',
-		wallet: 'light-primary'
+		wallet: 'light-primary',
 	}
-
 
 	// const discountedAmount = (Number(data.amount) - Number(orderData.discount))
 	// const taxedAmount = ((Number(orderData.tax) / 100) * Number(discountedAmount))
@@ -95,13 +114,20 @@ const PreviewCard = ({ data }) => {
 	// Get status icon
 	const getStatusIcon = (status) => {
 		switch (status) {
-			case 'pending': return <Clock size={14} />
-			case 'processing': return <Package size={14} />
-			case 'ready': return <CheckCircle size={14} />
-			case 'delivered': return <Truck size={14} />
-			case 'completed': return <CheckCircle size={14} />
-			case 'cancelled': return <AlertCircle size={14} />
-			default: return <Info size={14} />
+			case 'pending':
+				return <Clock size={14} />
+			case 'processing':
+				return <Package size={14} />
+			case 'ready':
+				return <CheckCircle size={14} />
+			case 'delivered':
+				return <Truck size={14} />
+			case 'completed':
+				return <CheckCircle size={14} />
+			case 'cancelled':
+				return <AlertCircle size={14} />
+			default:
+				return <Info size={14} />
 		}
 	}
 
@@ -126,27 +152,18 @@ const PreviewCard = ({ data }) => {
 							</div>
 						</Col>
 						<Col md="4" className="text-md-right">
-							<Badge 
-								color={statusObj[data.status]} 
-								pill 
-								className="px-3 py-1 mb-1"
-								style={{fontSize: '0.9rem'}}
-							>
+							<Badge color={statusObj[data.status]} pill className="px-3 py-1 mb-1" style={{ fontSize: '0.9rem' }}>
 								{getStatusIcon(data.status)}
 								<span className="ml-1">{data.status.toUpperCase()}</span>
 							</Badge>
 							<br />
-							<Badge 
-								color={paymentStatusObj[data.paymentStatus || 'pending']} 
-								pill 
-								className="px-3 py-1"
-							>
+							<Badge color={paymentStatusObj[data.paymentStatus || 'pending']} pill className="px-3 py-1">
 								<CreditCard size={14} className="mr-1" />
 								{(data.paymentStatus || 'pending').toUpperCase()}
 							</Badge>
 						</Col>
 					</Row>
-					
+
 					{/* Quick Stats Row */}
 					<Row className="text-center mt-3 pt-3 border-top">
 						<Col xs="3">
@@ -284,7 +301,7 @@ const PreviewCard = ({ data }) => {
 								<th className="py-2 text-right">Total</th>
 							</tr>
 						</thead>
-						<tbody>{renderTable(data.products)}</tbody>
+						<tbody>{renderTable(JSON.parse(data.products))}</tbody>
 					</Table>
 				</CardBody>
 			</Card>
@@ -325,7 +342,7 @@ const PreviewCard = ({ data }) => {
 								<h5 className="mb-0">Total Amount</h5>
 								<h4 className="mb-0 text-primary">₦{data.amount.toLocaleString()}</h4>
 							</div>
-							
+
 							{/* Payment Progress */}
 							<div className="mt-3">
 								<div className="d-flex justify-content-between mb-1">
@@ -334,10 +351,10 @@ const PreviewCard = ({ data }) => {
 										{data.paymentStatus === 'paid' ? '100%' : data.paymentStatus === 'partial' ? '50%' : '0%'}
 									</small>
 								</div>
-								<Progress 
-									value={data.paymentStatus === 'paid' ? 100 : data.paymentStatus === 'partial' ? 50 : 0} 
+								<Progress
+									value={data.paymentStatus === 'paid' ? 100 : data.paymentStatus === 'partial' ? 50 : 0}
 									color={data.paymentStatus === 'paid' ? 'success' : data.paymentStatus === 'partial' ? 'warning' : 'danger'}
-									style={{height: '8px'}}
+									style={{ height: '8px' }}
 								/>
 							</div>
 						</Col>
@@ -352,7 +369,9 @@ const PreviewCard = ({ data }) => {
 								</div>
 								<div>
 									<small className="text-muted d-block">Initiated By</small>
-									<span className="font-weight-bold">{data.admin.firstName} {data.admin.lastName}</span>
+									<span className="font-weight-bold">
+										{data.admin.firstName} {data.admin.lastName}
+									</span>
 								</div>
 							</div>
 							<div className="d-flex align-items-center mb-3">
@@ -373,7 +392,7 @@ const PreviewCard = ({ data }) => {
 									<span className="font-weight-bold">#{data.orderNumber}</span>
 								</div>
 							</div>
-							
+
 							{/* Note Section */}
 							<div className="mt-3 p-2 bg-light rounded">
 								<small className="text-muted">
