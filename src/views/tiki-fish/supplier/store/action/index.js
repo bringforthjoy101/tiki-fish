@@ -105,21 +105,37 @@ export const updateSupplier = supplier => {
   return async dispatch => {
     return new Promise(async (resolve, reject) => {
       try {
-        const response = await apiRequest({url:`/suppliers/update/${supplier.id}`, method:'POST', data:supplier}, dispatch)
+        // Map the data correctly to match backend expectations
+        const updateData = {
+          name: supplier.name,
+          phone: supplier.phone,
+          address: supplier.address,
+          accountNumber: supplier.accountNumber,
+          bankName: supplier.bankName,
+          accountName: supplier.accountName,
+          status: supplier.status
+        }
+
+        const response = await apiRequest({
+          url: `/suppliers/update/${supplier.id}`,
+          method: 'POST',
+          body: JSON.stringify(updateData)
+        }, dispatch)
+
         if (response && response.data.data && response.data.status) {
           dispatch({
-            type: 'UPDATE_SUPPLIER',  
-            supplier
+            type: 'UPDATE_SUPPLIER',
+            supplier: response.data.data
           })
-        //   dispatch(getData({page: 1, perPage: 10}))
           dispatch(getAllData())
           resolve(response)
+          swal('Success!', response.data.message, 'success')
         } else {
-          swal('Oops!', 'Something went wrong.', 'error')
+          swal('Oops!', response?.data?.message || 'Something went wrong.', 'error')
           reject(response)
         }
       } catch (error) {
-        swal('Oops!', 'Something went wrong.', 'error')
+        swal('Oops!', error.message || 'Something went wrong.', 'error')
         reject(error)
       }
     })
