@@ -23,7 +23,7 @@ import {
   InputGroupAddon,
   InputGroupText
 } from 'reactstrap'
-import { User, Phone, MapPin, CreditCard, Building, FileText, Check, X } from 'react-feather'
+import { User, Phone, MapPin, CreditCard, Briefcase, FileText, Check, X } from 'react-feather'
 
 // ** Store & Actions
 import { updateSupplier } from '../store/action'
@@ -312,7 +312,7 @@ const SupplierInfo = ({ selectedSupplier }) => {
                 <Col md="4" sm="12">
                   <FormGroup>
                     <Label for="bankName">
-                      <Building size={14} className="mr-50" />
+                      <Briefcase size={14} className="mr-50" />
                       Bank Name
                     </Label>
                     <Controller
