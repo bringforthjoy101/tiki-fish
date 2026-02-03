@@ -201,6 +201,10 @@ const ManagerRoutes = [
         component: lazy(() => import('../../views/tiki-fish/supplier/list'))
       },
       {
+        path: '/supplies/list',
+        component: lazy(() => import('../../views/tiki-fish/supplies/list'))
+      },
+      {
         path: '/supplier/view',
         exact: true,
         component: () => <Redirect to='/supplier/view/1' />
