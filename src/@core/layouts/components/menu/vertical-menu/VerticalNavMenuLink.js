@@ -6,6 +6,7 @@ import { NavLink, useLocation, matchPath, useParams } from 'react-router-dom'
 import { Badge } from 'reactstrap'
 import classnames from 'classnames'
 import { FormattedMessage } from 'react-intl'
+import { useSelector } from 'react-redux'
 
 // ** Vertical Menu Array Of Items
 import navigation from '@src/navigation/vertical'
@@ -26,6 +27,9 @@ const VerticalNavMenuLink = ({
   routerProps,
   currentActiveItem
 }) => {
+  // ** Dynamic badge count from Redux
+  const unseenOrderCount = useSelector(state => state.notifications.unseenOrderCount)
+
   // ** Conditional Link Tag, if item has newTab or externalLink props use <a> tag else use NavLink
   const LinkTag = item.externalLink ? 'a' : NavLink
 
@@ -109,7 +113,11 @@ const VerticalNavMenuLink = ({
           <FormattedMessage id={item.title} />
         </span>
 
-        {item.badge && item.badgeText ? (
+        {item.id === 'Orders' && unseenOrderCount > 0 ? (
+          <Badge className='ml-auto mr-1' color='danger' pill>
+            {unseenOrderCount}
+          </Badge>
+        ) : item.badge && item.badgeText ? (
           <Badge className='ml-auto mr-1' color={item.badge} pill>
             {item.badgeText}
           </Badge>

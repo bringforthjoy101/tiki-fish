@@ -1,3 +1,5 @@
+import { disconnectSocket } from '@src/utility/socket'
+
 // ** Handle admin Login
 export const handleLogin = data => {
   return dispatch => {
@@ -11,8 +13,11 @@ export const handleLogin = data => {
 // ** Handle admin Logout
 export const handleLogout = () => {
   return dispatch => {
+    // Disconnect socket before clearing auth
+    disconnectSocket()
+
     dispatch({ type: 'LOGOUT' })
-    
+
     // remove admin from local storage
     localStorage.removeItem('userData')
   }

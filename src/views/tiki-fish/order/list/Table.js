@@ -56,8 +56,9 @@ const TransactionTable = () => {
 	const [paymentStatusFilter, setPaymentStatusFilter] = useState('')
 	const [isLoading, setIsLoading] = useState(true)
 
-	// Fetch all data on mount
+	// Fetch all data on mount and reset notification badge
 	useEffect(() => {
+		dispatch({ type: 'RESET_ORDER_NOTIFICATIONS' })
 		setIsLoading(true)
 		dispatch(getAllData()).then(() => {
 			setIsLoading(false)

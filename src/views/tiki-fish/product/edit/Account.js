@@ -6,11 +6,34 @@ import { useDispatch } from 'react-redux'
 import Avatar from '@components/avatar'
 
 // ** Third Party Components
-import { Lock, Edit, Trash2, DollarSign, Package, Info, BarChart } from 'react-feather'
+import { Lock, Edit, Trash2, DollarSign, Package, Info, BarChart, Film, X } from 'react-feather'
 import { Media, Row, Col, Button, Form, Input, Label, FormGroup, Table, CustomInput, Card, CardBody, CardHeader, CardTitle, Badge } from 'reactstrap'
 import { AvForm, AvInput } from 'availity-reactstrap-validation-safe'
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
 import { getAllData, getProduct } from '../store/action'
 import { swal, apiRequest } from '@utils'
+
+const quillModules = {
+	toolbar: [
+		[{ header: [2, 3, false] }],
+		['bold', 'italic', 'underline'],
+		[{ list: 'ordered' }, { list: 'bullet' }],
+		['link'],
+		['clean']
+	]
+}
+
+const extractYouTubeId = (url) => {
+	if (!url) return null
+	const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+	return match ? match[1] : null
+}
+
+const isValidYouTubeUrl = (url) => {
+	if (!url) return true
+	return /^(https?:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[a-zA-Z0-9_-]{11}/.test(url)
+}
 
 const UserAccountTab = ({ selectedProduct }) => {
 	const dispatch = useDispatch()
@@ -27,15 +50,19 @@ const UserAccountTab = ({ selectedProduct }) => {
 		unit: selectedProduct.unit,
 		unitValue: selectedProduct.unitValue,
 		category: selectedProduct.category,
-		status: selectedProduct.status || 'in-stock'
+		status: selectedProduct.status || 'in-stock',
+		videoUrl: selectedProduct.videoUrl || ''
 	})
 
 	const onSubmit = async (event, errors) => {
 		event.preventDefault()
 		console.log({ errors })
 		if (errors && !errors.length) {
-			console.log({ productData })
-			const body = JSON.stringify(productData)
+			// Clean empty Quill content
+			const cleanDescription = productData.description === '<p><br></p>' ? '' : productData.description
+			const submitData = { ...productData, description: cleanDescription }
+			console.log({ submitData })
+			const body = JSON.stringify(submitData)
 			try {
 				const response = await apiRequest({ url: `/products/update/${selectedProduct.id}`, method: 'POST', body }, dispatch)
 				console.log({ response })
@@ -53,7 +80,8 @@ const UserAccountTab = ({ selectedProduct }) => {
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
 						category: selectedProduct.category,
-						status: selectedProduct.status || 'in-stock'
+						status: selectedProduct.status || 'in-stock',
+						videoUrl: selectedProduct.videoUrl || ''
 					})
 				} else {
 					swal('Oops!', response.data.message, 'error')
@@ -67,7 +95,8 @@ const UserAccountTab = ({ selectedProduct }) => {
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
 						category: selectedProduct.category,
-						status: selectedProduct.status || 'in-stock'
+						status: selectedProduct.status || 'in-stock',
+						videoUrl: selectedProduct.videoUrl || ''
 					})
 				}
 			} catch (error) {
@@ -183,15 +212,15 @@ const UserAccountTab = ({ selectedProduct }) => {
 										<Col md="12">
 											<FormGroup>
 												<Label for="description">Product Description</Label>
-												<AvInput
-													type="textarea"
-													name="description"
-													id="description"
-													rows="4"
-													placeholder="Enter product description"
-													value={productData.description}
-													onChange={(e) => setProductData({ ...productData, description: e.target.value })}
-												/>
+												<div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+													<ReactQuill
+														theme="snow"
+														value={productData.description}
+														onChange={(value) => setProductData({ ...productData, description: value })}
+														modules={quillModules}
+														placeholder="Enter product description"
+													/>
+												</div>
 											</FormGroup>
 										</Col>
 										<Col md="6">
@@ -209,6 +238,61 @@ const UserAccountTab = ({ selectedProduct }) => {
 												</AvInput>
 											</FormGroup>
 										</Col>
+									</Row>
+								</CardBody>
+							</Card>
+						</Col>
+
+						{/* Media Card */}
+						<Col lg="12">
+							<Card>
+								<CardHeader>
+									<CardTitle tag='h4'>
+										<Film size={20} className='mr-1' />
+										Media
+									</CardTitle>
+								</CardHeader>
+								<CardBody>
+									<Row>
+										<Col md="12">
+											<FormGroup>
+												<Label for="videoUrl">YouTube Video URL</Label>
+												<div className="d-flex align-items-center">
+													<Input
+														name="videoUrl"
+														id="videoUrl"
+														placeholder="https://www.youtube.com/watch?v=..."
+														value={productData.videoUrl}
+														onChange={(e) => setProductData({ ...productData, videoUrl: e.target.value })}
+														invalid={!!productData.videoUrl && !isValidYouTubeUrl(productData.videoUrl)}
+														className="flex-grow-1"
+													/>
+													{productData.videoUrl && (
+														<Button color="flat-danger" className="ml-1" size="sm" onClick={() => setProductData({ ...productData, videoUrl: '' })}>
+															<X size={16} />
+														</Button>
+													)}
+												</div>
+												{productData.videoUrl && !isValidYouTubeUrl(productData.videoUrl) && (
+													<small className="text-danger">Please enter a valid YouTube URL</small>
+												)}
+												<small className="text-muted d-block mt-50">
+													Paste a YouTube video URL (e.g., youtube.com/watch?v=...)
+												</small>
+											</FormGroup>
+										</Col>
+										{extractYouTubeId(productData.videoUrl) && (
+											<Col md="6">
+												<div className="mb-1">
+													<img
+														src={`https://img.youtube.com/vi/${extractYouTubeId(productData.videoUrl)}/mqdefault.jpg`}
+														alt="Video thumbnail"
+														className="rounded"
+														style={{ width: '100%', maxWidth: '320px' }}
+													/>
+												</div>
+											</Col>
+										)}
 									</Row>
 								</CardBody>
 							</Card>

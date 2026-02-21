@@ -31,6 +31,15 @@
   }
 }
 
+// Overall upload status bar
+.upload-status {
+  padding: 0.25rem 0;
+
+  .progress {
+    border-radius: 3px;
+  }
+}
+
 .image-preview {
   position: relative;
   border-radius: 8px;
@@ -62,7 +71,7 @@
 
   &.uploading {
     cursor: default;
-    
+
     .uploading-overlay {
       position: absolute;
       top: 0;
@@ -75,6 +84,22 @@
       align-items: center;
       justify-content: center;
       color: #7367f0;
+
+      .upload-progress-bar {
+        border-radius: 3px;
+      }
+    }
+
+    // Success overlay
+    .success-overlay {
+      background: rgba(255, 255, 255, 0.95);
+      color: #28c76f;
+    }
+
+    // Error overlay
+    .error-overlay {
+      background: rgba(255, 255, 255, 0.95);
+      color: #ea5455;
     }
   }
 
@@ -151,6 +176,16 @@
 
     .uploading-overlay {
       background: rgba(40, 48, 70, 0.9);
+    }
+
+    &.uploading {
+      .success-overlay {
+        background: rgba(40, 48, 70, 0.95);
+      }
+
+      .error-overlay {
+        background: rgba(40, 48, 70, 0.95);
+      }
     }
 
     .drag-handle {

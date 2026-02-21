@@ -1,5 +1,5 @@
 // ** React Imports
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 
 // ** Redux Imports
@@ -12,6 +12,9 @@ import { ToastContainer } from 'react-toastify'
 import { AbilityContext } from './utility/context/Can'
 import { ThemeContext } from './utility/context/ThemeColors'
 import { IntlProviderWrapper } from './utility/context/Internationalization'
+
+// ** Socket.IO
+import { initSocketStore, connectSocket } from './utility/socket'
 
 // ** Spinner (Splash Screen)
 import Spinner from './@core/components/spinner/Fallback-spinner'
@@ -44,8 +47,27 @@ import * as serviceWorker from './serviceWorker'
 // ** Lazy load app
 const LazyApp = lazy(() => import('./App'))
 
+// ** Initialize socket store reference
+initSocketStore(store)
+
+// ** Socket initializer — connects socket when admin is already logged in (e.g. page refresh)
+const SocketInitializer = () => {
+  useEffect(() => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData'))
+      if (userData && userData.accessToken) {
+        connectSocket(userData.accessToken)
+      }
+    } catch (err) {
+      // Silently ignore parse errors
+    }
+  }, [])
+  return null
+}
+
 ReactDOM.render(
   <Provider store={store}>
+    <SocketInitializer />
     <Suspense fallback={<Spinner />}>
       <AbilityContext.Provider value={ability}>
         <ThemeContext>

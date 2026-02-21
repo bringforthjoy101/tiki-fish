@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 // ** Reactstrap Imports
@@ -14,17 +14,20 @@ import {
   UncontrolledTooltip,
   Row,
   Col,
-  Alert
+  Alert,
+  Progress
 } from 'reactstrap'
 
 // ** Icons
-import { 
-  Upload, 
-  X, 
-  Star, 
-  Move, 
+import {
+  Upload,
+  X,
+  Star,
+  Move,
   Image as ImageIcon,
-  AlertCircle 
+  AlertCircle,
+  Check,
+  RefreshCw
 } from 'react-feather'
 
 // ** Utils
@@ -33,22 +36,30 @@ import { apiRequest, swal } from '@utils'
 // ** Styles
 import './ImageUploader.scss'
 
+let nextQueueId = 0
+
 const ImageUploader = ({ productId, onImagesUpdate }) => {
   const [images, setImages] = useState([])
-  const [uploadingImages, setUploadingImages] = useState([])
+  const [uploadQueue, setUploadQueue] = useState([])
   const [loading, setLoading] = useState(false)
   const [draggedImage, setDraggedImage] = useState(null)
+  const uploadQueueRef = useRef([])
+
+  // Keep ref in sync with state for use inside async closures
+  useEffect(() => {
+    uploadQueueRef.current = uploadQueue
+  }, [uploadQueue])
 
   // Fetch existing images
   const fetchImages = async () => {
     if (!productId) return
-    
+
     try {
       const response = await apiRequest({
         url: `/products/${productId}/images`,
         method: 'GET'
       })
-      
+
       if (response.data.status) {
         setImages(response.data.data || [])
         if (onImagesUpdate) {
@@ -64,6 +75,79 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
     fetchImages()
   }, [productId])
 
+  // Update a single queue item by id
+  const updateQueueItem = (id, updates) => {
+    setUploadQueue(prev => prev.map(item => (item.id === id ? { ...item, ...updates } : item)))
+  }
+
+  // Upload a single file
+  const uploadSingleFile = async (queueItem) => {
+    updateQueueItem(queueItem.id, { status: 'uploading', progress: 0 })
+
+    const formData = new FormData()
+    formData.append('images', queueItem.file)
+
+    try {
+      const response = await apiRequest({
+        url: `/products/${productId}/images`,
+        method: 'POST',
+        body: formData,
+        onUploadProgress: (e) => {
+          if (e.total) {
+            const progress = Math.round((e.loaded / e.total) * 100)
+            updateQueueItem(queueItem.id, { progress })
+          }
+        }
+      })
+
+      if (response && response.data && response.data.status) {
+        updateQueueItem(queueItem.id, { status: 'success', progress: 100 })
+        // Refresh gallery to show the new image
+        fetchImages()
+      } else {
+        const errorMsg = response?.data?.message || 'Upload failed'
+        updateQueueItem(queueItem.id, { status: 'error', error: errorMsg })
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      updateQueueItem(queueItem.id, { status: 'error', error: 'Network error' })
+    }
+  }
+
+  // Upload files with concurrency limit
+  const uploadWithConcurrency = async (queueItems, limit = 3) => {
+    const queue = [...queueItems]
+    const executing = []
+
+    for (const item of queue) {
+      const p = uploadSingleFile(item).then(() => {
+        executing.splice(executing.indexOf(p), 1)
+      })
+      executing.push(p)
+
+      if (executing.length >= limit) {
+        await Promise.race(executing)
+      }
+    }
+
+    // Wait for remaining uploads
+    await Promise.allSettled(executing)
+
+    // Auto-remove successful items after a brief delay
+    setTimeout(() => {
+      setUploadQueue(prev => {
+        const remaining = prev.filter(item => item.status === 'error')
+        // Revoke preview URLs for removed items
+        prev.forEach(item => {
+          if (item.status !== 'error') {
+            URL.revokeObjectURL(item.preview)
+          }
+        })
+        return remaining
+      })
+    }, 1500)
+  }
+
   // Handle file drop
   const onDrop = useCallback(async (acceptedFiles) => {
     const validFiles = acceptedFiles.filter(file => {
@@ -78,50 +162,42 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
 
     // Check if adding new images would exceed limit
     if (images.length + validFiles.length > 10) {
-      swal('Error', `Cannot upload ${validFiles.length} images. Maximum 10 images allowed per product.`, 'error')
+      swal('Error', `Cannot upload ${validFiles.length} images. Maximum 10 images allowed per product. Currently ${images.length} uploaded.`, 'error')
       return
     }
 
-    // Create preview URLs
-    const newImages = validFiles.map(file => ({
+    // Create queue items with preview URLs
+    const newItems = validFiles.map(file => ({
+      id: ++nextQueueId,
       file,
       preview: URL.createObjectURL(file),
-      name: file.name,
-      uploading: true
+      progress: 0,
+      status: 'pending',
+      error: null
     }))
 
-    setUploadingImages(newImages)
+    setUploadQueue(prev => [...prev, ...newItems])
 
-    // Upload images
-    const formData = new FormData()
-    validFiles.forEach(file => {
-      formData.append('images', file)
-    })
-
-    try {
-      const response = await apiRequest({
-        url: `/products/${productId}/images`,
-        method: 'POST',
-        body: formData,
-        isFormData: true
-      })
-
-      if (response.data.status) {
-        swal('Success', response.data.message, 'success')
-        // Refresh images list
-        fetchImages()
-      } else {
-        swal('Error', response.data.message || 'Failed to upload images', 'error')
-      }
-    } catch (error) {
-      console.error('Upload error:', error)
-      swal('Error', 'Failed to upload images', 'error')
-    } finally {
-      setUploadingImages([])
-      // Clean up preview URLs
-      newImages.forEach(img => URL.revokeObjectURL(img.preview))
-    }
+    // Start concurrent uploads
+    uploadWithConcurrency(newItems, 3)
   }, [images, productId])
+
+  // Retry a failed upload
+  const retryUpload = (itemId) => {
+    const item = uploadQueueRef.current.find(i => i.id === itemId)
+    if (!item) return
+    updateQueueItem(itemId, { status: 'pending', progress: 0, error: null })
+    uploadSingleFile(item)
+  }
+
+  // Remove a failed upload from queue
+  const removeFromQueue = (itemId) => {
+    setUploadQueue(prev => {
+      const item = prev.find(i => i.id === itemId)
+      if (item) URL.revokeObjectURL(item.preview)
+      return prev.filter(i => i.id !== itemId)
+    })
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -201,19 +277,19 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
 
   const handleDrop = async (e, dropIndex) => {
     e.preventDefault()
-    
+
     if (draggedImage === null || draggedImage === dropIndex) {
       return
     }
 
     const draggedItem = images[draggedImage]
     const newImages = [...images]
-    
+
     // Remove dragged item
     newImages.splice(draggedImage, 1)
     // Insert at new position
     newImages.splice(dropIndex, 0, draggedItem)
-    
+
     setImages(newImages)
     setDraggedImage(null)
 
@@ -249,6 +325,13 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
     )
   }
 
+  // Computed values for overall progress
+  const activeUploads = uploadQueue.filter(i => i.status === 'uploading' || i.status === 'pending')
+  const completedUploads = uploadQueue.filter(i => i.status === 'success')
+  const hasActiveUploads = activeUploads.length > 0
+  const totalInQueue = uploadQueue.length
+  const completedCount = completedUploads.length
+
   return (
     <Card>
       <CardHeader>
@@ -257,8 +340,8 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
       </CardHeader>
       <CardBody>
         {/* Upload Zone */}
-        <div 
-          {...getRootProps()} 
+        <div
+          {...getRootProps()}
           className={`dropzone ${isDragActive ? 'active' : ''}`}
         >
           <input {...getInputProps()} />
@@ -271,17 +354,66 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
           </div>
         </div>
 
-        {/* Uploading Images */}
-        {uploadingImages.length > 0 && (
-          <Row className="mt-3">
-            {uploadingImages.map((img, index) => (
-              <Col key={index} lg={3} md={4} sm={6} className="mb-3">
-                <div className="image-preview uploading">
-                  <img src={img.preview} alt={img.name} />
-                  <div className="uploading-overlay">
-                    <Spinner size="sm" />
-                    <small className="d-block mt-1">Uploading...</small>
-                  </div>
+        {/* Overall Upload Progress */}
+        {totalInQueue > 0 && (
+          <div className="upload-status mt-2 mb-1">
+            <div className="d-flex justify-content-between align-items-center mb-50">
+              <small className="text-muted font-weight-bold">
+                {hasActiveUploads ? `Uploading ${completedCount} of ${totalInQueue} images...` : `Upload complete — ${completedCount} of ${totalInQueue} succeeded`}
+              </small>
+            </div>
+            <Progress
+              value={totalInQueue > 0 ? (completedCount / totalInQueue) * 100 : 0}
+              color={hasActiveUploads ? 'primary' : 'success'}
+              style={{ height: '6px' }}
+            />
+          </div>
+        )}
+
+        {/* Upload Queue */}
+        {uploadQueue.length > 0 && (
+          <Row className="mt-2">
+            {uploadQueue.map(item => (
+              <Col key={item.id} lg={3} md={4} sm={6} className="mb-3">
+                <div className={`image-preview uploading ${item.status}`}>
+                  <img src={item.preview} alt={item.file.name} />
+
+                  {/* Pending / Uploading state */}
+                  {(item.status === 'pending' || item.status === 'uploading') && (
+                    <div className="uploading-overlay">
+                      <Spinner size="sm" />
+                      <Progress
+                        value={item.progress}
+                        className="mt-1 upload-progress-bar"
+                        style={{ height: '6px', width: '75%' }}
+                      />
+                      <small className="d-block mt-50">{item.progress}%</small>
+                    </div>
+                  )}
+
+                  {/* Success state */}
+                  {item.status === 'success' && (
+                    <div className="uploading-overlay success-overlay">
+                      <Check size={24} />
+                      <small className="d-block mt-50">Uploaded</small>
+                    </div>
+                  )}
+
+                  {/* Error state */}
+                  {item.status === 'error' && (
+                    <div className="uploading-overlay error-overlay">
+                      <AlertCircle size={24} />
+                      <small className="d-block mt-50 text-center px-1">{item.error || 'Upload failed'}</small>
+                      <div className="mt-1 d-flex gap-50">
+                        <Button size="sm" color="primary" className="d-flex align-items-center" onClick={() => retryUpload(item.id)}>
+                          <RefreshCw size={12} className="mr-50" /> Retry
+                        </Button>
+                        <Button size="sm" color="flat-danger" className="d-flex align-items-center ml-50" onClick={() => removeFromQueue(item.id)}>
+                          <X size={12} className="mr-50" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Col>
             ))}
@@ -293,18 +425,18 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
           <Row className="mt-3">
             {images.map((image, index) => (
               <Col key={image.id} lg={3} md={4} sm={6} className="mb-3">
-                <div 
+                <div
                   className="image-preview"
                   draggable
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, index)}
                 >
-                  <img 
-                    src={image.thumbnailUrl || image.imageUrl} 
-                    alt={`Product ${index + 1}`} 
+                  <img
+                    src={image.thumbnailUrl || image.imageUrl}
+                    alt={`Product ${index + 1}`}
                   />
-                  
+
                   {/* Main Image Badge */}
                   {image.imageType === 'main' && (
                     <Badge color="primary" className="main-badge">
@@ -325,15 +457,15 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
                         >
                           <Star size={14} />
                         </Button>
-                        <UncontrolledTooltip 
-                          placement="top" 
+                        <UncontrolledTooltip
+                          placement="top"
                           target={`set-main-${image.id}`}
                         >
                           Set as main image
                         </UncontrolledTooltip>
                       </>
                     )}
-                    
+
                     <Button
                       color="danger"
                       size="sm"
@@ -343,8 +475,8 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
                     >
                       <X size={14} />
                     </Button>
-                    <UncontrolledTooltip 
-                      placement="top" 
+                    <UncontrolledTooltip
+                      placement="top"
                       target={`delete-${image.id}`}
                     >
                       Delete image
@@ -362,7 +494,7 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
         )}
 
         {/* Empty State */}
-        {images.length === 0 && uploadingImages.length === 0 && (
+        {images.length === 0 && uploadQueue.length === 0 && (
           <div className="text-center py-4">
             <ImageIcon size={48} className="text-muted mb-2" />
             <p className="text-muted">No images uploaded yet</p>

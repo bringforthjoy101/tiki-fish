@@ -128,20 +128,24 @@ export const Storage = {
   }
 }
 
-export const apiRequest = ({ url, method, body }, dispatch) => {
+export const apiRequest = ({ url, method, body, onUploadProgress }, dispatch) => {
   const userData = Storage.getItem('userData')
   const { accessToken } = userData
-  // console.log("storeee", localStorage.removeItem('userData'))
+  const isFormData = body instanceof FormData
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: 'application/json'
+  }
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json'
+  }
   return axios.request({
     url,
     method,
     baseURL: apiUrl,
     data: body,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
-    },
+    headers,
+    onUploadProgress,
     responseType: 'json',
     validateStatus: (status) => {
       return status >= 200 && status < 500 // default

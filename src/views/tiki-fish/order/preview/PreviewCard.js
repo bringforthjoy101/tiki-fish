@@ -301,7 +301,7 @@ const PreviewCard = ({ data }) => {
 								<th className="py-2 text-right">Total</th>
 							</tr>
 						</thead>
-						<tbody>{renderTable(JSON.parse(data.products))}</tbody>
+						<tbody>{renderTable(data.products)}</tbody>
 					</Table>
 				</CardBody>
 			</Card>

@@ -3,6 +3,7 @@ import { combineReducers } from 'redux'
 
 // ** Reducers Imports
 import auth from './auth'
+import notifications from './notifications'
 import navbar from './navbar'
 import layout from './layout'
 import chat from '@src/views/apps/chat/store/reducer'
@@ -31,6 +32,7 @@ import dataTables from '@src/views/tables/data-tables/store/reducer'
 
 const rootReducer = combineReducers({
   auth,
+  notifications,
   ecommerce,
   todo,
   chat,
