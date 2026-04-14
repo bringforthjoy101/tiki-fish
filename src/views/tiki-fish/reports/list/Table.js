@@ -128,7 +128,7 @@ const ReportsTable = () => {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: searchTerm,
-			})
+			}),
 		)
 	}, [dispatch])
 
@@ -151,7 +151,7 @@ const ReportsTable = () => {
 				page: page.selected + 1,
 				perPage: rowsPerPage,
 				q: searchTerm,
-			})
+			}),
 		)
 		setCurrentPage(page.selected + 1)
 	}
@@ -164,7 +164,7 @@ const ReportsTable = () => {
 				page: currentPage,
 				perPage: value,
 				q: searchTerm,
-			})
+			}),
 		)
 		setRowsPerPage(value)
 	}
@@ -177,7 +177,7 @@ const ReportsTable = () => {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: val,
-			})
+			}),
 		)
 	}
 
@@ -189,14 +189,14 @@ const ReportsTable = () => {
 				startDate: moment(date[0]).format('L').split('/').join('-'),
 				endDate: moment(date[1]).format('L').split('/').join('-'),
 				category: currentCategory.value,
-			})
+			}),
 		)
 		dispatch(
 			getFilteredData(store.allData.orders, {
 				page: currentPage,
 				perPage: rowsPerPage,
 				q: searchTerm,
-			})
+			}),
 		)
 	}
 
@@ -298,7 +298,7 @@ const ReportsTable = () => {
 		})
 		const getProducts = (items) => {
 			const arr = []
-			const _items = process.env.NODE_ENV === 'production' ? JSON.parse(items) : items
+			const _items = process.env.NODE_ENV === 'production' ? items : items
 			_items.forEach((item) => {
 				arr.push(`${item.name} X ${item.qty}`)
 			})
@@ -331,7 +331,7 @@ const ReportsTable = () => {
 		})
 		const date = new Date()
 		doc.save(
-			`tiki_fish_orders_${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}_${date.getDate()}-${date.getMonth()}-${date.getFullYear()}.pdf`
+			`tiki_fish_orders_${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}_${date.getDate()}-${date.getMonth()}-${date.getFullYear()}.pdf`,
 		)
 	}
 
@@ -364,7 +364,7 @@ const ReportsTable = () => {
 					<td>
 						<span className="align-middle fw-bold">{product.qty}</span>
 					</td>
-					<td>{`${product.orders.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}</td>
+					<td>{`${product?.orders?.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}</td>
 				</tr>
 			)
 		})
