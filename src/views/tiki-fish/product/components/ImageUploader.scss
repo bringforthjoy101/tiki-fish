@@ -103,6 +103,28 @@
     }
   }
 
+  // Compression stats bar
+  .compression-stats {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 4px 8px;
+    text-align: center;
+    font-size: 0.75rem;
+    z-index: 2;
+
+    .text-success {
+      color: #28c76f !important;
+    }
+
+    .text-warning {
+      color: #ff9f43 !important;
+    }
+  }
+
   .main-badge {
     position: absolute;
     top: 10px;
@@ -195,6 +217,10 @@
       &:hover {
         background: rgba(40, 48, 70, 1);
       }
+    }
+
+    .compression-stats {
+      background: rgba(0, 0, 0, 0.8);
     }
   }
 }

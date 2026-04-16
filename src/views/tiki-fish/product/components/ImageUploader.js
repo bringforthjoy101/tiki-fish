@@ -1,6 +1,7 @@
 // ** React Imports
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
+import imageCompression from 'browser-image-compression'
 
 // ** Reactstrap Imports
 import {
@@ -27,7 +28,8 @@ import {
   Image as ImageIcon,
   AlertCircle,
   Check,
-  RefreshCw
+  RefreshCw,
+  Minimize2
 } from 'react-feather'
 
 // ** Utils
@@ -35,6 +37,50 @@ import { apiRequest, swal } from '@utils'
 
 // ** Styles
 import './ImageUploader.scss'
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+}
+
+const compressionOptions = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 2048,
+  useWebWorker: true
+}
+
+const compressFile = async (file, onProgress) => {
+  const originalSize = file.size
+
+  try {
+    const compressedFile = await imageCompression(file, {
+      ...compressionOptions,
+      onProgress: (percent) => {
+        if (onProgress) onProgress(percent)
+      }
+    })
+
+    return {
+      file: compressedFile,
+      originalSize,
+      compressedSize: compressedFile.size,
+      compressionRatio: ((1 - (compressedFile.size / originalSize)) * 100).toFixed(0),
+      skipped: false
+    }
+  } catch (error) {
+    console.warn('Compression failed, using original file:', error)
+    return {
+      file,
+      originalSize,
+      compressedSize: file.size,
+      compressionRatio: 0,
+      skipped: true
+    }
+  }
+}
 
 let nextQueueId = 0
 
@@ -150,44 +196,81 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
 
   // Handle file drop
   const onDrop = useCallback(async (acceptedFiles) => {
-    const validFiles = acceptedFiles.filter(file => {
-      const isValid = file.size <= 5 * 1024 * 1024 // 5MB limit
-      if (!isValid) {
-        swal('Error', `${file.name} exceeds 5MB limit`, 'error')
-      }
-      return isValid
-    })
-
-    if (validFiles.length === 0) return
+    if (acceptedFiles.length === 0) return
 
     // Check if adding new images would exceed limit
-    if (images.length + validFiles.length > 10) {
-      swal('Error', `Cannot upload ${validFiles.length} images. Maximum 10 images allowed per product. Currently ${images.length} uploaded.`, 'error')
+    if (images.length + acceptedFiles.length > 10) {
+      swal('Error', `Cannot upload ${acceptedFiles.length} images. Maximum 10 images allowed per product. Currently ${images.length} uploaded.`, 'error')
       return
     }
 
-    // Create queue items with preview URLs
-    const newItems = validFiles.map(file => ({
+    // Create queue items with 'compressing' status
+    const newItems = acceptedFiles.map(file => ({
       id: ++nextQueueId,
       file,
+      originalFile: file,
       preview: URL.createObjectURL(file),
       progress: 0,
-      status: 'pending',
-      error: null
+      compressionProgress: 0,
+      status: 'compressing',
+      error: null,
+      originalSize: file.size,
+      compressedSize: null,
+      compressionRatio: null,
+      compressionSkipped: false
     }))
 
     setUploadQueue(prev => [...prev, ...newItems])
 
-    // Start concurrent uploads
-    uploadWithConcurrency(newItems, 3)
+    // Compress files one at a time to control memory usage
+    const compressedItems = []
+    for (const item of newItems) {
+      const result = await compressFile(item.file, (percent) => {
+        updateQueueItem(item.id, { compressionProgress: percent })
+      })
+
+      updateQueueItem(item.id, {
+        file: result.file,
+        status: 'pending',
+        compressedSize: result.compressedSize,
+        compressionRatio: result.compressionRatio,
+        compressionSkipped: result.skipped,
+        compressionProgress: 100
+      })
+
+      compressedItems.push({ ...item, file: result.file })
+    }
+
+    // Start concurrent uploads with compressed files
+    uploadWithConcurrency(compressedItems, 3)
   }, [images, productId])
 
   // Retry a failed upload
-  const retryUpload = (itemId) => {
+  const retryUpload = async (itemId) => {
     const item = uploadQueueRef.current.find(i => i.id === itemId)
     if (!item) return
-    updateQueueItem(itemId, { status: 'pending', progress: 0, error: null })
-    uploadSingleFile(item)
+
+    if (item.compressedSize !== null) {
+      // Already compressed — just retry the upload
+      updateQueueItem(itemId, { status: 'pending', progress: 0, error: null })
+      uploadSingleFile(item)
+    } else {
+      // Re-compress from original
+      updateQueueItem(itemId, { status: 'compressing', progress: 0, compressionProgress: 0, error: null })
+      const result = await compressFile(item.originalFile || item.file, (percent) => {
+        updateQueueItem(itemId, { compressionProgress: percent })
+      })
+      const updatedItem = { ...item, file: result.file }
+      updateQueueItem(itemId, {
+        file: result.file,
+        status: 'pending',
+        compressedSize: result.compressedSize,
+        compressionRatio: result.compressionRatio,
+        compressionSkipped: result.skipped,
+        compressionProgress: 100
+      })
+      uploadSingleFile(updatedItem)
+    }
   }
 
   // Remove a failed upload from queue
@@ -326,7 +409,7 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
   }
 
   // Computed values for overall progress
-  const activeUploads = uploadQueue.filter(i => i.status === 'uploading' || i.status === 'pending')
+  const activeUploads = uploadQueue.filter(i => i.status === 'uploading' || i.status === 'pending' || i.status === 'compressing')
   const completedUploads = uploadQueue.filter(i => i.status === 'success')
   const hasActiveUploads = activeUploads.length > 0
   const totalInQueue = uploadQueue.length
@@ -349,7 +432,7 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
             <Upload size={64} className="mb-2" />
             <h5>Drop images here or click to browse</h5>
             <p className="text-secondary">
-              Supports: JPG, PNG, WebP (Max 5MB per image)
+              Supports: JPG, PNG, WebP &mdash; images are automatically compressed before upload
             </p>
           </div>
         </div>
@@ -359,7 +442,7 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
           <div className="upload-status mt-2 mb-1">
             <div className="d-flex justify-content-between align-items-center mb-50">
               <small className="text-muted font-weight-bold">
-                {hasActiveUploads ? `Uploading ${completedCount} of ${totalInQueue} images...` : `Upload complete — ${completedCount} of ${totalInQueue} succeeded`}
+                {uploadQueue.some(i => i.status === 'compressing') ? 'Compressing images...' : hasActiveUploads ? `Uploading ${completedCount} of ${totalInQueue} images...` : `Upload complete — ${completedCount} of ${totalInQueue} succeeded`}
               </small>
             </div>
             <Progress
@@ -377,6 +460,21 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
               <Col key={item.id} lg={3} md={4} sm={6} className="mb-3">
                 <div className={`image-preview uploading ${item.status}`}>
                   <img src={item.preview} alt={item.file.name} />
+
+                  {/* Compressing state */}
+                  {item.status === 'compressing' && (
+                    <div className="uploading-overlay">
+                      <Minimize2 size={20} />
+                      <small className="d-block mt-50 font-weight-bold">Compressing...</small>
+                      <Progress
+                        value={item.compressionProgress}
+                        className="mt-1 upload-progress-bar"
+                        color="warning"
+                        style={{ height: '6px', width: '75%' }}
+                      />
+                      <small className="d-block mt-50">{item.compressionProgress}%</small>
+                    </div>
+                  )}
 
                   {/* Pending / Uploading state */}
                   {(item.status === 'pending' || item.status === 'uploading') && (
@@ -412,6 +510,21 @@ const ImageUploader = ({ productId, onImagesUpdate }) => {
                           <X size={12} className="mr-50" /> Remove
                         </Button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Compression stats */}
+                  {item.compressedSize !== null && item.status !== 'compressing' && (
+                    <div className="compression-stats">
+                      <small>
+                        {formatFileSize(item.originalSize)} &rarr; {formatFileSize(item.compressedSize)}
+                        {!item.compressionSkipped && (
+                          <span className="text-success ml-50">(-{item.compressionRatio}%)</span>
+                        )}
+                        {item.compressionSkipped && (
+                          <span className="text-warning ml-50">(original)</span>
+                        )}
+                      </small>
                     </div>
                   )}
                 </div>
