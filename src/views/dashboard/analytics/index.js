@@ -41,6 +41,16 @@ const AnalyticsDashboard = () => {
 		dashboardData()
 	}, [])
 
+	// Renders a naira figure, or a spinner while the dashboard is still loading.
+	// Deliberately distinguishes "not loaded yet" from a genuine zero: the previous tiles
+	// used a truthiness check, so a real ₦0 rendered as a spinner that never resolved.
+	const money = (value) =>
+		value === undefined || value === null ? (
+			<Spinner className="mr-25" size="sm" />
+		) : (
+			Number(value).toLocaleString('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 })
+		)
+
 	const numFormatter = (num) => {
 		if (num > 999 && num < 1000000) {
 			return `${(num / 1000).toFixed(2)}K`
@@ -62,89 +72,64 @@ const AnalyticsDashboard = () => {
 					{dashData.sales ? <StatsCard cols={{ xl: '4', sm: '6' }} statsData={dashData?.sales.topSelling} /> : <Spinner className="mr-25" size="l" />}
 				</Col>
 			</Row>
+			{/*
+			  These six tiles used to render the SALES / LOGISTICS / PACKAGING / PROFIT /
+			  SMOKE_HOUSE wallet balances. Those balances stopped moving on 2 April 2026 when
+			  order completion stopped booking to the ledger, and they are additionally
+			  overstated by historical double-bookings (SALES by roughly 57%). They were shown
+			  here with no indication of either problem.
+
+			  These now render `dashData.departments`, recomputed by the API directly from
+			  completed and delivered orders. The wallet figures are still in the API response
+			  for the legacy ledger screen, flagged with walletsStale / walletsAsOf.
+			*/}
 			<Row className="match-height">
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={
-							dashData.businessBalance ? (
-								Number(dashData?.businessBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-							) : (
-								<Spinner className="mr-25" size="s" />
-							)
-						}
-						statTitle="Total Account Balance"
+						stats={money(dashData?.departments?.revenue)}
+						statTitle="Revenue Earned"
 					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={
-							dashData.logisticsBalance ? (
-								Number(dashData?.logisticsBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-							) : (
-								<Spinner className="mr-25" size="s" />
-							)
-						}
-						statTitle="Logistics Balance"
+						stats={money(dashData?.departments?.netProfit)}
+						statTitle="Net Profit (after discounts)"
 					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
-						color="success"
-						stats={
-							dashData.packagingBalance ? (
-								Number(dashData?.packagingBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-							) : (
-								<Spinner className="mr-25" size="sm" />
-							)
-						}
-						statTitle="Packaging Balance"
+						color="warning"
+						stats={money(dashData?.departments?.costOfGoods)}
+						statTitle="Cost of Goods Sold"
 					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
-						color="success"
-						stats={
-							dashData.profitBalance ? (
-								Number(dashData?.profitBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-							) : (
-								<Spinner className="mr-25" size="sm" />
-							)
-						}
-						statTitle="Profit Balance"
+						color="info"
+						stats={money(dashData?.departments?.logistics)}
+						statTitle="Logistics Recovered"
 					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
-						color="success"
-						stats={
-							dashData.salesBalance ? (
-								Number(dashData?.salesBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-							) : (
-								<Spinner className="mr-25" size="sm" />
-							)
-						}
-						statTitle="Sales Balance"
+						color="info"
+						stats={money(dashData?.departments?.packaging)}
+						statTitle="Packaging Recovered"
 					/>
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
 						icon={<DollarSign size={21} />}
-						color="success"
-						stats={
-							dashData.smokeHouseBalance ? (
-								Number(dashData?.smokeHouseBalance).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-							) : (
-								<Spinner className="mr-25" size="sm" />
-							)
-						}
-						statTitle="Smoke House Balance"
+						color="info"
+						stats={money(dashData?.departments?.smokeHouse)}
+						statTitle="Smokehouse Recovered"
 					/>
 				</Col>
 			</Row>
