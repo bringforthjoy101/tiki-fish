@@ -27,6 +27,7 @@ import {
 } from 'reactstrap'
 
 import '@styles/base/pages/page-auth.scss'
+import { capabilitiesToAbility } from '@src/utility/capabilities'
 
 const ToastContentValid = ({ name, role }) => (
   <Fragment>
@@ -94,14 +95,32 @@ const Login = props => {
       setIsSubmitting(true)
       await useJwt
         .login({ phone, password, code })
-        .then(res => {
+        .then(async res => {
           console.log({res})
           if (res.data.status) {
+            // Capabilities come from the API, not from a hardcoded rule. This used to be
+            // [{action:'manage', subject:'all'}] for every user regardless of role, so the
+            // UI showed everyone everything and the server checked nothing.
+            let capabilities = []
+            try {
+              const meRes = await apiRequest(
+                { url: '/me', method: 'GET' },
+                null,
+                res.data.token
+              )
+              capabilities = meRes?.data?.data?.capabilities || []
+            } catch (e) {
+              // A failure here must not block sign-in. The menu falls back to the minimum
+              // and the server still enforces on every request.
+              console.error('Could not load capabilities:', e)
+            }
+
             const data = {
               ...res.data.admin,
               accessToken: res.data.token,
               refreshToken: res.data.token,
-              ability: [{ action: "manage", subject: "all" }],
+              capabilities,
+              ability: capabilitiesToAbility(capabilities),
               avatar: "/demo/Appia-react-admin-dashboard-template/demo-1/static/media/avatar-s-11.1d46cc62.jpg",
               extras: { eCommerceCartItemsCount: 5 }
             }

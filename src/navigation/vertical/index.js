@@ -12,8 +12,39 @@ import transactions from './transactions.js'
 import wallets from './wallets.js'
 import investments from './investments.js'
 import suppliers from './suppliers.js'
+import { getCapabilities } from '@src/utility/capabilities'
 
-const userData = JSON.parse(localStorage.getItem('userData'))
+// Menus are built from the capabilities GET /me returned, not from `role`.
+//
+// The previous version branched on role alone and hardcoded which menu sections each of the
+// three roles saw. It could not express "this admin may enter expenses but not see payroll",
+// and it drifted the moment a capability changed on the server. It also had no branch for
+// the finance axis at all, because that axis did not exist yet.
+//
+// This decides only what is rendered. Every route behind these entries is enforced
+// server-side by requireCapability(), so a wrong guess here hides a link rather than opening
+// anything. If a menu item is missing after a role change, the fix is to sign in again -
+// capabilities are read from storage, and GET /me refreshes them at login.
+const held = new Set(getCapabilities())
+const anyOf = (...caps) => caps.some((c) => held.has(c))
 
-// ** Merge & Export
-export default userData?.role === 'admin' ? [...dashboards, ...shop, ...investments, ...products, ...suppliers, ...orders, ...customers, ...admins, ...withdrawals, ...transactions, ...wallets, ...reports] : userData?.role === 'store' ? [...dashboards, ...shop, ...customers, ...withdrawals, ...transactions, ...wallets] : userData?.role === 'sales-rep' ? [...dashboards, ...shop, ...customers, ...orders, ...withdrawals, ...transactions, ...wallets, ...reports] : [...dashboards, ...shop, ...withdrawals]
+const menu = []
+
+// Every signed-in admin has dashboard.read on at least one axis.
+menu.push(...dashboards)
+
+if (anyOf('orders.read', 'orders.create')) menu.push(...shop, ...orders)
+if (anyOf('products.read', 'products.manage')) menu.push(...products)
+if (anyOf('customers.read')) menu.push(...customers)
+if (anyOf('suppliers.read', 'supplies.read')) menu.push(...suppliers)
+if (anyOf('investments.read')) menu.push(...investments)
+if (anyOf('admins.read')) menu.push(...admins)
+if (anyOf('settlements.read')) menu.push(...settlements)
+
+// The legacy ledger. Read-only history: its create, fund, update and delete routes now
+// return 410, and every withdrawal has been migrated into `expenses`.
+if (anyOf('wallets.read', 'withdrawals.read')) menu.push(...withdrawals, ...transactions, ...wallets)
+
+if (anyOf('reports.operations', 'reports.pnl')) menu.push(...reports)
+
+export default menu

@@ -89,8 +89,21 @@ const Router = () => {
     } else if (route.meta && route.meta.authRoute && isUserLoggedIn()) {
       // ** If route has meta and authRole and user is Logged in then redirect user to home page (DefaultRoute)
       return <Redirect to='/' />
-    } else if (isUserLoggedIn() && !ability.can(action || 'read', resource)) {
-      // ** If user is Logged in and doesn't have ability to visit the page redirect the user to Not Authorized
+    } else if (isUserLoggedIn() && resource && !ability.can(action || 'read', resource)) {
+      /**
+       ** Only gate routes that actually declare meta.resource. Just 1 of 59 routes does.
+       **
+       ** This check previously ran for every route with resource === null, which passed
+       ** solely because login granted {action:'manage', subject:'all'} to everyone - CASL
+       ** matches the `all` subject against anything, including null. Now that abilities are
+       ** built from real capabilities, can('read', null) is false, and leaving the check
+       ** unguarded would redirect every screen to Not Authorized for every user.
+       **
+       ** Client-side ability is not the security boundary in any case: every endpoint is
+       ** enforced server-side by requireCapability(), and the boot-time route audit proves
+       ** none was missed. This decides what to render, nothing more. Add meta.resource to a
+       ** route to have it gated here too.
+       */
       return <Redirect to='/misc/not-authorized' />
     } else {
       // ** If none of the above render component

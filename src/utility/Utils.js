@@ -128,9 +128,14 @@ export const Storage = {
   }
 }
 
-export const apiRequest = ({ url, method, body, onUploadProgress }, dispatch) => {
+// `token` overrides the stored one. Needed at login: the caller has a token in hand but it
+// has not been written to storage yet, so reading storage would send the previous session's
+// token, or none at all on a first sign-in.
+export const apiRequest = ({ url, method, body, onUploadProgress }, dispatch, token) => {
   const userData = Storage.getItem('userData')
-  const { accessToken } = userData
+  // Guarded: destructuring a null here threw a TypeError rather than producing a clean 401
+  // whenever storage was empty or had been cleared in another tab.
+  const accessToken = token || userData?.accessToken || ''
   const isFormData = body instanceof FormData
   const headers = {
     Authorization: `Bearer ${accessToken}`,
