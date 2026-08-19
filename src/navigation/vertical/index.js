@@ -13,7 +13,7 @@ import wallets from './wallets.js'
 import investments from './investments.js'
 import suppliers from './suppliers.js'
 import expenses from './expenses.js'
-import payroll from './payroll.js'
+import buildPayrollSection from './payroll.js'
 import { getCapabilities } from '@src/utility/capabilities'
 
 // Menus are built from the capabilities GET /me returned, not from `role`.
@@ -27,6 +27,11 @@ import { getCapabilities } from '@src/utility/capabilities'
 // server-side by requireCapability(), so a wrong guess here hides a link rather than opening
 // anything. If a menu item is missing after a role change, the fix is to sign in again -
 // capabilities are read from storage, and GET /me refreshes them at login.
+// Built on every call, NOT once at module load. The menu has to reflect the capabilities the
+// browser holds right now: they arrive after login, and App.js refreshes them from GET /me on
+// every app load so a session that predates them, or a role changed on the server, repairs
+// itself without anyone being told to sign in again.
+const buildMenu = () => {
 const held = new Set(getCapabilities())
 const anyOf = (...caps) => caps.some((c) => held.has(c))
 
@@ -41,7 +46,7 @@ if (anyOf('expenses.create', 'expenses.readOwn', 'expenses.readAll')) menu.push(
 
 // Payroll sits with the finance module and builds its own children per capability - a
 // manager sees the register and the departmental totals, never the runs.
-if (anyOf('workers.read', 'workers.readPay', 'payroll.read', 'payroll.readStaffCostSummary')) menu.push(...payroll)
+if (anyOf('workers.read', 'workers.readPay', 'payroll.read', 'payroll.readStaffCostSummary')) menu.push(...buildPayrollSection())
 
 if (anyOf('orders.read', 'orders.create')) menu.push(...shop, ...orders)
 if (anyOf('products.read', 'products.manage')) menu.push(...products)
@@ -57,4 +62,7 @@ if (anyOf('wallets.read', 'withdrawals.read')) menu.push(...withdrawals, ...tran
 
 if (anyOf('reports.operations', 'reports.pnl')) menu.push(...reports)
 
-export default menu
+return menu
+}
+
+export default buildMenu

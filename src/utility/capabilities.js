@@ -6,7 +6,7 @@
 //     'expenses.create' -> { action: 'create', subject: 'expenses' }
 // That is why the capability strings are shaped the way they are.
 
-import { Storage } from './Utils'
+import { Storage, apiRequest } from './Utils'
 
 /** CASL rules for a capability list. */
 export const capabilitiesToAbility = (capabilities = []) => {
@@ -39,4 +39,42 @@ export const can = (capability) => getCapabilities().includes(capability)
 export const canAny = (...capabilities) => {
   const held = getCapabilities()
   return capabilities.some((c) => held.includes(c))
+}
+
+/**
+ * Re-read capabilities from the server and store them.
+ *
+ * Login is not the only moment they can change, and it must not be the only moment they are
+ * read. A session created before capabilities existed carries none, and a role changed on the
+ * server does not reach a signed-in browser until that person happens to sign in again -
+ * which is exactly how an owner came to sit in front of a sidebar containing one item.
+ *
+ * Returns the capability list, or null when the call failed. NULL IS NOT AN EMPTY LIST: the
+ * caller must leave whatever it already had in place. Treating a failed request as "this
+ * admin may do nothing" is what turned a transient error into an empty menu with no
+ * explanation.
+ */
+export const refreshCapabilities = async () => {
+  const userData = Storage.getItem('userData')
+  if (!userData?.accessToken) return null
+
+  try {
+    const response = await apiRequest({ url: '/me', method: 'GET' }, null)
+    if (!response?.data?.status) return null
+    const capabilities = response.data.data?.capabilities
+    if (!Array.isArray(capabilities)) return null
+
+    Storage.setItem('userData', {
+      ...userData,
+      role: response.data.data.role ?? userData.role,
+      accessRole: response.data.data.accessRole ?? userData.accessRole,
+      capabilities,
+      ability: capabilitiesToAbility(capabilities)
+    })
+    return capabilities
+  } catch (e) {
+    // Deliberately quiet and deliberately non-destructive - the stored session stands.
+    console.error('Could not refresh capabilities:', e)
+    return null
+  }
 }

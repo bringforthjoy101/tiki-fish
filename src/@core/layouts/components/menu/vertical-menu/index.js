@@ -2,7 +2,7 @@
 import { Fragment, useState, useRef } from 'react'
 
 // ** Vertical Menu Items Array
-import navigation from '@src/navigation/vertical'
+import buildNavigation from '@src/navigation/vertical'
 
 // ** Third Party Components
 import classnames from 'classnames'
@@ -74,7 +74,7 @@ const Sidebar = props => {
             >
               <ul className='navigation navigation-main'>
                 <VerticalNavMenuItems
-                  items={navigation}
+                  items={buildNavigation()}
                   groupActive={groupActive}
                   setGroupActive={setGroupActive}
                   activeItem={activeItem}

@@ -9,7 +9,7 @@ import { FormattedMessage } from 'react-intl'
 import { useSelector } from 'react-redux'
 
 // ** Vertical Menu Array Of Items
-import navigation from '@src/navigation/vertical'
+import buildNavigation from '@src/navigation/vertical'
 
 // ** Utils
 import { isNavLinkActive, search, getAllParents } from '@layouts/utils'
@@ -46,14 +46,14 @@ const VerticalNavMenuLink = ({
 
   // ** Search for current item parents
   const searchParents = (navigation, currentURL) => {
-    const parents = search(navigation, currentURL, routerProps) // Search for parent object
+    const parents = search(buildNavigation(), currentURL, routerProps) // Search for parent object
     const allParents = getAllParents(parents, 'id') // Parents Object to Parents Array
     return allParents
   }
 
   // ** URL Vars
   const resetActiveGroup = navLink => {
-    const parents = search(navigation, navLink, match)
+    const parents = search(buildNavigation(), navLink, match)
     toggleActiveGroup(item.id, parents)
   }
 
@@ -67,7 +67,7 @@ const VerticalNavMenuLink = ({
   useEffect(() => {
     if (currentActiveItem !== null) {
       setActiveItem(currentActiveItem)
-      const arr = searchParents(navigation, currentURL)
+      const arr = searchParents(buildNavigation(), currentURL)
       setGroupActive([...arr])
     }
   }, [location])

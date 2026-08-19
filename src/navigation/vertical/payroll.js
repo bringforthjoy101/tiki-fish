@@ -4,6 +4,12 @@ import { canAny } from '@src/utility/capabilities'
 // Built per capability rather than as a fixed list. A manager holds workers.read and
 // payroll.readStaffCostSummary and must see exactly two of these three; an owner sees all.
 // The routes behind them are enforced server-side regardless of what renders here.
+//
+// A FUNCTION, not a module-level array, for the same reason index.js is one: capabilities
+// arrive after the module is first imported. Computed once at import, this section was built
+// from an empty capability set and stayed empty for the life of the page - so an owner
+// holding all 63 capabilities still had no Payroll menu.
+const buildPayrollSection = () => {
 const children = []
 
 if (canAny('workers.read', 'workers.readPay')) {
@@ -45,4 +51,7 @@ if (children.length) {
 	})
 }
 
-export default section
+return section
+}
+
+export default buildPayrollSection
