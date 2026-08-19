@@ -37,19 +37,19 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 		if (!open) return
 		// Editing loads the row; creating starts clean each time the modal opens, so yesterday's
 		// entry does not bleed into today's.
-		setForm(
-			expense
-				? {
-						...blank,
-						...expense,
-						expenseDate: expense.expenseDate?.slice(0, 10) || today(),
-						departmentId: expense.departmentId ?? '',
-						categoryId: expense.categoryId ?? '',
-						paymentAccountId: expense.paymentAccountId ?? '',
-						supplierId: expense.supplierId ?? '',
-				  }
-				: blank
-		)
+		if (!expense) {
+			setForm(blank)
+			return
+		}
+		setForm({
+			...blank,
+			...expense,
+			expenseDate: expense.expenseDate?.slice(0, 10) || today(),
+			departmentId: expense.departmentId ?? '',
+			categoryId: expense.categoryId ?? '',
+			paymentAccountId: expense.paymentAccountId ?? '',
+			supplierId: expense.supplierId ?? '',
+		})
 	}, [open, expense])
 
 	const set = (field) => (e) => {

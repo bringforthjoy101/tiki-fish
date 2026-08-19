@@ -209,6 +209,26 @@ const ManagerRoutes = [
         component: lazy(() => import('../../views/tiki-fish/expenses/list'))
       },
       {
+        path: '/payroll/workers',
+        component: lazy(() => import('../../views/tiki-fish/payroll/workers'))
+      },
+      {
+        path: '/payroll/runs',
+        exact: true,
+        component: lazy(() => import('../../views/tiki-fish/payroll/runs'))
+      },
+      {
+        path: '/payroll/runs/view/:id',
+        component: lazy(() => import('../../views/tiki-fish/payroll/runs/view')),
+        meta: {
+          navLink: '/payroll/runs'
+        }
+      },
+      {
+        path: '/payroll/staff-cost',
+        component: lazy(() => import('../../views/tiki-fish/payroll/staff-cost'))
+      },
+      {
         path: '/supplier/view',
         exact: true,
         component: () => <Redirect to='/supplier/view/1' />

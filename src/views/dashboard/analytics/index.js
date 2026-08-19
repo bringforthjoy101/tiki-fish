@@ -44,12 +44,10 @@ const AnalyticsDashboard = () => {
 	// Renders a naira figure, or a spinner while the dashboard is still loading.
 	// Deliberately distinguishes "not loaded yet" from a genuine zero: the previous tiles
 	// used a truthiness check, so a real ₦0 rendered as a spinner that never resolved.
-	const money = (value) =>
-		value === undefined || value === null ? (
-			<Spinner className="mr-25" size="sm" />
-		) : (
-			Number(value).toLocaleString('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 })
-		)
+	const money = (value) => {
+		if (value === undefined || value === null) return <Spinner className="mr-25" size="sm" />
+		return Number(value).toLocaleString('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 })
+	}
 
 	const numFormatter = (num) => {
 		if (num > 999 && num < 1000000) {

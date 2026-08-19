@@ -13,6 +13,7 @@ import wallets from './wallets.js'
 import investments from './investments.js'
 import suppliers from './suppliers.js'
 import expenses from './expenses.js'
+import payroll from './payroll.js'
 import { getCapabilities } from '@src/utility/capabilities'
 
 // Menus are built from the capabilities GET /me returned, not from `role`.
@@ -37,6 +38,10 @@ menu.push(...dashboards)
 // The finance module. A clerk holds expenses.create and nothing else; a manager also reads
 // everything. Placed high because for the clerk it is the only screen they use.
 if (anyOf('expenses.create', 'expenses.readOwn', 'expenses.readAll')) menu.push(...expenses)
+
+// Payroll sits with the finance module and builds its own children per capability - a
+// manager sees the register and the departmental totals, never the runs.
+if (anyOf('workers.read', 'workers.readPay', 'payroll.read', 'payroll.readStaffCostSummary')) menu.push(...payroll)
 
 if (anyOf('orders.read', 'orders.create')) menu.push(...shop, ...orders)
 if (anyOf('products.read', 'products.manage')) menu.push(...products)
