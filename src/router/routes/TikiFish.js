@@ -37,6 +37,14 @@ const FinanceRoutes = [
   {
     path: '/payroll/staff-cost',
     component: lazy(() => import('../../views/tiki-fish/payroll/staff-cost'))
+  },
+  {
+    path: '/assets/list',
+    component: lazy(() => import('../../views/tiki-fish/assets/list'))
+  },
+  {
+    path: '/reference',
+    component: lazy(() => import('../../views/tiki-fish/reference'))
   }
 ]
 

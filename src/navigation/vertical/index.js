@@ -14,6 +14,8 @@ import investments from './investments.js'
 import suppliers from './suppliers.js'
 import expenses from './expenses.js'
 import buildPayrollSection from './payroll.js'
+import assets from './assets.js'
+import reference from './reference.js'
 import { getCapabilities } from '@src/utility/capabilities'
 
 // Menus are built from the capabilities GET /me returned, not from `role`.
@@ -59,6 +61,13 @@ if (anyOf('settlements.read')) menu.push(...settlements)
 // The legacy ledger. Read-only history: its create, fund, update and delete routes now
 // return 410, and every withdrawal has been migrated into `expenses`.
 if (anyOf('wallets.read', 'withdrawals.read')) menu.push(...withdrawals, ...transactions, ...wallets)
+
+if (anyOf('assets.read')) menu.push(...assets)
+
+// Reference data. Anyone who can read a master sees the screen; each tab gates its own edit
+// controls, and a tab whose read capability is missing is not rendered at all.
+const holdsAnyMaster = anyOf('fishGrades.read', 'packagingItems.read', 'departments.read', 'expenseCategories.read', 'paymentAccounts.read')
+if (holdsAnyMaster) menu.push(...reference)
 
 if (anyOf('reports.operations', 'reports.pnl')) menu.push(...reports)
 
