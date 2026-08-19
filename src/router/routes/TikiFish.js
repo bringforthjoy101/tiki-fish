@@ -3,6 +3,42 @@ import { Redirect } from 'react-router-dom'
 
 const userData = JSON.parse(localStorage.getItem('userData'))
 
+/**
+ * The finance screens, available to every `role`.
+ *
+ * This file picks a route array by `role` - the OPERATIONS axis - but finance access is
+ * `accessRole`, a deliberately independent axis (see api/helpers/permissions.js). A clerk
+ * hired to key expenses is likely to be role 'store' or 'sales-rep' with accessRole 'clerk';
+ * with these routes only in ManagerRoutes, the capability-built menu would show them an
+ * Expenses link that lands on the 404 page. The nav decides what is offered and the API
+ * enforces what is permitted, so listing the routes for everyone opens nothing.
+ */
+const FinanceRoutes = [
+  {
+    path: '/expenses/list',
+    component: lazy(() => import('../../views/tiki-fish/expenses/list'))
+  },
+  {
+    path: '/payroll/workers',
+    component: lazy(() => import('../../views/tiki-fish/payroll/workers'))
+  },
+  {
+    path: '/payroll/runs',
+    exact: true,
+    component: lazy(() => import('../../views/tiki-fish/payroll/runs'))
+  },
+  {
+    path: '/payroll/runs/view/:id',
+    component: lazy(() => import('../../views/tiki-fish/payroll/runs/view')),
+    meta: {
+      navLink: '/payroll/runs'
+    }
+  },
+  {
+    path: '/payroll/staff-cost',
+    component: lazy(() => import('../../views/tiki-fish/payroll/staff-cost'))
+  }
+]
 
 const ManagerRoutes = [
     {
@@ -203,30 +239,6 @@ const ManagerRoutes = [
       {
         path: '/supplies/list',
         component: lazy(() => import('../../views/tiki-fish/supplies/list'))
-      },
-      {
-        path: '/expenses/list',
-        component: lazy(() => import('../../views/tiki-fish/expenses/list'))
-      },
-      {
-        path: '/payroll/workers',
-        component: lazy(() => import('../../views/tiki-fish/payroll/workers'))
-      },
-      {
-        path: '/payroll/runs',
-        exact: true,
-        component: lazy(() => import('../../views/tiki-fish/payroll/runs'))
-      },
-      {
-        path: '/payroll/runs/view/:id',
-        component: lazy(() => import('../../views/tiki-fish/payroll/runs/view')),
-        meta: {
-          navLink: '/payroll/runs'
-        }
-      },
-      {
-        path: '/payroll/staff-cost',
-        component: lazy(() => import('../../views/tiki-fish/payroll/staff-cost'))
       },
       {
         path: '/supplier/view',
@@ -470,4 +482,10 @@ const StoreRoutes = [
   }
 ]
 
-export default userData?.role === 'admin' ? ManagerRoutes : userData?.role === 'store' ? BursaryRoutes : userData?.role === 'sales-rep' ? SalesRepRoutes : StoreRoutes
+const byRole = {
+  admin: ManagerRoutes,
+  store: BursaryRoutes,
+  'sales-rep': SalesRepRoutes
+}
+
+export default [...(byRole[userData?.role] || StoreRoutes), ...FinanceRoutes]
