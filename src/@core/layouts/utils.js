@@ -140,10 +140,31 @@ export const getAllParents = (obj, match) => {
   return res
 }
 
+/**
+ * Is this nav item visible to the signed-in admin?
+ *
+ * An item that declares neither `action` nor `resource` is NOT gated here. None of this
+ * application's nav items declare them, and until abilities became granular that did not
+ * matter: login granted { action: 'manage', subject: 'all' }, which CASL matches against
+ * anything at all - including the `can(undefined, undefined)` this function used to ask.
+ * The moment abilities were built from real capabilities that call started returning false
+ * for every item, and the entire sidebar rendered empty for every user.
+ *
+ * What is offered is decided in navigation/vertical/index.js, from the capabilities GET /me
+ * returned; what is permitted is decided server-side by requireCapability(). This check is a
+ * third mechanism the template provides for items that opt into it, and an item that opts
+ * out of it must not thereby disappear. The same reasoning guards FinalRoute in
+ * src/router/Router.js, which had the identical defect.
+ */
+const isItemVisible = (ability, item) => {
+  if (!(item.action && item.resource)) return true
+  return ability.can(item.action, item.resource)
+}
+
 export const canViewMenuGroup = item => {
   const ability = useContext(AbilityContext)
   // ! This same logic is used in canViewHorizontalNavMenuGroup and canViewHorizontalNavMenuHeaderGroup. So make sure to update logic in them as well
-  const hasAnyVisibleChild = item.children && item.children.some(i => ability.can(i.action, i.resource))
+  const hasAnyVisibleChild = item.children && item.children.some(i => isItemVisible(ability, i))
 
   // ** If resource and action is defined in item => Return based on children visibility (Hide group if no child is visible)
   // ** Else check for ability using provided resource and action along with checking if has any visible child
@@ -155,5 +176,5 @@ export const canViewMenuGroup = item => {
 
 export const canViewMenuItem = item => {
   const ability = useContext(AbilityContext)
-  return ability.can(item.action, item.resource)
+  return isItemVisible(ability, item)
 }
