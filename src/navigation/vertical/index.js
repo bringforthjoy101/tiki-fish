@@ -12,6 +12,7 @@ import transactions from './transactions.js'
 import wallets from './wallets.js'
 import investments from './investments.js'
 import suppliers from './suppliers.js'
+import expenses from './expenses.js'
 import { getCapabilities } from '@src/utility/capabilities'
 
 // Menus are built from the capabilities GET /me returned, not from `role`.
@@ -32,6 +33,10 @@ const menu = []
 
 // Every signed-in admin has dashboard.read on at least one axis.
 menu.push(...dashboards)
+
+// The finance module. A clerk holds expenses.create and nothing else; a manager also reads
+// everything. Placed high because for the clerk it is the only screen they use.
+if (anyOf('expenses.create', 'expenses.readOwn', 'expenses.readAll')) menu.push(...expenses)
 
 if (anyOf('orders.read', 'orders.create')) menu.push(...shop, ...orders)
 if (anyOf('products.read', 'products.manage')) menu.push(...products)
