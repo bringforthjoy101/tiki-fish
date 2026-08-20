@@ -8,18 +8,23 @@ import { useParams } from 'react-router-dom'
 import { AvForm, AvInput } from 'availity-reactstrap-validation-safe'
 import { getAllData, getAdmin, editAdmin } from '../store/action'
 import { store } from '@store/storeConfig/store'
+import { can } from '@src/utility/capabilities'
 import Row from 'reactstrap/lib/Row'
 import Col from 'reactstrap/lib/Col'
 
 export const EditAdmin = ({ selectedAdmin }) => {
 	const dispatch = useDispatch()
 	const { id } = useParams()
+	// Changing what somebody is allowed to do is owner-only, and the server enforces it. Greying
+	// the controls out means a manager sees why rather than getting a 400 on save.
+	const canAssign = can('admins.assignRole')
 	const [userData, setUserData] = useState({
 		firstName: selectedAdmin.firstName,
 		lastName: selectedAdmin.lastName,
 		phone: selectedAdmin.phone,
 		status: selectedAdmin.status,
 		role: selectedAdmin.role,
+		accessRole: selectedAdmin.accessRole || 'none',
 	})
 	const [formModal, setFormModal] = useState(false)
 
@@ -91,15 +96,39 @@ export const EditAdmin = ({ selectedAdmin }) => {
 										type="select"
 										id="role"
 										name="role"
-										value={selectedAdmin.role}
+										value={userData.role}
 										onChange={(e) => setUserData({ ...userData, role: e.target.value })}
 										required
+										disabled={!canAssign}
 									>
-										<option value={selectedAdmin.role}>{selectedAdmin.role}</option>
-										<option value="admin">Admin</option>
-										<option value="sales-rep">Sales Rep</option>
-										<option value="store">Store</option>
+										<option value="admin">Admin — runs operations</option>
+										<option value="store">Store — keeps stock, counts, makes batches</option>
+										<option value="sales-rep">Sales Rep — takes orders</option>
 									</AvInput>
+									<small className="text-muted">What they do day to day. Never shows money on its own.</small>
+								</FormGroup>
+							</Col>
+							<Col xl="6" lg="12">
+								<FormGroup>
+									<Label for="accessRole">Finance access</Label>
+									{/* The SECOND axis. What somebody can do is the union of this and the role
+									    above, which is why it has to be set here and not inferred — and why it
+									    was invisible until now: nothing accepted it, so it could only ever be
+									    set with SQL. That is why no storekeeper account existed. */}
+									<AvInput
+										type="select"
+										id="accessRole"
+										name="accessRole"
+										value={userData.accessRole}
+										onChange={(e) => setUserData({ ...userData, accessRole: e.target.value })}
+										disabled={!canAssign}
+									>
+										<option value="none">None — cannot see money at all</option>
+										<option value="clerk">Clerk — records spending, sees their own entries</option>
+										<option value="manager">Manager — sees all money, pays, posts stock counts</option>
+										<option value="owner">Owner — everything, including changing roles</option>
+									</AvInput>
+									<small className="text-muted">Separate from the role above. Set to None for farm and sales staff.</small>
 								</FormGroup>
 							</Col>
 							<Col xl="6" lg="12">

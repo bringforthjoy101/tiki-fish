@@ -142,10 +142,17 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
 						required
 					>
 						<option value="">Select Role</option>
-						<option value="sales-rep">Sales Rep</option>
-						<option value="store">Store</option>
-						<option value="admin">Admin</option>
+						<option value="sales-rep">Sales Rep — takes orders</option>
+						<option value="store">Store — keeps stock, counts, makes batches</option>
+						<option value="admin">Admin — runs operations</option>
 					</AvInput>
+					{/* Finance access is the SECOND axis and is deliberately not set here: granting
+					    it is owner-only, and doing it at creation would be a way round that rule.
+					    New accounts start with none, which is right for farm and sales staff. */}
+					<small className="text-muted">
+						New accounts start with no access to money. To give someone finance access, open them after
+						creating and set <b>Finance access</b>.
+					</small>
 				</FormGroup>
 				<Button type="submit" className="mr-1" color="primary" disabled={isSubmitting}>
 					{isSubmitting && <Spinner color="white" size="sm" />}
