@@ -26,6 +26,7 @@ import supplies from '@src/views/tiki-fish/supplies/store/reducer'
 import expenses from '@src/views/tiki-fish/expenses/store/reducer'
 import payroll from '@src/views/tiki-fish/payroll/store/reducer'
 import procurement from '@src/views/tiki-fish/procurement/store/reducer'
+import production from '@src/views/tiki-fish/production/store/reducer'
 import assets from '@src/views/tiki-fish/assets/store/reducer'
 import reference from '@src/views/tiki-fish/reference/store/reducer'
 import email from '@src/views/apps/email/store/reducer'
@@ -59,6 +60,7 @@ const rootReducer = combineReducers({
   expenses,
   payroll,
   procurement,
+  production,
   assets,
   reference,
   navbar,
