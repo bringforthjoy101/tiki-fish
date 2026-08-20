@@ -127,6 +127,10 @@ const UserInfoCard = ({ selectedSupplier }) => {
     }
   })
 
+  // Drives which fields are mandatory: a packaging delivery must name a unit, because the
+  // packaging ledger keeps a separate balance per unit. Firewood does not.
+  const chosenItemId = watch('packagingItemId')
+
   // ** Adopt the chosen item's name and unit.
   //
   // `name` stays the human label the rest of the app already reads, and the unit defaults to
@@ -382,44 +386,66 @@ const UserInfoCard = ({ selectedSupplier }) => {
                   {!isLoadingItems && packagingItems.length === 0 && (
                     <Col sm='12'>
                       <Alert color='warning' className='p-1'>
-                        No packaging items exist yet. Add them under <b>Reference data</b> first — until then a
-                        delivery records its cost but does not enter the packaging ledger.
+                        No packaging items exist yet, so deliveries record their cost without entering packaging
+                        stock. Add them under <b>Reference data</b> to track packaging balances.
                       </Alert>
                     </Col>
                   )}
                   <Col md='6' sm='12'>
                     <FormGroup>
-                      <Label for='packagingItemId'>Item <span className='text-danger'>*</span></Label>
+                      <Label for='packagingItemId'>Packaging item</Label>
                       <Controller
                         name='packagingItemId'
                         control={control}
-                        rules={{ required: true }}
                         render={({ field }) => (
                           <Input
                             type='select'
                             id='packagingItemId'
-                            invalid={errors.packagingItemId && true}
                             {...field}
                             onChange={handleItemChange}
                             disabled={isLoadingItems}
                           >
-                            <option value=''>{isLoadingItems ? 'Loading…' : 'Choose an item…'}</option>
+                            <option value=''>{isLoadingItems ? 'Loading…' : 'Not a packaging item'}</option>
                             {packagingItems.map(item => (
                               <option key={item.id} value={item.id}>{item.name}</option>
                             ))}
                           </Input>
                         )}
                       />
-                      {errors.packagingItemId && <small className='text-danger'>Choose what was delivered</small>}
+                      <small className='text-muted'>Choosing one puts the delivery into packaging stock.</small>
+                    </FormGroup>
+                  </Col>
+                  {/* `supplies` serves firewood and general purchases as well as packaging - see
+                      the header of migration 026. Requiring a packaging item made those
+                      impossible to record at all, and made the whole form unusable until the
+                      packaging register was populated. The item is optional; the name is not. */}
+                  <Col md='6' sm='12'>
+                    <FormGroup>
+                      <Label for='name'>What was delivered <span className='text-danger'>*</span></Label>
+                      <Controller
+                        name='name'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <Input
+                            type='text'
+                            id='name'
+                            placeholder='e.g. Firewood, Ice, Carton 5kg'
+                            invalid={errors.name && true}
+                            {...field}
+                          />
+                        )}
+                      />
+                      {errors.name && <small className='text-danger'>Say what was delivered</small>}
                     </FormGroup>
                   </Col>
                   <Col md='3' sm='12'>
                     <FormGroup>
-                      <Label for='unit'>Measured in <span className='text-danger'>*</span></Label>
+                      <Label for='unit'>Measured in {chosenItemId && <span className='text-danger'>*</span>}</Label>
                       <Controller
                         name='unit'
                         control={control}
-                        rules={{ required: true }}
+                        rules={{ required: Boolean(chosenItemId) }}
                         render={({ field }) => (
                           <Input type='select' id='unit' invalid={errors.unit && true} {...field}>
                             <option value=''>Choose…</option>

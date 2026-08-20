@@ -19,7 +19,7 @@ import { ChevronDown, Share, FileText } from 'react-feather'
 import DataTable from 'react-data-table-component'
 import Flatpickr from 'react-flatpickr'
 import '@styles/react/libs/flatpickr/flatpickr.scss'
-import { selectThemeColors } from '@utils'
+import { selectThemeColors, apiRequest, swal } from '@utils'
 import {
   Card,
   CardHeader,
@@ -119,6 +119,31 @@ const SuppliesTable = () => {
   const [selectedSupply, setSelectedSupply] = useState(null)
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('cash')
+  // This screen is the SECOND place a supply can be paid. The supplier-detail modal was given an
+  // account picker; this one was missed, so payments made here wrote a supplyPayments row and no
+  // expense and no account movement — the supplier's balance fell and the bank never moved.
+  const [paymentAccounts, setPaymentAccounts] = useState([])
+  const [paymentAccountId, setPaymentAccountId] = useState('')
+  const [departments, setDepartments] = useState([])
+  const [expenseCategories, setExpenseCategories] = useState([])
+  const [departmentId, setDepartmentId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+
+  const fetchPaymentReferences = async () => {
+    try {
+      const [accountRes, deptRes, catRes] = await Promise.all([
+        apiRequest({ url: '/payment-accounts', method: 'GET' }, dispatch),
+        apiRequest({ url: '/departments', method: 'GET' }, dispatch),
+        apiRequest({ url: '/expense-categories', method: 'GET' }, dispatch)
+      ])
+      if (accountRes?.data?.status) setPaymentAccounts(accountRes.data.data || [])
+      if (deptRes?.data?.status) setDepartments(deptRes.data.data || [])
+      if (catRes?.data?.status) setExpenseCategories(catRes.data.data || [])
+    } catch (error) {
+      console.error('Error fetching payment references:', error)
+    }
+  }
+
   const [processingPayment, setProcessingPayment] = useState(false)
 
   // ** Payment Status Options
@@ -141,6 +166,12 @@ const SuppliesTable = () => {
       setSelectedSupply(null)
       setPaymentAmount('')
       setPaymentMethod('cash')
+    }
+    if (!paymentModal) {
+      setPaymentAccountId('')
+      setDepartmentId('')
+      setCategoryId('')
+      fetchPaymentReferences()
     }
     setPaymentModal(!paymentModal)
   }
@@ -177,12 +208,26 @@ const SuppliesTable = () => {
     if (!paymentAmount || isNaN(parseFloat(paymentAmount)) || parseFloat(paymentAmount) <= 0) {
       return
     }
+    if (!paymentAccountId) {
+      swal('Error', 'Choose which account the money leaves', 'error')
+      return
+    }
+    const needsDepartment = !selectedSupply.departmentId && !departmentId
+    const needsCategory = !selectedSupply.categoryId && !categoryId
+    if (needsDepartment || needsCategory) {
+      const missing = [needsDepartment && 'a department', needsCategory && 'an expense category'].filter(Boolean)
+      swal('Error', `Choose ${missing.join(' and ')} — that is what this payment gets filed under`, 'error')
+      return
+    }
 
     setProcessingPayment(true)
     try {
       await dispatch(paySupply(selectedSupply.id, {
         amount: parseFloat(paymentAmount),
-        paymentMethod
+        paymentMethod,
+        paymentAccountId: Number(paymentAccountId),
+        ...(departmentId ? { departmentId: Number(departmentId) } : {}),
+        ...(categoryId ? { categoryId: Number(categoryId) } : {})
       }))
 
       // Refresh data
@@ -600,6 +645,34 @@ const SuppliesTable = () => {
                   <option value='bank-transfer'>Bank Transfer</option>
                 </Input>
               </FormGroup>
+              <FormGroup>
+                <Label for='paymentAccountId'>Paid from <span className='text-danger'>*</span></Label>
+                <Input type='select' id='paymentAccountId' value={paymentAccountId} onChange={e => setPaymentAccountId(e.target.value)} required>
+                  <option value=''>Choose an account…</option>
+                  {paymentAccounts.map(account => (
+                    <option key={account.id} value={account.id}>{account.name}</option>
+                  ))}
+                </Input>
+                <small className='text-muted'>This is the account the money actually leaves.</small>
+              </FormGroup>
+              {selectedSupply && !selectedSupply.departmentId && (
+                <FormGroup>
+                  <Label for='departmentId'>Department <span className='text-danger'>*</span></Label>
+                  <Input type='select' id='departmentId' value={departmentId} onChange={e => setDepartmentId(e.target.value)} required>
+                    <option value=''>Choose…</option>
+                    {departments.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                  </Input>
+                </FormGroup>
+              )}
+              {selectedSupply && !selectedSupply.categoryId && (
+                <FormGroup>
+                  <Label for='categoryId'>Expense category <span className='text-danger'>*</span></Label>
+                  <Input type='select' id='categoryId' value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
+                    <option value=''>Choose…</option>
+                    {expenseCategories.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                  </Input>
+                </FormGroup>
+              )}
               <div className='d-flex justify-content-end mt-2'>
                 <Button color='secondary' className='mr-1' onClick={togglePaymentModal} outline>
                   Cancel
