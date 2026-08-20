@@ -106,9 +106,23 @@ export const columns = (handlePaymentClick) => [
       <div className='d-flex align-items-center'>
         <div className='d-flex flex-column'>
           <span className='font-weight-bold'>{row.name}</span>
-          <small className='text-muted'>{moment(row.createdAt).format('ll')}</small>
+          {/* The day the goods arrived, not the day the row was keyed. Rows created before
+              migration 026 have no supplyDate, so they fall back to createdAt — which for
+              those rows is the only date that was ever captured. */}
+          <small className='text-muted'>{moment(row.supplyDate || row.createdAt).format('ll')}</small>
         </div>
       </div>
+    )
+  },
+  {
+    name: 'Quantity',
+    minWidth: '110px',
+    selector: 'quantity',
+    sortable: true,
+    cell: row => (
+      <span>
+        {Number(row.quantity || 0).toLocaleString('en-NG')} {row.unit || ''}
+      </span>
     )
   },
   {

@@ -3,7 +3,7 @@ import { useState, Fragment, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 // ** Third Party Components
-import { Row, Col, Card, CardBody, Button, Badge, CardText, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Spinner } from 'reactstrap'
+import { Row, Col, Card, CardBody, Button, Badge, CardText, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Spinner, Alert } from 'reactstrap'
 import { Briefcase, Calendar, MapPin, Phone, Mail, User, Edit, Trash2, Package, DollarSign, Truck } from 'react-feather'
 import { useForm, Controller } from 'react-hook-form'
 import Select from 'react-select'
@@ -15,40 +15,78 @@ import moment from 'moment'
 import { deleteSupplier, getSupplier } from '../store/action'
 import { store } from '@store/storeConfig/store'
 
+// The only units the stock ledger can express. inventoryMovements.unit is an ENUM of exactly
+// these six, and the server runs a non-strict sql_mode — so a free-typed unit is not rejected,
+// it is stored as an empty string and the stock lands in a balance nothing can query. A select
+// is the fix; the server re-checks it in createSupply regardless.
+const MOVEMENT_UNITS = [
+  { value: 'kg', label: 'Kilogram (kg)' },
+  { value: 'pcs', label: 'Piece' },
+  { value: 'pack', label: 'Pack' },
+  { value: 'carton', label: 'Carton' },
+  { value: 'roll', label: 'Roll' },
+  { value: 'l', label: 'Litre' }
+]
+
 const UserInfoCard = ({ selectedSupplier }) => {
   // ** State
   const [isLoading, setIsLoading] = useState(false)
   const [modal, setModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [products, setProducts] = useState([])
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
+  const [packagingItems, setPackagingItems] = useState([])
+  const [isLoadingItems, setIsLoadingItems] = useState(false)
+  // Collected at delivery because expenses.departmentId and expenses.categoryId are both NOT
+  // NULL: a supply that carries neither cannot be paid from an account later without the
+  // person paying having to guess what it was for.
+  const [departments, setDepartments] = useState([])
+  const [expenseCategories, setExpenseCategories] = useState([])
+  const [classificationsFailed, setClassificationsFailed] = useState(false)
 
-  // ** Fetch products
-  const fetchProducts = async () => {
-    setIsLoadingProducts(true)
+  // ** Fetch packaging items.
+  //
+  // Supplies are packaging and consumables — cartons, sacks, ice, wrap — not finished goods,
+  // so this list comes from the packaging register, not /products. Choosing from it is what
+  // sets packagingItemId, and packagingItemId is what makes createSupply post the delivery
+  // into the packaging ledger. Typing a free-text name instead records the cost and stocks
+  // nothing, which is how the 32 unmapped supply-name strings accumulated.
+  const fetchPackagingItems = async () => {
+    setIsLoadingItems(true)
     try {
-      const response = await apiRequest({
-        url: '/products',
-        method: 'GET'
-      }, store.dispatch)
+      const response = await apiRequest({ url: '/packaging-items', method: 'GET' }, store.dispatch)
 
       if (response && response.data && response.data.status) {
-        // Transform products for react-select
-        const productOptions = response.data.data.map(product => ({
-          value: product.id,
-          label: product.name,
-          product
-        }))
-        setProducts(productOptions)
+        setPackagingItems(response.data.data || [])
       } else {
-        // If API fails, provide some dummy data for testing
-        swal('Error', 'Failed to fetch products', 'error')
+        swal('Error', response?.data?.message || 'Failed to load packaging items', 'error')
       }
     } catch (error) {
-      console.error('Error fetching products:', error)
-      swal('Error', 'Failed to fetch products', 'error')
+      console.error('Error fetching packaging items:', error)
+      swal('Error', 'Failed to load packaging items', 'error')
     } finally {
-      setIsLoadingProducts(false)
+      setIsLoadingItems(false)
+    }
+  }
+
+  // ** Reference lists for classifying the spend.
+  //
+  // Both fields are required by the form, so a silent failure here is NOT survivable: it leaves
+  // a mandatory dropdown with nothing in it and the clerk pressing Submit against a validation
+  // hint that no amount of typing can clear. Record the failure so the modal can say so.
+  const fetchClassifications = async () => {
+    setClassificationsFailed(false)
+    try {
+      const [deptRes, catRes] = await Promise.all([
+        apiRequest({ url: '/departments', method: 'GET' }, store.dispatch),
+        apiRequest({ url: '/expense-categories', method: 'GET' }, store.dispatch)
+      ])
+      const departmentList = deptRes?.data?.status ? deptRes.data.data || [] : []
+      const categoryList = catRes?.data?.status ? catRes.data.data || [] : []
+      setDepartments(departmentList)
+      setExpenseCategories(categoryList)
+      if (!departmentList.length || !categoryList.length) setClassificationsFailed(true)
+    } catch (error) {
+      console.error('Error fetching classifications:', error)
+      setClassificationsFailed(true)
     }
   }
 
@@ -56,34 +94,54 @@ const UserInfoCard = ({ selectedSupplier }) => {
   const toggleModal = () => {
     setModal(!modal)
     if (!modal) {
-      // Fetch products when opening the modal
-      fetchProducts()
+      fetchPackagingItems()
+      fetchClassifications()
     }
   }
 
   // ** Form
   const { control, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
+      packagingItemId: '',
       name: '',
+      unit: '',
+      departmentId: '',
+      categoryId: '',
+      // The day the goods arrived. Left unsent, createSupply stamps today — so a delivery
+      // keyed on Monday for a Friday drop lands in the wrong period and the ledger cut is
+      // wrong by three days.
+      supplyDate: moment().format('YYYY-MM-DD'),
       supplierId: selectedSupplier?.id || '',
       quantity: '',
       unitPrice: '',
       totalAmount: '',
-      paymentStatus: 'pending',
-      paymentMethod: 'cash',
+      // 'unpaid', not 'pending': the API accepts only paid | partial | unpaid, so 'pending'
+      // was rejected with a 400 unless the user happened to touch the dropdown — which the
+      // select never forced, because it renders the first option while holding a value that
+      // matches none of them.
+      paymentStatus: 'unpaid',
+      paymentMethod: 'credit',
       amountPaid: '',
       paymentDueDate: '',
       notes: ''
     }
   })
 
-  // ** Handle product selection
-  const handleProductChange = (selectedOption) => {
-    setValue('productId', selectedOption.value)
-    // If product has a default price, set it as unit price
-    if (selectedOption.product && selectedOption.product.price) {
-      setValue('unitPrice', selectedOption.product.price)
-    }
+  // ** Adopt the chosen item's name and unit.
+  //
+  // `name` stays the human label the rest of the app already reads, and the unit defaults to
+  // the one the item is normally bought in — still editable, because the packaging ledger
+  // keeps a separate balance per unit and a delivery must land against the right one.
+  const handleItemChange = (event) => {
+    const { value } = event.target
+    setValue('packagingItemId', value)
+    const item = packagingItems.find((candidate) => String(candidate.id) === String(value))
+    if (!item) return
+    setValue('name', item.name)
+    setValue('unit', item.unit || '')
+    // Packaging items carry their own expense category; adopt it so the person logging a
+    // delivery does not have to classify what the register already knows.
+    if (item.categoryId) setValue('categoryId', item.categoryId)
   }
 
   // Watch quantity and unitPrice to calculate totalAmount
@@ -109,33 +167,48 @@ const UserInfoCard = ({ selectedSupplier }) => {
   // ** Handle Supply Form Submit
   const onSubmitSupply = data => {
     setIsSubmitting(true)
-    
+
+    // Drop empty strings before sending. express-validator's .optional() skips only `undefined`,
+    // NOT '', so an untouched optional date field arrives as '' and fails .isISO8601() — a 400 on
+    // every submission where the clerk left "Payment Due Date" blank, which is most of them.
+    const payload = { supplierId: selectedSupplier.id }
+    for (const [key, value] of Object.entries(data)) {
+      if (value === '' || value === null || value === undefined) continue
+      payload[key] = value
+    }
+
     // Make API call to create supply
     apiRequest({
       url: '/supplies/create',
       method: 'POST',
-      body: JSON.stringify({
-        ...data,
-        // Ensure supplierId is included
-        supplierId: selectedSupplier.id
-      })
+      body: JSON.stringify(payload)
     }, store.dispatch)
       .then(async response => {
         setIsSubmitting(false)
         if (response && response.data && response.data.status) {
           swal('Success', 'Supply logged successfully', 'success')
-          await getSupplier(selectedSupplier.id)
+          // dispatch(), not a bare call: getSupplier is a thunk CREATOR, so `await
+          // getSupplier(id)` awaited a function object, issued no request and dispatched
+          // nothing. The supply list and the owed totals therefore never showed the row that
+          // had just been saved, and the obvious reaction is to key the delivery a second time
+          // - which posts a second packaging movement, since the UNIQUE key on
+          // inventoryMovements.supplyId stops one supply being stocked twice, not two supplies
+          // describing one delivery.
+          await store.dispatch(getSupplier(selectedSupplier.id))
           toggleModal()
           reset()
         } else {
-          swal('Error', response?.data?.message || 'Something went wrong', 'error')
-          reset()
+          // A validator rejection comes back as {errors:[{msg}]}, not {message} — without this
+          // the clerk saw a bare "Something went wrong" and no way to tell which field.
+          // Deliberately NOT reset(): wiping a rejected form loses everything they just keyed,
+          // and the delivery has to be typed again from the paper invoice.
+          const validation = response?.data?.errors?.map(e => e.msg).join(', ')
+          swal('Error', validation || response?.data?.message || 'Something went wrong', 'error')
         }
       })
       .catch(error => {
         setIsSubmitting(false)
         swal('Error', 'Failed to log supply', 'error')
-        reset()
         console.error(error)
       })
   }
@@ -297,24 +370,123 @@ const UserInfoCard = ({ selectedSupplier }) => {
             <ModalBody>
               <Form onSubmit={handleSubmit(onSubmitSupply)}>
                 <Row>
+                  {classificationsFailed && (
+                    <Col sm='12'>
+                      <Alert color='danger' className='p-1'>
+                        Departments or expense categories could not be loaded, and both are needed
+                        before a supply can be paid. Close this and try again — do not re-type the
+                        delivery until the lists appear.
+                      </Alert>
+                    </Col>
+                  )}
+                  {!isLoadingItems && packagingItems.length === 0 && (
+                    <Col sm='12'>
+                      <Alert color='warning' className='p-1'>
+                        No packaging items exist yet. Add them under <b>Reference data</b> first — until then a
+                        delivery records its cost but does not enter the packaging ledger.
+                      </Alert>
+                    </Col>
+                  )}
                   <Col md='6' sm='12'>
                     <FormGroup>
-                      <Label for='name'>Product <span className='text-danger'>*</span></Label>
+                      <Label for='packagingItemId'>Item <span className='text-danger'>*</span></Label>
                       <Controller
-                        name='name'
+                        name='packagingItemId'
                         control={control}
                         rules={{ required: true }}
                         render={({ field }) => (
                           <Input
-                            type='text'
-                            id='name'
-                            placeholder='Enter product name'
-                            invalid={errors.name && true}
+                            type='select'
+                            id='packagingItemId'
+                            invalid={errors.packagingItemId && true}
+                            {...field}
+                            onChange={handleItemChange}
+                            disabled={isLoadingItems}
+                          >
+                            <option value=''>{isLoadingItems ? 'Loading…' : 'Choose an item…'}</option>
+                            {packagingItems.map(item => (
+                              <option key={item.id} value={item.id}>{item.name}</option>
+                            ))}
+                          </Input>
+                        )}
+                      />
+                      {errors.packagingItemId && <small className='text-danger'>Choose what was delivered</small>}
+                    </FormGroup>
+                  </Col>
+                  <Col md='3' sm='12'>
+                    <FormGroup>
+                      <Label for='unit'>Measured in <span className='text-danger'>*</span></Label>
+                      <Controller
+                        name='unit'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <Input type='select' id='unit' invalid={errors.unit && true} {...field}>
+                            <option value=''>Choose…</option>
+                            {MOVEMENT_UNITS.map(u => (
+                              <option key={u.value} value={u.value}>{u.label}</option>
+                            ))}
+                          </Input>
+                        )}
+                      />
+                      <small className='text-muted'>Balances are kept per unit.</small>
+                    </FormGroup>
+                  </Col>
+                  <Col md='6' sm='12'>
+                    <FormGroup>
+                      <Label for='departmentId'>Department <span className='text-danger'>*</span></Label>
+                      <Controller
+                        name='departmentId'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <Input type='select' id='departmentId' invalid={errors.departmentId && true} {...field}>
+                            <option value=''>Choose…</option>
+                            {departments.map(d => (
+                              <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
+                          </Input>
+                        )}
+                      />
+                      {errors.departmentId && <small className='text-danger'>Needed before this can be paid</small>}
+                    </FormGroup>
+                  </Col>
+                  <Col md='6' sm='12'>
+                    <FormGroup>
+                      <Label for='categoryId'>Expense category <span className='text-danger'>*</span></Label>
+                      <Controller
+                        name='categoryId'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <Input type='select' id='categoryId' invalid={errors.categoryId && true} {...field}>
+                            <option value=''>Choose…</option>
+                            {expenseCategories.map(c => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </Input>
+                        )}
+                      />
+                      {errors.categoryId && <small className='text-danger'>Needed before this can be paid</small>}
+                    </FormGroup>
+                  </Col>
+                  <Col md='3' sm='12'>
+                    <FormGroup>
+                      <Label for='supplyDate'>Delivered on <span className='text-danger'>*</span></Label>
+                      <Controller
+                        name='supplyDate'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <Input
+                            type='date'
+                            id='supplyDate'
+                            max={moment().format('YYYY-MM-DD')}
+                            invalid={errors.supplyDate && true}
                             {...field}
                           />
                         )}
                       />
-                      {errors.name && <small className='text-danger'>Product is required</small>}
                     </FormGroup>
                   </Col>
                   <Col md='6' sm='12'>

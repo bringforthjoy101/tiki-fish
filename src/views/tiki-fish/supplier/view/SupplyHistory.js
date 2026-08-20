@@ -28,10 +28,40 @@ const SupplyHistory = ({ id }) => {
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [processingPayment, setProcessingPayment] = useState(false)
+  const [paymentAccounts, setPaymentAccounts] = useState([])
+  const [paymentAccountId, setPaymentAccountId] = useState('')
+  // Only asked for when the supply does not already carry them. Every supply created before
+  // migration 026 has both NULL, and expenses requires both NOT NULL, so without this no
+  // existing supply could be paid from an account at all.
+  const [departments, setDepartments] = useState([])
+  const [expenseCategories, setExpenseCategories] = useState([])
+  const [departmentId, setDepartmentId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
 
   // ** Store Vars
   const dispatch = useDispatch()
   const store = useSelector(state => state.suppliers)
+
+  // ** Which account the money leaves.
+  //
+  // paySupply treats this as optional, because every historical payment was recorded without
+  // one — those rows credit the supplier but never debit cash. Leaving it unset here is what
+  // reproduced that: the supplier's balance fell and the bank balance did not move. The
+  // picker makes the account an explicit, required choice at the point of payment.
+  const fetchPaymentAccounts = async () => {
+    try {
+      const [accountRes, deptRes, catRes] = await Promise.all([
+        apiRequest({ url: '/payment-accounts', method: 'GET' }, dispatch),
+        apiRequest({ url: '/departments', method: 'GET' }, dispatch),
+        apiRequest({ url: '/expense-categories', method: 'GET' }, dispatch)
+      ])
+      if (accountRes?.data?.status) setPaymentAccounts(accountRes.data.data || [])
+      if (deptRes?.data?.status) setDepartments(deptRes.data.data || [])
+      if (catRes?.data?.status) setExpenseCategories(catRes.data.data || [])
+    } catch (error) {
+      console.error('Error fetching payment references:', error)
+    }
+  }
 
   // ** Toggle Modals
   const toggleModal = () => setModal(!modal)
@@ -42,6 +72,10 @@ const SupplyHistory = ({ id }) => {
         const remainingAmount = selectedSupply.totalAmount - (selectedSupply.amountPaid || 0)
         setPaymentAmount(remainingAmount > 0 ? remainingAmount.toString() : '0')
       }
+      setPaymentAccountId('')
+      setDepartmentId('')
+      setCategoryId('')
+      fetchPaymentAccounts()
     }
     setPaymentModal(!paymentModal)
   }
@@ -131,10 +165,30 @@ const SupplyHistory = ({ id }) => {
       return
     }
 
+    if (!paymentAccountId) {
+      swal('Error', 'Choose which account the money leaves', 'error')
+      return
+    }
+
+    // The server rejects the payment outright without these, because the expense it writes
+    // cannot be filed anywhere. Catch it here so the clerk is not sent round the loop.
+    const needsDepartment = !selectedSupply.departmentId && !departmentId
+    const needsCategory = !selectedSupply.categoryId && !categoryId
+    if (needsDepartment || needsCategory) {
+      const missing = [needsDepartment && 'a department', needsCategory && 'an expense category'].filter(Boolean)
+      swal('Error', `Choose ${missing.join(' and ')} — that is what this payment gets filed under`, 'error')
+      return
+    }
+
+    // Name the account in the prompt. This is the last point at which the person paying can
+    // notice the money is about to leave the wrong one.
+    const account = paymentAccounts.find(candidate => String(candidate.id) === String(paymentAccountId))
+    const accountName = account ? account.name : 'the selected account'
+
     // Ask for confirmation
     const result = await MySwal.fire({
       title: 'Confirm Payment',
-      text: `Are you sure you want to process a payment of ${parseFloat(paymentAmount).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}?`,
+      text: `Pay ${parseFloat(paymentAmount).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })} from ${accountName}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, Process Payment',
@@ -155,7 +209,12 @@ const SupplyHistory = ({ id }) => {
         method: 'POST',
         body: JSON.stringify({
           amount: parseFloat(paymentAmount),
-          paymentMethod
+          paymentMethod,
+          paymentAccountId: Number(paymentAccountId),
+          // Sent only when the supply lacks them; paySupply prefers what the supply already
+          // carries and writes these back onto it, so a legacy row is classified once.
+          ...(departmentId ? { departmentId: Number(departmentId) } : {}),
+          ...(categoryId ? { categoryId: Number(categoryId) } : {})
         })
       }, dispatch)
 
@@ -515,6 +574,58 @@ const SupplyHistory = ({ id }) => {
                   <option value="bank-transfer">Bank Transfer</option>
                 </Input>
               </FormGroup>
+              <FormGroup>
+                <Label for="paymentAccountId">Paid from <span className="text-danger">*</span></Label>
+                <Input
+                  type="select"
+                  id="paymentAccountId"
+                  value={paymentAccountId}
+                  onChange={e => setPaymentAccountId(e.target.value)}
+                  required
+                >
+                  <option value="">Choose an account…</option>
+                  {paymentAccounts.map(account => (
+                    <option key={account.id} value={account.id}>{account.name}</option>
+                  ))}
+                </Input>
+                <small className="text-muted">This is the account the money actually leaves.</small>
+              </FormGroup>
+              {!selectedSupply.departmentId && (
+                <FormGroup>
+                  <Label for="departmentId">Department <span className="text-danger">*</span></Label>
+                  <Input
+                    type="select"
+                    id="departmentId"
+                    value={departmentId}
+                    onChange={e => setDepartmentId(e.target.value)}
+                    required
+                  >
+                    <option value="">Choose…</option>
+                    {departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </Input>
+                  <small className="text-muted">This supply was recorded before departments were captured.</small>
+                </FormGroup>
+              )}
+              {!selectedSupply.categoryId && (
+                <FormGroup>
+                  <Label for="categoryId">Expense category <span className="text-danger">*</span></Label>
+                  <Input
+                    type="select"
+                    id="categoryId"
+                    value={categoryId}
+                    onChange={e => setCategoryId(e.target.value)}
+                    required
+                  >
+                    <option value="">Choose…</option>
+                    {expenseCategories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </Input>
+                  <small className="text-muted">What this payment gets filed under.</small>
+                </FormGroup>
+              )}
               <div className="d-flex justify-content-end mt-2">
                 <Button color="secondary" className="mr-1" onClick={togglePaymentModal} outline>
                   Cancel
