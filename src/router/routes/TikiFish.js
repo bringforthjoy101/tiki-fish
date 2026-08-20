@@ -58,6 +58,10 @@ const FinanceRoutes = [
     }
   },
   {
+    path: '/inventory/stock-on-hand',
+    component: lazy(() => import('../../views/tiki-fish/inventory/list'))
+  },
+  {
     path: '/production/list',
     component: lazy(() => import('../../views/tiki-fish/production/list'))
   },
