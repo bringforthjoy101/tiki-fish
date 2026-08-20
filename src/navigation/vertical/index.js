@@ -14,6 +14,7 @@ import investments from './investments.js'
 import suppliers from './suppliers.js'
 import expenses from './expenses.js'
 import buildPayrollSection from './payroll.js'
+import procurement from './procurement.js'
 import assets from './assets.js'
 import reference from './reference.js'
 import { getCapabilities } from '@src/utility/capabilities'
@@ -62,6 +63,7 @@ if (anyOf('settlements.read')) menu.push(...settlements)
 // return 410, and every withdrawal has been migrated into `expenses`.
 if (anyOf('wallets.read', 'withdrawals.read')) menu.push(...withdrawals, ...transactions, ...wallets)
 
+if (anyOf('fishPurchases.create', 'fishPurchases.readOwn', 'fishPurchases.readAll')) menu.push(...procurement)
 if (anyOf('assets.read')) menu.push(...assets)
 
 // Reference data. Anyone who can read a master sees the screen; each tab gates its own edit

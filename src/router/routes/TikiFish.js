@@ -45,6 +45,17 @@ const FinanceRoutes = [
   {
     path: '/reference',
     component: lazy(() => import('../../views/tiki-fish/reference'))
+  },
+  {
+    path: '/procurement/list',
+    component: lazy(() => import('../../views/tiki-fish/procurement/list'))
+  },
+  {
+    path: '/procurement/view/:id',
+    component: lazy(() => import('../../views/tiki-fish/procurement/view')),
+    meta: {
+      navLink: '/procurement/list'
+    }
   }
 ]
 
