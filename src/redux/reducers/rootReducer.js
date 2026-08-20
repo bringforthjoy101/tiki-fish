@@ -28,6 +28,7 @@ import payroll from '@src/views/tiki-fish/payroll/store/reducer'
 import procurement from '@src/views/tiki-fish/procurement/store/reducer'
 import production from '@src/views/tiki-fish/production/store/reducer'
 import inventory from '@src/views/tiki-fish/inventory/store/reducer'
+import stockCount from '@src/views/tiki-fish/stock-count/store/reducer'
 import assets from '@src/views/tiki-fish/assets/store/reducer'
 import reference from '@src/views/tiki-fish/reference/store/reducer'
 import email from '@src/views/apps/email/store/reducer'
@@ -63,6 +64,7 @@ const rootReducer = combineReducers({
   procurement,
   production,
   inventory,
+  stockCount,
   assets,
   reference,
   navbar,
