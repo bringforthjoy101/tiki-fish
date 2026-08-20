@@ -62,6 +62,13 @@ const FinanceRoutes = [
     component: lazy(() => import('../../views/tiki-fish/stock-count/list'))
   },
   {
+    path: '/stock-counts/variance/:id',
+    component: lazy(() => import('../../views/tiki-fish/stock-count/variance')),
+    meta: {
+      navLink: '/stock-counts/list'
+    }
+  },
+  {
     path: '/stock-counts/view/:id',
     component: lazy(() => import('../../views/tiki-fish/stock-count/view')),
     meta: {

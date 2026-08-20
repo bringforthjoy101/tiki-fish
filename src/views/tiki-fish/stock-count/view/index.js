@@ -199,6 +199,11 @@ const StockCountView = () => {
 						<Button color="secondary" outline className="mr-1" onClick={() => window.print()}>
 							<Printer size={15} /> Print
 						</Button>
+						{merged.length > 0 && (
+							<Link to={`/stock-counts/variance/${id}`}>
+								<Button color="info" outline className="mr-1">What it found</Button>
+							</Link>
+						)}
 						{editable && merged.length === 0 && (
 							<Button color="primary" className="mr-1" onClick={build}>Build the sheet</Button>
 						)}
