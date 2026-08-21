@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect, useContext } from 'react'
 
 // ** Columns
 import { columns } from './columns'
@@ -16,6 +16,9 @@ import { ChevronDown, Share, Printer, FileText, Search, Calendar, Filter, Trendi
 import Flatpickr from 'react-flatpickr'
 import DataTable from 'react-data-table-component'
 import { selectThemeColors, swal, toLocalDate, todayLocal } from '@utils'
+import { useBreakpoint } from '@src/utility/hooks/useBreakpoint'
+import { AbilityContext } from '@src/utility/context/Can'
+import OrderCards from './OrderCards'
 import PickerRange from '../../../forms/form-elements/datepicker/PickerRange'
 import '@styles/react/libs/flatpickr/flatpickr.scss'
 import {
@@ -42,10 +45,27 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import FormGroup from 'reactstrap/lib/FormGroup'
 
+// Ranges as day OFFSETS, resolved against a fresh Date each time they are applied. A module-level
+// array of Date objects would freeze the day the tab was opened — a phone left open overnight
+// would keep showing yesterday as "Today".
+const QUICK_RANGES = [
+	{ key: 'today', label: 'Today', from: 0 },
+	{ key: 'week', label: '7 days', from: 6 },
+	{ key: 'month', label: '30 days', from: 29 },
+	{ key: 'all', label: 'All', from: null }
+]
+
 const TransactionTable = () => {
 	// ** Store Vars
 	const dispatch = useDispatch()
 	const store = useSelector((state) => state.orders)
+	const breakpoint = useBreakpoint()
+	const ability = useContext(AbilityContext)
+	// 'orders.advanceStatus' -> { action: 'advanceStatus', subject: 'orders' }. The grammar is
+	// resource.action; writing resource:'orders.advanceStatus' would never match and the button
+	// would be invisible to everyone with no error.
+	const canAdvance = ability.can('advanceStatus', 'orders')
+	const isDesktop = breakpoint === 'desktop'
 
 	// ** States
 	const [searchTerm, setSearchTerm] = useState('')
@@ -57,6 +77,8 @@ const TransactionTable = () => {
 	const [statusFilter, setStatusFilter] = useState('')
 	const [paymentStatusFilter, setPaymentStatusFilter] = useState('')
 	const [isLoading, setIsLoading] = useState(true)
+	const [filtersOpen, setFiltersOpen] = useState(false)
+	const [activeRange, setActiveRange] = useState('today')
 
 	useEffect(() => {
 		dispatch({ type: 'RESET_ORDER_NOTIFICATIONS' })
@@ -104,7 +126,19 @@ const TransactionTable = () => {
 
 	// The picker holds Dates; the effect converts them to local YYYY-MM-DD for the API. NOT
 	// toISOString — in West Africa that returns the previous day. See @utils/toLocalDate.
-	const handleRangeSearch = (date) => setPicker(date)
+	const handleRangeSearch = (date) => {
+		setPicker(date)
+		setActiveRange(null)
+	}
+
+	const applyQuickRange = (range) => {
+		setActiveRange(range.key)
+		if (range.from === null) return setPicker([])
+		const end = new Date()
+		const start = new Date()
+		start.setDate(start.getDate() - range.from)
+		setPicker([start, end])
+	}
 
 	// ** Custom Pagination
 	const CustomPagination = () => {
@@ -446,13 +480,37 @@ const TransactionTable = () => {
 
 			{/* Search and Filter Card */}
 			<Card>
-				<CardHeader className="border-bottom">
-					<CardTitle tag="h4">
+				<CardHeader className="border-bottom d-flex justify-content-between align-items-center flex-wrap">
+					<CardTitle tag="h4" className="mb-0">
 						<Filter size={20} className="mr-1" />
-						Search & Filter
+						Search &amp; Filter
 					</CardTitle>
+					{/* Quick ranges. On a phone this is the whole filter most of the time: a
+					    storekeeper wants today's orders, and one tap is cheaper than opening a
+					    date picker twice. */}
+					<div className="d-flex align-items-center flex-wrap mt-50 mt-md-0">
+						{QUICK_RANGES.map((r) => (
+							<Button
+								key={r.key}
+								size="sm"
+								color={activeRange === r.key ? 'primary' : 'flat-secondary'}
+								className="mr-50 mb-25"
+								onClick={() => applyQuickRange(r)}
+							>
+								{r.label}
+							</Button>
+						))}
+						{!isDesktop && (
+							<Button size="sm" color="flat-secondary" className="mb-25" onClick={() => setFiltersOpen(!filtersOpen)}>
+								<Filter size={14} className="mr-25" />
+								{filtersOpen ? 'Hide' : 'More'}
+							</Button>
+						)}
+					</div>
 				</CardHeader>
-				<CardBody>
+				{/* On a phone the full filter block is four stacked controls before a single order
+				    is visible, so it starts collapsed and the chips above cover the common cases. */}
+				<CardBody className={!isDesktop && !filtersOpen ? 'd-none' : ''}>
 					<Row form className="mt-1">
 						<Col lg="3" md="6" className="mb-1">
 							<FormGroup>
@@ -594,7 +652,7 @@ const TransactionTable = () => {
 						<h4>No Orders Found</h4>
 						<p className="text-muted">Start by creating your first order</p>
 					</div>
-				) : (
+				) : breakpoint === 'desktop' ? (
 					<DataTable
 						noHeader
 						pagination
@@ -614,6 +672,15 @@ const TransactionTable = () => {
 							</div>
 						}
 					/>
+				) : (
+					/* Below 1024px the table becomes cards: one per row on a phone, two on a
+					   tablet. The seven columns here have 1,020px of combined minimum width, so
+					   on a 390px screen reading one order meant scrolling through nearly three
+					   screens sideways. */
+					<div className="p-1">
+						<OrderCards orders={dataToRender()} breakpoint={breakpoint} canAdvance={canAdvance} loading={isLoading} />
+						<CustomPagination />
+					</div>
 				)}
 			</Card>
 		</Fragment>

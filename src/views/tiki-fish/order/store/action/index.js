@@ -109,6 +109,30 @@ export const fetchOrdersForExport = (params = {}) => {
 	}
 }
 
+/**
+ * Move an order to a new status.
+ *
+ * The API decides whether the caller may set THAT status: a storekeeper holds
+ * orders.advanceStatus and can move an order through fulfilment, but not to completed (which
+ * books revenue to the ledger) or cancelled/refunded (which remove it from a month that may
+ * already have been reported). The refusal comes back as a plain message, so it is shown rather
+ * than swallowed.
+ */
+export const updateOrderStatus = (orderId, status) => {
+	return async (dispatch) => {
+		const response = await apiRequest(
+			{ url: `/orders/update-status/${orderId}`, method: 'POST', body: JSON.stringify({ status }) },
+			dispatch
+		)
+		if (response?.data?.status) {
+			swal('Done', response.data.message || 'Order updated.', 'success')
+			return true
+		}
+		swal('Not updated', response?.data?.message || 'The order could not be updated.', 'error')
+		return false
+	}
+}
+
 /** Re-run whatever view is on screen — after a status change or an edit. */
 export const refreshOrders = () => {
 	return async (dispatch, getState) => {

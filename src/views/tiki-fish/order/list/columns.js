@@ -35,7 +35,7 @@ const getItemNames = (items) => {
 }
 
 // Enhanced order status configuration
-const orderStatus = {
+export const orderStatus = {
 	pending: { color: 'light-secondary', icon: <Clock size={12} />, label: 'Pending' },
 	processing: { color: 'light-warning', icon: <Package size={12} />, label: 'Processing' },
 	ready: { color: 'light-primary', icon: <CheckCircle size={12} />, label: 'Ready' },
@@ -49,7 +49,7 @@ const orderStatus = {
 }
 
 // Payment status configuration
-const paymentStatusConfig = {
+export const paymentStatusConfig = {
 	pending: { color: 'light-warning', icon: <Clock size={12} />, label: 'Pending' },
 	processing: { color: 'light-info', icon: <CreditCard size={12} />, label: 'Processing' },
 	paid: { color: 'light-success', icon: <CheckCircle size={12} />, label: 'Paid' },
