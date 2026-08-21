@@ -47,6 +47,75 @@ export const nullifyOrder = (orderId) => {
 }
 
 // All Users Filtered Data
+/**
+ * Search and page orders on the SERVER.
+ *
+ * The old list called GET /orders, which was capped at `limit: 2500`, and filtered the result in
+ * the browser. With 7,210 orders that meant 4,710 of them — 65%, everything before 15 Dec 2025 —
+ * could not be found at all. The search box worked; the orders simply were not there.
+ *
+ * It also now searches customer PHONE and delivery LOCATION, neither of which the browser-side
+ * filter covered. A rep with a caller's number had no way to reach their order.
+ */
+export const searchOrders = (params = {}) => {
+	return async (dispatch) => {
+		const { page = 1, perPage = 25, q = '', status = '', paymentStatus = '', startDate = '', endDate = '', sort = 'recent' } = params
+		const search = new URLSearchParams({ page, perPage, sort })
+		if (q) search.append('q', q)
+		if (status) search.append('status', status)
+		if (paymentStatus) search.append('paymentStatus', paymentStatus)
+		if (startDate) search.append('startDate', startDate)
+		if (endDate) search.append('endDate', endDate)
+
+		const response = await apiRequest({ url: `/orders?${search.toString()}`, method: 'GET' }, dispatch)
+		const payload = response?.data?.data
+		if (response?.data?.status && payload) {
+			dispatch({
+				type: 'GET_FILTERED_ORDER_DATA',
+				data: payload.data ?? payload,
+				totalPages: payload.total ?? (Array.isArray(payload) ? payload.length : 0),
+				summary: payload.summary,
+				params: { page, perPage, q, status, paymentStatus, startDate, endDate, sort },
+			})
+		} else {
+			swal('Oops!', response?.data?.message || 'Could not load orders.', 'error')
+		}
+	}
+}
+
+/**
+ * Fetch every order matching the current filters, for export.
+ *
+ * Uses the unpaginated path, which the API caps at 2,500 rows. Returns `truncated` so the caller
+ * can say so rather than handing someone a file that quietly stops partway.
+ */
+export const fetchOrdersForExport = (params = {}) => {
+	return async (dispatch) => {
+		const { q = '', status = '', paymentStatus = '', startDate = '', endDate = '' } = params
+		const search = new URLSearchParams()
+		if (q) search.append('q', q)
+		if (status) search.append('status', status)
+		if (paymentStatus) search.append('paymentStatus', paymentStatus)
+		if (startDate) search.append('startDate', startDate)
+		if (endDate) search.append('endDate', endDate)
+		const qs = search.toString()
+
+		const response = await apiRequest({ url: `/orders${qs ? `?${qs}` : ''}`, method: 'GET' }, dispatch)
+		if (response?.data?.status && Array.isArray(response.data.data)) {
+			return { rows: response.data.data, truncated: response.data.data.length >= 2500 }
+		}
+		swal('Oops!', response?.data?.message || 'Could not fetch orders to export.', 'error')
+		return { rows: [], truncated: false }
+	}
+}
+
+/** Re-run whatever view is on screen — after a status change or an edit. */
+export const refreshOrders = () => {
+	return async (dispatch, getState) => {
+		await dispatch(searchOrders(getState().orders.params || {}))
+	}
+}
+
 export const getFilteredData = (orders, params) => {
 	return async (dispatch) => {
 		const { q = '', perPage = 100, page = 1, status = '', paymentStatus = '' } = params

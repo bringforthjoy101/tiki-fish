@@ -6,7 +6,7 @@ import { columns } from './columns'
 import moment from 'moment'
 
 // ** Store & Actions
-import { getAllData, getFilteredData, getFilteredRageData } from '../store/action'
+import { searchOrders, fetchOrdersForExport } from '../store/action'
 import { useDispatch, useSelector } from 'react-redux'
 
 // ** Third Party Components
@@ -15,7 +15,7 @@ import ReactPaginate from 'react-paginate'
 import { ChevronDown, Share, Printer, FileText, Search, Calendar, Filter, TrendingUp, Package, Clock, CheckCircle, XCircle, DollarSign, ShoppingBag, AlertCircle } from 'react-feather'
 import Flatpickr from 'react-flatpickr'
 import DataTable from 'react-data-table-component'
-import { selectThemeColors } from '@utils'
+import { selectThemeColors, swal, toLocalDate, todayLocal } from '@utils'
 import PickerRange from '../../../forms/form-elements/datepicker/PickerRange'
 import '@styles/react/libs/flatpickr/flatpickr.scss'
 import {
@@ -50,86 +50,61 @@ const TransactionTable = () => {
 	// ** States
 	const [searchTerm, setSearchTerm] = useState('')
 	const [currentPage, setCurrentPage] = useState(1)
-	const [rowsPerPage, setRowsPerPage] = useState(100)
+	// 25, not 100. On a phone this renders as 25 cards; 100 was a very long scroll and, before
+	// server paging, 100 slices of a 2,500-row download.
+	const [rowsPerPage, setRowsPerPage] = useState(25)
 	const [picker, setPicker] = useState([new Date(), new Date()])
 	const [statusFilter, setStatusFilter] = useState('')
 	const [paymentStatusFilter, setPaymentStatusFilter] = useState('')
 	const [isLoading, setIsLoading] = useState(true)
 
-	// Fetch all data on mount and reset notification badge
 	useEffect(() => {
 		dispatch({ type: 'RESET_ORDER_NOTIFICATIONS' })
-		setIsLoading(true)
-		dispatch(getAllData()).then(() => {
-			setIsLoading(false)
-		})
 	}, [dispatch])
 
-	// Filter data when allData changes or filter parameters change
+	// ** Everything the server needs, in one place. The date range comes from the picker, which
+	// defaults to today — the view a storekeeper wants when they open this on their phone.
+	const query = () => ({
+		perPage: rowsPerPage,
+		q: searchTerm,
+		status: statusFilter,
+		paymentStatus: paymentStatusFilter,
+		startDate: picker?.[0] ? toLocalDate(new Date(picker[0])) : '',
+		endDate: picker?.[1] ? toLocalDate(new Date(picker[1])) : ''
+	})
+
+	// ** One debounced effect. 350ms after the last keystroke or filter change, one request goes
+	// out. Firing per keystroke against a database with a ~280ms round-trip means the reply that
+	// arrives last wins rather than the one sent last, so the rows can belong to a prefix of
+	// what is in the box.
 	useEffect(() => {
-		if (store.allData.length > 0) {
-			dispatch(
-				getFilteredData(store.allData, {
-					page: currentPage,
-					perPage: rowsPerPage,
-					q: searchTerm,
-					status: statusFilter,
-					paymentStatus: paymentStatusFilter
-				})
-			)
-		}
-	}, [store.allData, currentPage, rowsPerPage, searchTerm, statusFilter, paymentStatusFilter, dispatch])
+		setIsLoading(true)
+		const timer = setTimeout(async () => {
+			await dispatch(searchOrders({ ...query(), page: 1 }))
+			setCurrentPage(1)
+			setIsLoading(false)
+		}, 350)
+		return () => clearTimeout(timer)
+	}, [searchTerm, statusFilter, paymentStatusFilter, rowsPerPage, picker])
 
 	// ** Function in get data on page change
-	const handlePagination = (page) => {
-		dispatch(
-			getFilteredData(store.allData, {
-				page: page.selected + 1,
-				perPage: rowsPerPage,
-				q: searchTerm,
-				status: statusFilter,
-				paymentStatus: paymentStatusFilter
-			})
-		)
+	const handlePagination = async (page) => {
+		setIsLoading(true)
+		await dispatch(searchOrders({ ...query(), page: page.selected + 1 }))
 		setCurrentPage(page.selected + 1)
+		setIsLoading(false)
 	}
 
 	// ** Function in get data on rows per page
-	const handlePerPage = (e) => {
-		const value = parseInt(e.currentTarget.value)
-		dispatch(
-			getFilteredData(store.allData, {
-				page: currentPage,
-				perPage: value,
-				q: searchTerm,
-				status: statusFilter,
-				paymentStatus: paymentStatusFilter
-			})
-		)
-		setRowsPerPage(value)
-	}
+	// Sets state only; the effect above re-queries and resets to page 1.
+	const handlePerPage = (e) => setRowsPerPage(parseInt(e.currentTarget.value))
 
 	// ** Function in get data on search query change
-	const handleFilter = (val) => {
-		setSearchTerm(val)
-		dispatch(
-			getFilteredData(store.allData, {
-				page: currentPage,
-				perPage: rowsPerPage,
-				q: val,
-				status: statusFilter,
-				paymentStatus: paymentStatusFilter
-			})
-		)
-	}
+	const handleFilter = (val) => setSearchTerm(val)
 
-	const handleRangeSearch = (date) => {
-		const range = date.map((d) => new Date(d).getTime())
-		setPicker(range)
-		dispatch(getFilteredRageData(store.allData, range, { page: currentPage, perPage: rowsPerPage }))
-	}
-
-	const filteredData = store.allData.filter((item) => item.orderNumber.toLowerCase())
+	// The picker holds Dates; the effect converts them to local YYYY-MM-DD for the API. NOT
+	// toISOString — in West Africa that returns the previous day. See @utils/toLocalDate.
+	const handleRangeSearch = (date) => setPicker(date)
 
 	// ** Custom Pagination
 	const CustomPagination = () => {
@@ -155,53 +130,46 @@ const TransactionTable = () => {
 	}
 
 	// ** Converts table to CSV
-	function convertArrayOfObjectsToCSV(array) {
-		let result
+	// ** CSV export
+	//
+	// Columns are named explicitly. The old version took its headers from
+	// Object.keys(store.allData[0]) — which throws on an empty list, and store.allData is no
+	// longer preloaded — and quoted nothing, so any customer name or location containing a comma
+	// shifted every column after it by one on that line.
+	//
+	// It also exports everything matching the current filters rather than the 25 rows on screen.
+	const CSV_COLUMNS = [
+		{ label: 'Order No', get: (o) => o.orderNumber },
+		{ label: 'Customer', get: (o) => o.customer?.fullName },
+		{ label: 'Phone', get: (o) => o.customer?.phone },
+		{ label: 'Amount', get: (o) => o.amount },
+		{ label: 'Status', get: (o) => o.status },
+		{ label: 'Payment', get: (o) => o.paymentStatus },
+		{ label: 'Location', get: (o) => o.location },
+		{ label: 'Date', get: (o) => moment(o.createdAt).format('YYYY-MM-DD HH:mm') }
+	]
 
-		const columnDelimiter = ','
-		const lineDelimiter = '\n'
-		const keys = Object.keys(store.allData[0])
-		console.log('keyss', keys)
-
-		result = ''
-		result += keys.join(columnDelimiter)
-		result += lineDelimiter
-
-		array.forEach((item) => {
-			let ctr = 0
-			keys.forEach((key) => {
-				if (ctr > 0) result += columnDelimiter
-
-				result += item[key]
-
-				ctr++
-			})
-			result += lineDelimiter
-			console.log('esults', result)
-		})
-
-		return result
+	const csvCell = (value) => {
+		if (value === null || value === undefined) return '""'
+		return `"${String(value).replace(/"/g, '""')}"`
 	}
 
-	// ** Downloads CSV
-	function downloadCSV(array) {
+	const handleExportCSV = async () => {
+		const { rows, truncated } = await dispatch(fetchOrdersForExport(query()))
+		if (!rows.length) return swal('Nothing to export', 'No orders matched the current filters.', 'info')
+		if (truncated) swal('Partial export', 'Only the first 2,500 matching orders are included. Narrow the date range for a complete file.', 'warning')
+		const header = CSV_COLUMNS.map((c) => c.label).join(',')
+		const body = rows.map((o) => CSV_COLUMNS.map((c) => csvCell(c.get(o))).join(',')).join('\n')
 		const link = document.createElement('a')
-		let csv = convertArrayOfObjectsToCSV(array)
-		if (csv === null) return
-
-		const filename = 'export.csv'
-
-		if (!csv.match(/^data:text\/csv/i)) {
-			csv = `data:text/csv;charset=utf-8,${csv}`
-		}
-
-		link.setAttribute('href', encodeURI(csv))
-		link.setAttribute('download', filename)
+		link.setAttribute('href', encodeURI(`data:text/csv;charset=utf-8,${header}\n${body}`))
+		link.setAttribute('download', `orders-${todayLocal()}.csv`)
 		link.click()
 	}
 
-	// download PDF - Summary Report
-	const downloadPDF = () => {
+	const downloadPDF = async () => {
+		const { rows: exportRows, truncated } = await dispatch(fetchOrdersForExport(query()))
+		if (!exportRows.length) return swal('Nothing to export', 'No orders matched the current filters.', 'info')
+		if (truncated) swal('Partial export', 'Only the first 2,500 matching orders are included.', 'warning')
 		const doc = new jsPDF({
 			orientation: 'landscape',
 		})
@@ -228,7 +196,7 @@ const TransactionTable = () => {
 				7: { cellWidth: 35 }
 			},
 			head: [['Order No', 'Customer', 'Amount', 'Status', 'Payment', 'Location', 'Date', 'Attendant']],
-			body: store.data.map((order) => [
+			body: exportRows.map((order) => [
 				`#${order.orderNumber}`,
 				order.customer?.fullName || 'N/A',
 				`₦${order.amount?.toLocaleString() || '0'}`,
@@ -362,31 +330,24 @@ const TransactionTable = () => {
 	}
 
 	// ** Table data to render
-	const dataToRender = () => {
-		const filters = {
-			q: searchTerm,
-		}
+	// ** The server applied the search, the filters and the paging. A fallback to store.allData
+	// here would show unfiltered orders whenever a search legitimately returned nothing — which
+	// reads as a list of results.
+	const dataToRender = () => store.data
 
-		const isFiltered = Object.keys(filters).some(function (k) {
-			return filters[k].length > 0
-		})
 
-		if (store.data.length > 0) {
-			return store.data
-		} else if (store.data.length === 0 && isFiltered) {
-			return []
-		} else {
-			return store.allData.slice(0, rowsPerPage)
-		}
-	}
-
-	// Calculate summary statistics
-	const totalOrders = store.allData.length
-	const totalRevenue = store.allData.reduce((sum, order) => sum + (order.amount || 0), 0)
-	const pendingOrders = store.allData.filter(order => order.status === 'pending').length
-	const processingOrders = store.allData.filter(order => order.status === 'processing').length
-	const completedOrders = store.allData.filter(order => order.status === 'completed').length
-	const cancelledOrders = store.allData.filter(order => order.status === 'cancelled').length
+	// ** Summary comes from the SERVER, over everything matching the current filter.
+	//
+	// These were computed from store.allData, which was capped at 2,500 rows — so "Total Orders"
+	// read 2,500 against a real 7,210 and "Total Revenue" summed only the newest third. Both
+	// looked like answers, which is why nobody questioned them.
+	const summary = store.summary || { totalOrders: 0, totalValue: 0, byStatus: {} }
+	const totalOrders = summary.totalOrders
+	const totalRevenue = summary.totalValue
+	const pendingOrders = summary.byStatus.pending || 0
+	const processingOrders = summary.byStatus.processing || 0
+	const completedOrders = summary.byStatus.completed || 0
+	const cancelledOrders = summary.byStatus.cancelled || 0
 
 	// Status options for filter
 	const statusOptions = [
@@ -612,7 +573,7 @@ const TransactionTable = () => {
 									<span className="align-middle ml-50">Download Receipts</span>
 								</DropdownItem>
 								<DropdownItem divider />
-								<DropdownItem className="w-100" onClick={() => downloadCSV(store.data)}>
+								<DropdownItem className="w-100" onClick={() => handleExportCSV()}>
 									<FileText size={15} />
 									<span className="align-middle ml-50">Export CSV</span>
 								</DropdownItem>
@@ -627,7 +588,7 @@ const TransactionTable = () => {
 						</div>
 						<p className="mt-2">Loading orders...</p>
 					</div>
-				) : store.allData.length === 0 && !searchTerm && !statusFilter && !paymentStatusFilter ? (
+				) : store.data.length === 0 && !searchTerm && !statusFilter && !paymentStatusFilter ? (
 					<div className="text-center py-5">
 						<ShoppingBag size={48} className="text-muted mb-2" />
 						<h4>No Orders Found</h4>

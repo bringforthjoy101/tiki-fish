@@ -4,6 +4,8 @@ const initialState = {
   data: [],
   total: 1,
   params: {},
+  // Computed by the server over everything matching the filter — NOT over the rows on screen.
+  summary: { totalOrders: 0, totalValue: 0, byStatus: {} },
   selectedOrder: null
 }
 
@@ -16,6 +18,7 @@ const orders = (state = initialState, action) => {
         ...state,
         data: action.data,
         total: action.totalPages,
+        summary: action.summary || state.summary,
         params: action.params
       }
     case 'GET_ORDER':
