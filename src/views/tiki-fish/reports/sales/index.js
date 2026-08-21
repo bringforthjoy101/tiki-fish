@@ -9,6 +9,12 @@ import { monthStartLocal as monthStart, todayLocal as today } from '@utils'
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 
 
+const readable = (s) => {
+	if (!s) return 'the beginning'
+	const [y, m, d] = String(s).slice(0, 10).split('-').map(Number)
+	return new Date(y, m - 1, d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 const monthName = (m) => {
 	if (!m) return ''
 	const [y, mm] = String(m).split('-').map(Number)
