@@ -34,3 +34,16 @@ export const getRestatement = (params = {}) => {
 		}
 	}
 }
+
+export const getDepartments = (params = {}) => {
+	return async (dispatch) => {
+		dispatch({ type: 'REPORTS_LOADING', loading: true })
+		const response = await apiRequest({ url: `/reports/departments${qs(params)}`, method: 'GET' }, dispatch)
+		if (response?.data?.status) {
+			dispatch({ type: 'GET_DEPARTMENTS_REPORT', departments: response.data.data })
+		} else {
+			dispatch({ type: 'REPORTS_LOADING', loading: false })
+			swal('Oops!', response?.data?.message || 'Could not load the departmental report.', 'error')
+		}
+	}
+}

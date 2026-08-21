@@ -80,6 +80,10 @@ const FinanceRoutes = [
     component: lazy(() => import('../../views/tiki-fish/reports/pnl'))
   },
   {
+    path: '/reports/departments',
+    component: lazy(() => import('../../views/tiki-fish/reports/departments'))
+  },
+  {
     path: '/reports/restatement',
     component: lazy(() => import('../../views/tiki-fish/reports/restatement'))
   },
