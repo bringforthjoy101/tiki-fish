@@ -13,10 +13,58 @@ export const getAllData = (role) => {
 				type: 'GET_ALL_DATA',
 				data: response.data.data,
 			})
-		} else {
-			console.log(response)
-			swal('Oops!', 'Something went wrong.', 'error')
+			// Returned as well as dispatched, so the CSV/PDF export can use the rows immediately
+			// instead of racing a redux update it cannot await.
+			return response.data.data
 		}
+		console.log(response)
+		swal('Oops!', 'Something went wrong.', 'error')
+		return []
+	}
+}
+
+/**
+ * Search and page the customer list on the SERVER.
+ *
+ * The list used to download all 4,109 customers on every visit and filter them in the browser.
+ * That is why one row with a null location could break search for the whole page, and why the
+ * page cost ~500KB and a 1.7s wait before anything could be typed.
+ *
+ * It dispatches the same GET_FILTERED_CUSTOMER_DATA the client-side filter did, so the table
+ * reads `store.data` / `store.total` exactly as before — only the source of truth moved.
+ *
+ * `getAllData` is deliberately left alone: ecommerce/checkout/steps/Cart.js builds its customer
+ * picker from the unpaginated endpoint, and quietly truncating that to 25 would make most
+ * customers unselectable when creating an order.
+ */
+export const searchCustomers = (params = {}) => {
+	return async (dispatch) => {
+		const { page = 1, perPage = 25, q = '', status = '', sort = 'name' } = params
+		const search = new URLSearchParams({ page, perPage, sort })
+		if (q) search.append('q', q)
+		if (status) search.append('status', status)
+
+		const response = await apiRequest({ url: `/customers?${search.toString()}`, method: 'GET' }, dispatch)
+		const payload = response?.data?.data
+		if (response?.data?.status && payload) {
+			dispatch({
+				type: 'GET_FILTERED_CUSTOMER_DATA',
+				// `total` is the count of everything MATCHING, not the page length — the pager
+				// needs the full count or it renders one page and hides the rest.
+				data: payload.data ?? payload,
+				totalPages: payload.total ?? (Array.isArray(payload) ? payload.length : 0),
+				params: { page, perPage, q, status, sort },
+			})
+		} else {
+			swal('Oops!', response?.data?.message || 'Could not load customers.', 'error')
+		}
+	}
+}
+
+/** Re-run whatever search is currently on screen — after a create, edit or delete. */
+export const refreshCustomers = () => {
+	return async (dispatch, getState) => {
+		await dispatch(searchCustomers(getState().customers.params || {}))
 	}
 }
 

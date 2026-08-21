@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import { deleteCustomer, getAllData, editCustomer, getCustomerDetails } from '../store/action'
+import { apiRequest, swal } from '@utils'
 
 const MySwal = withReactContent(Swal)
 

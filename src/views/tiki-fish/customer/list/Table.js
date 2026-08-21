@@ -6,7 +6,7 @@ import { columns } from './columns'
 import Sidebar from './Sidebar'
 
 // ** Store & Actions
-import { getAllData, getFilteredData } from '../store/action'
+import { getAllData, searchCustomers } from '../store/action'
 import { useDispatch, useSelector } from 'react-redux'
 
 // ** Third Party Components
@@ -14,7 +14,7 @@ import Select from 'react-select'
 import ReactPaginate from 'react-paginate'
 import { ChevronDown, Share, Printer, FileText } from 'react-feather'
 import DataTable from 'react-data-table-component'
-import { selectThemeColors, isUserLoggedIn } from '@utils'
+import { selectThemeColors, isUserLoggedIn, swal, todayLocal } from '@utils'
 import {
 	Card,
 	CardHeader,
@@ -54,18 +54,21 @@ const UsersList = () => {
 	// ** Function to toggle sidebar
 	const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
 
-	// ** Get data on mount
+	// ** One server call. The list no longer downloads every customer to filter in the browser.
 	useEffect(() => {
-		dispatch(getAllData())
-		dispatch(
-			getFilteredData(store.allData, {
-				page: currentPage,
-				perPage: rowsPerPage,
-				status: currentStatus.value,
-				q: searchTerm,
-			})
-		)
+		dispatch(searchCustomers({ page: 1, perPage: rowsPerPage, status: currentStatus.value, q: '' }))
 	}, [dispatch])
+
+	// ** Debounced search. Without this every keystroke is a query; with a remote database whose
+	// round-trip floor is ~280ms, typing a name would queue a dozen requests and the last one to
+	// arrive — not the last one sent — would win.
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setCurrentPage(1)
+			dispatch(searchCustomers({ page: 1, perPage: rowsPerPage, status: currentStatus.value, q: searchTerm }))
+		}, 350)
+		return () => clearTimeout(timer)
+	}, [searchTerm])
 
 	const statusOptions = [
 		{ value: '', label: 'Select Status', number: 0 },
@@ -75,49 +78,28 @@ const UsersList = () => {
 
 	// ** Function in get data on page change
 	const handlePagination = (page) => {
-		dispatch(
-			getFilteredData(store.allData, {
-				page: page.selected + 1,
-				perPage: rowsPerPage,
-				status: currentStatus.value,
-				q: searchTerm,
-			})
-		)
+		dispatch(searchCustomers({ page: page.selected + 1, perPage: rowsPerPage, status: currentStatus.value, q: searchTerm }))
 		setCurrentPage(page.selected + 1)
 	}
 
 	// ** Function in get data on rows per page
 	const handlePerPage = (e) => {
 		const value = parseInt(e.currentTarget.value)
-		dispatch(
-			getFilteredData(store.allData, {
-				page: currentPage,
-				perPage: value,
-				status: currentStatus.value,
-				q: searchTerm,
-			})
-		)
+		// Back to page 1: staying on page 7 while the page size grows can land past the end and
+		// show an empty table that looks like "no results".
+		setCurrentPage(1)
+		dispatch(searchCustomers({ page: 1, perPage: value, status: currentStatus.value, q: searchTerm }))
 		setRowsPerPage(value)
 	}
 
 	// ** Function in get data on search query change
-	const handleFilter = (val) => {
-		setSearchTerm(val)
-		dispatch(
-			getFilteredData(store.allData, {
-				page: currentPage,
-				perPage: rowsPerPage,
-				status: currentStatus.value,
-				q: val,
-			})
-		)
-	}
-
-	const filteredData = store.allData.filter((customer) => customer.fullName?.toLowerCase() || customer?.phone?.toLowerCase() || customer?.location?.toLowerCase())
+	// Sets the term only — the debounced effect above issues the request.
+	const handleFilter = (val) => setSearchTerm(val)
 
 	// ** Custom Pagination
 	const CustomPagination = () => {
-		const count = Math.ceil(filteredData.length / rowsPerPage)
+		// store.total is the count of everything MATCHING on the server, not the page length.
+		const count = Math.ceil((store.total || 0) / rowsPerPage)
 
 		return (
 			<ReactPaginate
@@ -138,77 +120,55 @@ const UsersList = () => {
 		)
 	}
 
-	// ** Converts table to CSV
-	function convertArrayOfObjectsToCSV(array) {
-		let result
+	// ** Export
+	//
+	// The list is server-paged now, so there is no full copy of the customers in the browser to
+	// export. Both exports fetch the complete set on demand.
+	//
+	// The columns are also stated explicitly. The old CSV took its headers from
+	// Object.keys(store.allData[0]) — which throws outright on an empty list — and the old PDF
+	// wrote arr.names / arr.email / arr.balance / arr.naira_wallet, none of which exist on a
+	// customer. Every PDF it produced was rows of "undefined".
+	const EXPORT_COLUMNS = [
+		{ key: 'fullName', label: 'Customer' },
+		{ key: 'phone', label: 'Phone' },
+		{ key: 'location', label: 'Location' },
+		{ key: 'totalOrders', label: 'Completed orders' },
+		{ key: 'totalOrderAmount', label: 'Total spent' },
+		{ key: 'status', label: 'Status' },
+	]
 
-		const columnDelimiter = ','
-		const lineDelimiter = '\n'
-		const keys = Object.keys(store.allData[0])
-		console.log('keyss', keys)
-
-		result = ''
-		result += keys.join(columnDelimiter)
-		result += lineDelimiter
-
-		array.forEach((item) => {
-			let ctr = 0
-			keys.forEach((key) => {
-				if (ctr > 0) result += columnDelimiter
-
-				result += item[key]
-
-				ctr++
-			})
-			result += lineDelimiter
-			console.log('esults', result)
-		})
-
-		return result
+	const cell = (row, key) => {
+		const value = row[key]
+		if (value === null || value === undefined) return ''
+		// Quote and escape: a customer location containing a comma would otherwise shift every
+		// column after it by one on that line.
+		return `"${String(value).replace(/"/g, '""')}"`
 	}
 
-	// ** Downloads CSV
-	function downloadCSV(array) {
+	const handleExportCSV = async () => {
+		const rows = await dispatch(getAllData())
+		if (!rows.length) return swal('Nothing to export', 'No customers were returned.', 'info')
+		const header = EXPORT_COLUMNS.map((c) => c.label).join(',')
+		const body = rows.map((row) => EXPORT_COLUMNS.map((c) => cell(row, c.key)).join(',')).join('\n')
 		const link = document.createElement('a')
-		let csv = convertArrayOfObjectsToCSV(array)
-		if (csv === null) return
-
-		const filename = 'export.csv'
-
-		if (!csv.match(/^data:text\/csv/i)) {
-			csv = `data:text/csv;charset=utf-8,${csv}`
-		}
-
-		link.setAttribute('href', encodeURI(csv))
-		link.setAttribute('download', filename)
+		link.setAttribute('href', encodeURI(`data:text/csv;charset=utf-8,${header}\n${body}`))
+		link.setAttribute('download', `customers-${todayLocal()}.csv`)
 		link.click()
 	}
 
-	// download PDF
-	const downloadPDF = () => {
-		const doc = new jsPDF({
-			orientation: 'landscape',
-		})
-
+	const handleExportPDF = async () => {
+		const rows = await dispatch(getAllData())
+		if (!rows.length) return swal('Nothing to export', 'No customers were returned.', 'info')
+		const doc = new jsPDF({ orientation: 'landscape' })
 		doc.autoTable({
-			styles: { halign: 'center' },
-			head: [['User', 'Email', 'Balance', 'Naira Wallet', 'Status']],
+			styles: { halign: 'left', fontSize: 8 },
+			head: [EXPORT_COLUMNS.map((c) => c.label)],
+			body: rows.map((row) => EXPORT_COLUMNS.map((c) => (row[c.key] === null || row[c.key] === undefined ? '' : String(row[c.key])))),
 		})
-		store.allData.map((arr) => {
-			doc.autoTable({
-				styles: { halign: 'left' },
-				columnStyles: {
-					0: { cellWidth: 40 },
-					1: { cellWidth: 70 },
-					2: { cellWidth: 70 },
-					3: { cellWidth: 60 },
-					4: { cellWidth: 30 },
-				},
-				body: [[arr.names, arr.email, arr.balance, arr.naira_wallet, arr.status]],
-			})
-		})
-		doc.save('export.pdf')
+		doc.save(`customers-${todayLocal()}.pdf`)
 	}
+
 
 	const [userData, setUserData] = useState(null)
 	useEffect(() => {
@@ -217,25 +177,9 @@ const UsersList = () => {
 		}
 	}, [])
 
-	// ** Table data to render
-	const dataToRender = () => {
-		const filters = {
-			status: currentStatus.value,
-			q: searchTerm,
-		}
-
-		const isFiltered = Object.keys(filters).some(function (k) {
-			return filters[k].length > 0
-		})
-
-		if (store.data.length > 0) {
-			return store.data
-		} else if (store.data.length === 0 && isFiltered) {
-			return []
-		} else {
-			return store.allData.slice(0, rowsPerPage)
-		}
-	}
+	// ** The server already applied the search, the status filter and the paging. Falling back to
+	// store.allData here would silently show unfiltered rows whenever a search returned nothing.
+	const dataToRender = () => store.data
 
 	return (
 		<Fragment>
@@ -258,14 +202,8 @@ const UsersList = () => {
 									value={currentStatus}
 									onChange={(data) => {
 										setCurrentStatus(data)
-										dispatch(
-											getFilteredData(store.allData, {
-												page: currentPage,
-												perPage: rowsPerPage,
-												status: data.value,
-												q: searchTerm,
-											})
-										)
+										setCurrentPage(1)
+										dispatch(searchCustomers({ page: 1, perPage: rowsPerPage, status: data.value, q: searchTerm }))
 									}}
 								/>
 							</FormGroup>
@@ -318,11 +256,11 @@ const UsersList = () => {
 								<span className="align-middle ml-lg-50">Download Table</span>
 							</DropdownToggle>
 							<DropdownMenu right>
-								<DropdownItem className="w-100" onClick={() => downloadCSV(store.allData)}>
+								<DropdownItem className="w-100" onClick={() => handleExportCSV()}>
 									<FileText size={15} />
 									<span className="align-middle ml-50">CSV</span>
 								</DropdownItem>
-								<DropdownItem className="w-100" onClick={() => downloadPDF()}>
+								<DropdownItem className="w-100" onClick={() => handleExportPDF()}>
 									<FileText size={15} />
 									<span className="align-middle ml-50">PDF</span>
 								</DropdownItem>
