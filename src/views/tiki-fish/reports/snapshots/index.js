@@ -8,6 +8,7 @@ const TYPE_LABEL = {
 	pnl: 'Profit and loss',
 	departments: 'By department',
 	restatement: 'What changed, and why',
+	sales: 'What sold',
 }
 
 const readable = (s) => {
@@ -53,6 +54,7 @@ const SnapshotList = () => {
 								<option value="pnl">Profit and loss</option>
 								<option value="departments">By department</option>
 								<option value="restatement">What changed, and why</option>
+								<option value="sales">What sold</option>
 							</Input>
 						</FormGroup>
 					</Col>

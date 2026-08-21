@@ -8,7 +8,7 @@ import { getSnapshot, clearSnapshot } from '../store/action'
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 const signed = (n) => `${Number(n) < 0 ? '−' : ''}${naira(Math.abs(Number(n) || 0))}`
 
-const TYPE_LABEL = { pnl: 'Profit and loss', departments: 'By department', restatement: 'What changed, and why' }
+const TYPE_LABEL = { pnl: 'Profit and loss', departments: 'By department', restatement: 'What changed, and why', sales: 'What sold' }
 
 const readable = (s) => {
 	if (!s) return null
@@ -88,6 +88,40 @@ const FrozenDepartments = ({ p }) => (
 			</tr>
 		</tbody>
 	</Table>
+)
+
+const FrozenSales = ({ p }) => (
+	<>
+		<Table size="sm" className="mb-1" style={{ maxWidth: 520 }}>
+			<tbody>
+				<Line label={`Goods sold (${p.totals?.products || 0} products)`} value={p.reconciles?.productLines} />
+				<Line label="Delivery charged" value={p.reconciles?.plusDelivery} muted />
+				<Line label="Total revenue" value={p.reconciles?.equalsGrossRevenue} strong />
+			</tbody>
+		</Table>
+		<Table size="sm" responsive>
+			<thead>
+				<tr>
+					<th>Product</th>
+					<th className="text-right">Quantity</th>
+					<th className="text-right">Revenue</th>
+					<th className="text-right">Share</th>
+				</tr>
+			</thead>
+			<tbody>
+				{(p.byProduct || []).map((r) => (
+					<tr key={r.productId}>
+						<td>{r.name}</td>
+						<td className="text-right text-nowrap">
+							{Number(r.quantity).toLocaleString()} {r.unit || ''}
+						</td>
+						<td className="text-right text-nowrap">{naira(r.revenue)}</td>
+						<td className="text-right text-nowrap">{r.share}%</td>
+					</tr>
+				))}
+			</tbody>
+		</Table>
+	</>
 )
 
 const FrozenRestatement = ({ p }) => (
@@ -183,6 +217,7 @@ const SnapshotView = () => {
 					{s.reportType === 'pnl' && <FrozenPnl p={p} />}
 					{s.reportType === 'departments' && <FrozenDepartments p={p} />}
 					{s.reportType === 'restatement' && <FrozenRestatement p={p} />}
+					{s.reportType === 'sales' && <FrozenSales p={p} />}
 
 					<hr />
 					<small className="text-muted">

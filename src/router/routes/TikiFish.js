@@ -76,6 +76,10 @@ const FinanceRoutes = [
     }
   },
   {
+    path: '/reports/sales',
+    component: lazy(() => import('../../views/tiki-fish/reports/sales'))
+  },
+  {
     path: '/reports/pnl',
     component: lazy(() => import('../../views/tiki-fish/reports/pnl'))
   },
