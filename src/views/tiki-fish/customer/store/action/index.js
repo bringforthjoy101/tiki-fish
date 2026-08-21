@@ -1,4 +1,4 @@
-import { paginateArray, sortCompare, apiRequest, swal } from '@utils'
+import { paginateArray, sortCompare, apiRequest, swal, textMatches } from '@utils'
 import moment from 'moment'
 
 export const apiUrl = process.env.REACT_APP_API_ENDPOINT
@@ -26,12 +26,9 @@ export const getFilteredData = (customers, params) => {
 		const { q = '', perPage = 10, number = '', page = 1, status = null } = params
 
 		/* eslint-disable  */
-		const queryLowered = q.toLowerCase()
 		const filteredData = customers.filter(
 			(customer) =>
-				(customer.fullName.toLowerCase().includes(queryLowered) ||
-					customer.phone?.toString().toLowerCase().includes(queryLowered) ||
-					customer.location.toLowerCase().includes(queryLowered)) &&
+				(textMatches(customer.fullName, q) || textMatches(customer.phone, q) || textMatches(customer.location, q)) &&
 				customer.status === (status || customer.status)
 		)
 
@@ -101,9 +98,8 @@ export const getFilteredCustomerOrders = (orders, params) => {
 		const { q = '', perPage = 10, page = 1 } = params
 		/* eslint-enable */
 
-		const queryLowered = q.toLowerCase()
 		const filteredData = orders.filter(
-			(order) => order.orderNumber.toLowerCase().includes(queryLowered) || moment(order.createdAt).format('lll').toLowerCase().includes(queryLowered)
+			(order) => textMatches(order.orderNumber, q) || textMatches(moment(order.createdAt).format('lll'), q)
 		)
 		/* eslint-enable  */
 		await dispatch({
@@ -121,8 +117,7 @@ export const getFilteredCustomerBooks = (books, params) => {
 		const { q = '', perPage = 10, page = 1 } = params
 		/* eslint-enable */
 
-		const queryLowered = q.toLowerCase()
-		const filteredData = books.filter((book) => book.name.toLowerCase().includes(queryLowered))
+		const filteredData = books.filter((book) => textMatches(book.name, q))
 		/* eslint-enable  */
 		await dispatch({
 			type: 'GET_CUSTOMER_ORDERS',

@@ -26,8 +26,7 @@ export const getFilteredData = (wallets, params) => {
 		const { q = '', perPage = 10, number = '', page = 1, status = null } = params
 
 		/* eslint-disable  */
-		const queryLowered = q.toLowerCase()
-		const filteredData = wallets.filter(wallet => wallet.name.toLowerCase().includes(queryLowered))
+		const filteredData = wallets.filter(wallet => textMatches(wallet.name, q))
 
 		/* eslint-enable  */
 
@@ -95,9 +94,8 @@ export const getFilteredCustomerOrders = (orders, params) => {
 		const { q = '', perPage = 10, page = 1 } = params
 		/* eslint-enable */
 
-		const queryLowered = q.toLowerCase()
 		const filteredData = orders.filter(
-			(order) => order.orderNumber.toLowerCase().includes(queryLowered) || moment(order.createdAt).format('lll').toLowerCase().includes(queryLowered)
+			(order) => textMatches(order.orderNumber, q) || textMatches(moment(order.createdAt).format('lll'), q)
 		)
 		/* eslint-enable  */
 		await dispatch({
@@ -115,8 +113,7 @@ export const getFilteredCustomerBooks = (books, params) => {
 		const { q = '', perPage = 10, page = 1 } = params
 		/* eslint-enable */
 
-		const queryLowered = q.toLowerCase()
-		const filteredData = books.filter((book) => book.name.toLowerCase().includes(queryLowered))
+		const filteredData = books.filter((book) => textMatches(book.name, q))
 		/* eslint-enable  */
 		await dispatch({
 			type: 'GET_CUSTOMER_ORDERS',

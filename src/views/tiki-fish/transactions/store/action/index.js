@@ -1,4 +1,4 @@
-import { paginateArray, sortCompare, apiRequest, swal } from '@utils'
+import { paginateArray, sortCompare, apiRequest, swal, textMatches } from '@utils'
 
 // ** Get all Report
 export const getAccountTransactions = ({ startDate, endDate }) => {
@@ -27,10 +27,10 @@ export const getFilteredData = (transactions, params) => {
 		const { q = '', perPage = 10, page = 1, transactionType = null, status = null } = params
 
 		/* eslint-disable  */
-		const queryLowered = q.toLowerCase()
 		const filteredData = transactions?.filter(
 			(transaction) =>
-				(transaction.reference.toLowerCase().includes(queryLowered) || transaction.narration.toLowerCase().includes(queryLowered) || transaction.transactionType.toLowerCase().includes(queryLowered)) && transaction.transactionType === (transactionType || transaction.transactionType)
+				(textMatches(transaction.reference, q) || textMatches(transaction.narration, q) || textMatches(transaction.transactionType, q)) &&
+				transaction.transactionType === (transactionType || transaction.transactionType)
 		)
 		/* eslint-enable  */
 

@@ -103,6 +103,27 @@ export const sortCompare = key => (a, b) => {
 
 // Api URL
 /**
+ * Null-safe substring match for the client-side list filters.
+ *
+ * WHY THIS EXISTS
+ *
+ * The filters were written as `row.field.toLowerCase().includes(q)`. Array.filter does not
+ * swallow a throw — it propagates — so ONE row with a null field breaks search for EVERY query
+ * on that page, not just for that row.
+ *
+ * That was live: customer 2212 ("Jane Doe") has a null `location`, and it disabled search across
+ * all 4,109 customers. The same unguarded pattern sits in the admin, wallets and withdrawals
+ * filters, where it is latent only because no null has appeared in those columns yet.
+ *
+ * Handles numbers too — `phone` is sometimes numeric, and Number.toLowerCase is not a function.
+ */
+export const textMatches = (value, query) => {
+  if (!query) return true
+  if (value === null || value === undefined) return false
+  return String(value).toLowerCase().includes(String(query).toLowerCase())
+}
+
+/**
  * Local calendar dates as YYYY-MM-DD, for date inputs and API range params.
  *
  * NOT `new Date(...).toISOString().slice(0, 10)`. toISOString converts to UTC, and Nigeria is

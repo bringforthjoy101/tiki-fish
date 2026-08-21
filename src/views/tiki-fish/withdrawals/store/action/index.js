@@ -23,13 +23,12 @@ export const getAllData = ({ startDate, endDate }) => {
 	  const { category = null, q = '', perPage = 10,  page = 1 } = params
   
 	  /* eslint-disable  */
-	  const queryLowered = q?.toLowerCase()
 	  const filteredData = withdrawals?.filter(
 		withdrawal => 
-		  withdrawal?.purpose?.toLowerCase()?.includes(queryLowered)
-		|| withdrawal?.amount?.includes(queryLowered) 
-		|| withdrawal?.admin.firstName?.toLowerCase()?.includes(queryLowered) 
-		|| withdrawal?.admin.lastName?.toLowerCase()?.includes(queryLowered)
+		  textMatches(withdrawal?.purpose, q)
+		|| textMatches(withdrawal?.amount, q)
+		|| textMatches(withdrawal?.admin?.firstName, q)
+		|| textMatches(withdrawal?.admin?.lastName, q)
 		)
 	
 	  /* eslint-enable  */

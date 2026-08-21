@@ -29,42 +29,6 @@ const renderClient = row => {
   }
 }
 
-// ** Renders Role Columns
-const renderRole = row => {
-  
-  const roleObj = {
-    subscriber: {
-      class: 'text-primary',
-      icon: User
-    },
-    maintainer: {
-      class: 'text-success',
-      icon: Database
-    },
-    editor: {
-      class: 'text-info',
-      icon: Edit
-    },
-    author: {
-      class: 'text-warning',
-      icon: Settings
-    },
-    admin: {
-      class: 'text-danger',
-      icon: Slack
-    }
-  }
-
-  const Icon = roleObj[row.role] ? roleObj[row.role].icon : User
-
-  return (
-    <span className='text-truncate text-capitalize align-middle'>
-      <Icon size={18} className={`${roleObj[row.role] ? roleObj[row.role].class : 'text-primary'} mr-50`} />
-      {row.role_name || 'User'}
-    </span>
-  )
-}
-
 const statusObj = {
   active: 'light-success',
   suspended: 'light-warning'

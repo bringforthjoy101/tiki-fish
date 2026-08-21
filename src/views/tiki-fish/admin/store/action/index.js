@@ -26,12 +26,9 @@ export const getFilteredData = (admins, params) => {
 		const { q = "", perPage = 10, page = 1, role = null, status = null } = params;
 
 		/* eslint-disable  */
-		const queryLowered = q.toLowerCase();
 		const filteredData = admins.filter(
 			(admin) =>
-				(admin.phone.toLowerCase().includes(queryLowered) ||
-					admin.firstName.toLowerCase().includes(queryLowered) ||
-					admin.lastName.toLowerCase().includes(queryLowered)) &&
+				(textMatches(admin.phone, q) || textMatches(admin.firstName, q) || textMatches(admin.lastName, q)) &&
 				admin.role === (role || admin.role) &&
 				admin.status === (status || admin.status),
 		);
