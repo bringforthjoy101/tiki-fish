@@ -100,11 +100,15 @@ export const restoreExpense = (id) => {
 // the form is the screen people open most.
 export const getReferenceData = () => {
 	return async (dispatch) => {
-		const [departments, categories, accounts, suppliers] = await Promise.all([
+		const [departments, categories, accounts, suppliers, batches] = await Promise.all([
 			apiRequest({ url: '/departments', method: 'GET' }, dispatch),
 			apiRequest({ url: '/expense-categories', method: 'GET' }, dispatch),
 			apiRequest({ url: '/payment-accounts', method: 'GET' }, dispatch),
 			apiRequest({ url: '/suppliers', method: 'GET' }, dispatch),
+			// Drafts only, matching what the API will accept. A posted batch froze its cost when
+			// it posted, so tagging one now would look counted and change nothing — createExpense
+			// refuses it by name. Offering it here would just produce that error later.
+			apiRequest({ url: '/batches?status=draft', method: 'GET' }, dispatch),
 		])
 		dispatch({
 			type: 'GET_EXPENSE_REFERENCE',
@@ -113,6 +117,7 @@ export const getReferenceData = () => {
 				categories: categories?.data?.data || [],
 				paymentAccounts: accounts?.data?.data || [],
 				suppliers: suppliers?.data?.data || [],
+				draftBatches: batches?.data?.data?.batches || [],
 			},
 		})
 	}

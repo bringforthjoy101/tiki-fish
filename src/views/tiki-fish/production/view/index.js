@@ -29,10 +29,17 @@ const readable = (s) => {
 	return new Date(y, m - 1, d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// Until the expense form gained its batch field, nothing could tag a cost to a batch at all —
+// so this warning fired on every batch ever posted, which is how a warning becomes wallpaper.
+// It now names the screen that fixes it, because "tag the expenses first" is only actionable
+// advice if the reader knows where.
 const NO_CONVERSION_WARNING =
 	'<p style="text-align:left;color:#b45309"><b>No smokehouse or packaging expense is tagged to this batch.</b> ' +
 	'Its cost will be the fish alone, which understates what it took to make and makes your standard costs look ' +
-	'generous. Tag the expenses first if there were any.</p>'
+	'generous.</p>' +
+	'<p style="text-align:left"><small>To tag one: go to <b>Expenses</b>, record the firewood or labour, and set ' +
+	'<b>Part of a smoking batch?</b> to this batch. It has to be done before posting — once a batch is posted its ' +
+	'cost is frozen.</small></p>'
 
 const BatchView = () => {
 	const { id } = useParams()
@@ -190,7 +197,8 @@ const BatchView = () => {
 						<Alert color="warning" className="p-1">
 							<AlertTriangle size={15} className="mr-50" />
 							This batch was posted with no smokehouse or packaging expense tagged to it, so its cost is the fish
-							alone. Any variance it reports will look better than the truth.
+							alone. Any variance it reports will look better than the truth. Its cost was frozen at posting —
+							tagging an expense now would change nothing. Void and re-post it if the firewood and labour matter.
 						</Alert>
 					)}
 					{isDraft && problems.length > 0 && (

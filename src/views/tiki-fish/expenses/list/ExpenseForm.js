@@ -5,6 +5,20 @@ import { createExpense, updateExpense, getExpenses } from '../store/action'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
+const BATCH_HINT_AVAILABLE =
+	'Firewood, smokehouse labour and packaging used on one batch belong to that batch. Tag it here and it becomes ' +
+	'part of what those products cost. Only batches still being worked on are listed — once a batch is posted its cost is fixed.'
+
+const BATCH_HINT_NONE =
+	'No batch is currently being worked on. Costs can only be tagged to a batch before it is posted, so start the ' +
+	'batch first, then record its firewood and labour against it.'
+
+const readable = (d) => {
+	if (!d) return ''
+	const [y, m, day] = String(d).slice(0, 10).split('-').map(Number)
+	return new Date(y, m - 1, day).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })
+}
+
 const blank = {
 	expenseDate: today(),
 	departmentId: '',
@@ -20,6 +34,7 @@ const blank = {
 	receiptUrl: '',
 	notes: '',
 	isCapex: false,
+	productionBatchId: '',
 }
 
 // Capex threshold, matching the server. Shown as a prompt rather than enforced: the rule is
@@ -49,6 +64,7 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 			categoryId: expense.categoryId ?? '',
 			paymentAccountId: expense.paymentAccountId ?? '',
 			supplierId: expense.supplierId ?? '',
+			productionBatchId: expense.productionBatchId ?? '',
 		})
 	}, [open, expense])
 
@@ -89,6 +105,8 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 		}
 	}
 
+	const draftBatches = reference.draftBatches || []
+	const batchHint = draftBatches.length ? BATCH_HINT_AVAILABLE : BATCH_HINT_NONE
 	const daysBack = Math.round((new Date(today()) - new Date(form.expenseDate || today())) / 86400000)
 	const amountNum = Number(form.amount) || 0
 
@@ -141,6 +159,33 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 									</option>
 								))}
 							</Input>
+						</FormGroup>
+					</Col>
+				</Row>
+
+				{/* Without this field nothing could ever tag a cost to a batch, so every batch
+				    posted with conversionCost = 0 and warned about it — a warning that fires on
+				    100% of batches is one people learn to click through. Drafts only, matching
+				    what createExpense accepts. */}
+				<Row>
+					<Col md="12">
+						<FormGroup>
+							<Label for="productionBatchId">Part of a smoking batch?</Label>
+							<Input
+								id="productionBatchId"
+								type="select"
+								value={form.productionBatchId ?? ''}
+								onChange={set('productionBatchId')}
+								disabled={!draftBatches.length}
+							>
+								<option value="">No — this is a general cost</option>
+								{draftBatches.map((b) => (
+									<option key={b.id} value={b.id}>
+										{b.reference} — {readable(b.batchDate)}
+									</option>
+								))}
+							</Input>
+							<small className="text-muted">{batchHint}</small>
 						</FormGroup>
 					</Col>
 				</Row>
