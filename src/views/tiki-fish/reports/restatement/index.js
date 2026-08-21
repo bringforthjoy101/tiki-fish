@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Table, Spinner, Alert, Button, Badge } from 'reactstrap'
 import { Printer } from 'react-feather'
 import { getRestatement } from '../store/action'
+import SaveSnapshot from '../SaveSnapshot'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 
@@ -46,9 +47,12 @@ const Restatement = () => {
 							How the figures restate now that revenue is counted the agreed way
 						</small>
 					</div>
-					<Button color="secondary" outline className="no-print" onClick={() => window.print()}>
-						<Printer size={15} /> Print
-					</Button>
+					<div className="d-flex align-items-center">
+						<SaveSnapshot reportType="restatement" range={{}} />
+						<Button color="secondary" outline className="no-print ml-1" onClick={() => window.print()}>
+							<Printer size={15} /> Print
+						</Button>
+					</div>
 				</CardHeader>
 
 				<CardBody>

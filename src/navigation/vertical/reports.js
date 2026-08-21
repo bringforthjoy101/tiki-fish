@@ -1,4 +1,4 @@
-import { FileText, TrendingUp, Shuffle, PieChart } from 'react-feather'
+import { FileText, TrendingUp, Shuffle, PieChart, Archive } from 'react-feather'
 
 // Split deliberately. A sales rep holds reports.operations, so a single item gated on
 // anyOf(operations, pnl) put the company P&L one click from every sales account — the same
@@ -34,6 +34,17 @@ export default [
 				navLink: '/reports/restatement',
 				// 'reports.pnl' maps to { action: 'pnl', subject: 'reports' } — see
 				// utility/capabilities.js. Writing resource: 'reports.pnl' would never match.
+				action: 'pnl',
+				resource: 'reports',
+			},
+			{
+				id: 'reports-snapshots',
+				title: 'Saved reports',
+				icon: <Archive size={16} />,
+				navLink: '/reports/snapshots',
+				// Reading a saved copy needs reports.pnl, the same as reading the live report.
+				// CREATING one is gated separately on periods.lock (owner only) in the button
+				// itself — freezing a figure is the act somebody may later be held to.
 				action: 'pnl',
 				resource: 'reports',
 			},

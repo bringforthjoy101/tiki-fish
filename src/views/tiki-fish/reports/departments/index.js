@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Input, Label, Button, Table, Spinner, Alert, FormGroup, Badge } from 'reactstrap'
 import { Printer } from 'react-feather'
 import { getDepartments } from '../store/action'
+import SaveSnapshot from '../SaveSnapshot'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 const signed = (n) => `${Number(n) < 0 ? '−' : ''}${naira(Math.abs(Number(n) || 0))}`
@@ -47,9 +48,12 @@ const Departments = () => {
 							What each department earned back through sales, against what it actually spent
 						</small>
 					</div>
-					<Button color="secondary" outline className="no-print" onClick={() => window.print()}>
-						<Printer size={15} /> Print
-					</Button>
+					<div className="d-flex align-items-center">
+						<SaveSnapshot reportType="departments" range={range} />
+						<Button color="secondary" outline className="no-print ml-1" onClick={() => window.print()}>
+							<Printer size={15} /> Print
+						</Button>
+					</div>
 				</CardHeader>
 
 				<CardBody>

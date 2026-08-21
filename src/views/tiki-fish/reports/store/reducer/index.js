@@ -2,7 +2,10 @@ const initialState = {
 	pnl: null,
 	departments: null,
 	restatement: null,
-	loading: false
+	snapshots: [],
+	snapshot: null,
+	loading: false,
+	saving: false
 }
 
 const reports = (state = initialState, action) => {
@@ -15,6 +18,12 @@ const reports = (state = initialState, action) => {
 			return { ...state, pnl: action.pnl, loading: false }
 		case 'GET_RESTATEMENT':
 			return { ...state, restatement: action.restatement, loading: false }
+		case 'REPORTS_SAVING':
+			return { ...state, saving: action.saving }
+		case 'GET_SNAPSHOTS':
+			return { ...state, snapshots: action.snapshots, loading: false }
+		case 'GET_SNAPSHOT':
+			return { ...state, snapshot: action.snapshot, loading: false }
 		default:
 			return state
 	}
