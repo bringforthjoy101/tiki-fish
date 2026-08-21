@@ -7,6 +7,7 @@ import { Card, CardBody, Col, Row } from 'reactstrap'
 
 // ** Icons
 import { Package, DollarSign, AlertTriangle, TrendingDown } from 'react-feather'
+import { stockState } from './ProductCards'
 
 const ProductListHeader = () => {
   const store = useSelector(state => state.products)
@@ -17,6 +18,7 @@ const ProductListHeader = () => {
     totalProducts: 0,
     totalValue: 0,
     lowStock: 0,
+    noLevelSet: 0,
     outOfStock: 0
   })
 
@@ -26,14 +28,19 @@ const ProductListHeader = () => {
       const totalValue = products.reduce((sum, product) => {
         return sum + (Number(product.qty) * Number(product.price))
       }, 0)
-      const lowStock = products.filter(p => Number(p.qty) > 0 && Number(p.qty) < 10).length
+      // Against each product's OWN reorder level, not a flat 10. A product with no level set
+      // counts as neither low nor fine — it is simply not known, and guessing would make most of
+      // the 124 products warn on day one, which trains people to ignore the warning.
+      const lowStock = products.filter(p => stockState(p).key === 'low').length
+      const noLevelSet = products.filter(p => stockState(p).key === 'unknown').length
       const outOfStock = products.filter(p => Number(p.qty) === 0).length
 
       setStats({
         totalProducts,
         totalValue,
         lowStock,
-        outOfStock
+        outOfStock,
+        noLevelSet
       })
     }
   }, [products])

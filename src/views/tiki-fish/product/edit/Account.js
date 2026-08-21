@@ -49,6 +49,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 		smokeHousePrice: selectedProduct.smokeHousePrice,
 		unit: selectedProduct.unit,
 		unitValue: selectedProduct.unitValue,
+		reorderLevel: selectedProduct.reorderLevel ?? '',
 		category: selectedProduct.category,
 		status: selectedProduct.status || 'in-stock',
 		videoUrl: selectedProduct.videoUrl || ''
@@ -79,6 +80,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 						packagingPrice: selectedProduct.packagingPrice,
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
+						reorderLevel: selectedProduct.reorderLevel ?? '',
 						category: selectedProduct.category,
 						status: selectedProduct.status || 'in-stock',
 						videoUrl: selectedProduct.videoUrl || ''
@@ -94,6 +96,7 @@ const UserAccountTab = ({ selectedProduct }) => {
 						packagingPrice: selectedProduct.packagingPrice,
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
+						reorderLevel: selectedProduct.reorderLevel ?? '',
 						category: selectedProduct.category,
 						status: selectedProduct.status || 'in-stock',
 						videoUrl: selectedProduct.videoUrl || ''
@@ -317,6 +320,26 @@ const UserAccountTab = ({ selectedProduct }) => {
 								</CardHeader>
 								<CardBody>
 									<Row>
+										<Col md="6">
+											<FormGroup>
+												<Label for="reorderLevel">Reorder level ({productData.unit || 'unit'})</Label>
+												<AvInput
+													type="number"
+													step="0.001"
+													min="0"
+													name="reorderLevel"
+													id="reorderLevel"
+													placeholder="Leave blank if you do not track this"
+													value={productData.reorderLevel}
+													onChange={(e) => setProductData({ ...productData, reorderLevel: e.target.value })}
+												/>
+												<small className="text-muted">
+													Stock at or below this shows a "low — reorder" warning. Leave it blank and no warning
+													is shown for this product at all, which is better than a wrong one. Set it in the
+													product's own unit: 15 means 15 {productData.unit || 'units'}.
+												</small>
+											</FormGroup>
+										</Col>
 										<Col md="6">
 											<FormGroup>
 												<Label for="costPrice">Cost Price (₦) *</Label>

@@ -1,4 +1,5 @@
-import { paginateArray, sortCompare, apiRequest, swal } from '@utils'
+import { paginateArray, sortCompare, apiRequest, swal, textMatches } from '@utils'
+import moment from 'moment'
 
 export const apiUrl = process.env.REACT_APP_API_ENDPOINT
 
@@ -74,9 +75,8 @@ export const getFilteredinventoryHistories = (histories, params) => {
 		const { q = '', perPage = 10, page = 1 } = params
 		/* eslint-enable */
 
-		const queryLowered = q.toLowerCase()
 		const filteredData = histories?.filter(
-			(history) => history?.department?.toLowerCase().includes(queryLowered) || moment(history?.createdAt).format('lll').toLowerCase().includes(queryLowered)
+			(history) => textMatches(history?.department, q) || textMatches(moment(history?.createdAt).format('lll'), q)
 		)
 		/* eslint-enable  */
 		await dispatch({

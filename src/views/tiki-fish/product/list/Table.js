@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect, useContext } from 'react'
 
 // ** Columns
 import { columns } from './columns'
@@ -15,6 +15,9 @@ import Select from 'react-select'
 import ReactPaginate from 'react-paginate'
 import { ChevronDown, Share, Printer, FileText } from 'react-feather'
 import DataTable from 'react-data-table-component'
+import { useBreakpoint } from '@src/utility/hooks/useBreakpoint'
+import { AbilityContext } from '@src/utility/context/Can'
+import ProductCards from './ProductCards'
 import { selectThemeColors, isUserLoggedIn } from '@utils'
 import { Card, CardHeader, CardTitle, CardBody, UncontrolledButtonDropdown, DropdownMenu, DropdownItem, DropdownToggle, Input, Row, Col, Label, CustomInput, Button } from 'reactstrap'
 
@@ -30,6 +33,15 @@ const ProductTable = () => {
   // ** Store Vars
   const dispatch = useDispatch()
   const store = useSelector(state => state.products)
+  const breakpoint = useBreakpoint()
+  const ability = useContext(AbilityContext)
+  const canEdit = ability.can('manage', 'products')
+
+  // The margin column is dropped for anyone the API did not send cost to. Without this the
+  // column renders a badge computed from undefined — which is "0%", a number that looks like an
+  // answer. Removing the column is honest; showing zero is not.
+  const canSeeCost = ability.can('readCost', 'products')
+  const visibleColumns = canSeeCost ? columns : columns.filter(c => c.name !== 'Profit Margin')
 
   // ** States
   const [searchTerm, setSearchTerm] = useState('')
@@ -320,7 +332,10 @@ const ProductTable = () => {
                   <FileText size={15} />
                   <span className='align-middle ml-50'>PDF</span>
                 </DropdownItem>
-                <DropdownItem className='w-100' onClick={() => printOrder(filteredData)}>
+                {/* Was onClick={() => printOrder(filteredData)} — printOrder is defined only in
+                    an unrelated appia view, so clicking Print threw a ReferenceError and blanked
+                    the page. window.print with the print stylesheet does what the label says. */}
+                <DropdownItem className='w-100' onClick={() => window.print()}>
                   <Printer size={15} />
                   <span className='align-middle ml-50'>Print</span>
                 </DropdownItem>
@@ -336,18 +351,27 @@ const ProductTable = () => {
           }
         </Col>
       </Row>
-        <DataTable
-          noHeader
-          pagination
-          subHeader
-          responsive
-          paginationServer
-          columns={columns}
-          sortIcon={<ChevronDown />}
-          className='react-dataTable'
-          paginationComponent={CustomPagination}
-          data={dataToRender()}
-        />
+        {breakpoint === 'desktop' ? (
+          <DataTable
+            noHeader
+            pagination
+            subHeader
+            responsive
+            paginationServer
+            columns={visibleColumns}
+            sortIcon={<ChevronDown />}
+            className='react-dataTable'
+            paginationComponent={CustomPagination}
+            data={dataToRender()}
+          />
+        ) : (
+          /* Below 1024px the eight-column table becomes cards. Stock and price lead, because at
+             a counter the question is "do we have it and what does it cost". */
+          <div className='p-1'>
+            <ProductCards products={dataToRender()} breakpoint={breakpoint} canEdit={canEdit} loading={false} />
+            <CustomPagination />
+          </div>
+        )}
       </Card>
       <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
     </Fragment>
