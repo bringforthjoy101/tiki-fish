@@ -35,6 +35,19 @@ export const getRestatement = (params = {}) => {
 	}
 }
 
+export const getProcurementReport = (params = {}) => {
+	return async (dispatch) => {
+		dispatch({ type: 'REPORTS_LOADING', loading: true })
+		const response = await apiRequest({ url: `/reports/procurement${qs(params)}`, method: 'GET' }, dispatch)
+		if (response?.data?.status) {
+			dispatch({ type: 'GET_PROCUREMENT_REPORT', procurement: response.data.data })
+		} else {
+			dispatch({ type: 'REPORTS_LOADING', loading: false })
+			swal('Oops!', response?.data?.message || 'Could not load the procurement report.', 'error')
+		}
+	}
+}
+
 export const getSalesReport = (params = {}) => {
 	return async (dispatch) => {
 		dispatch({ type: 'REPORTS_LOADING', loading: true })

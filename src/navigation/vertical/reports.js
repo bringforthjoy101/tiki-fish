@@ -1,4 +1,4 @@
-import { FileText, TrendingUp, Shuffle, PieChart, Archive, ShoppingBag } from 'react-feather'
+import { FileText, TrendingUp, Shuffle, PieChart, Archive, ShoppingBag, Truck } from 'react-feather'
 
 // Split deliberately. A sales rep holds reports.operations, so a single item gated on
 // anyOf(operations, pnl) put the company P&L one click from every sales account — the same
@@ -24,6 +24,14 @@ export default [
 				title: 'What sold',
 				icon: <ShoppingBag size={16} />,
 				navLink: '/reports/sales',
+				action: 'pnl',
+				resource: 'reports',
+			},
+			{
+				id: 'reports-procurement',
+				title: 'What fish cost',
+				icon: <Truck size={16} />,
+				navLink: '/reports/procurement',
 				action: 'pnl',
 				resource: 'reports',
 			},

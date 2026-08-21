@@ -3,6 +3,7 @@ const initialState = {
 	departments: null,
 	restatement: null,
 	sales: null,
+	procurement: null,
 	snapshots: [],
 	snapshot: null,
 	loading: false,
@@ -19,6 +20,8 @@ const reports = (state = initialState, action) => {
 			return { ...state, pnl: action.pnl, loading: false }
 		case 'GET_RESTATEMENT':
 			return { ...state, restatement: action.restatement, loading: false }
+		case 'GET_PROCUREMENT_REPORT':
+			return { ...state, procurement: action.procurement, loading: false }
 		case 'GET_SALES_REPORT':
 			return { ...state, sales: action.sales, loading: false }
 		case 'REPORTS_SAVING':
