@@ -76,6 +76,14 @@ const FinanceRoutes = [
     }
   },
   {
+    path: '/reports/pnl',
+    component: lazy(() => import('../../views/tiki-fish/reports/pnl'))
+  },
+  {
+    path: '/reports/restatement',
+    component: lazy(() => import('../../views/tiki-fish/reports/restatement'))
+  },
+  {
     path: '/accounts',
     component: lazy(() => import('../../views/tiki-fish/accounts/list'))
   },
@@ -219,10 +227,6 @@ const ManagerRoutes = [
         path: '/order/print/:id',
         layout: 'BlankLayout',
         component: lazy(() => import('../../views/tiki-fish/order/print'))
-      },
-      {
-        path: '/reports/list',
-        component: lazy(() => import('../../views/tiki-fish/reports/list')),
       },
       {
         path: '/withdrawals/list',
@@ -482,10 +486,6 @@ const SalesRepRoutes = [
     path: '/order/print/:id',
     layout: 'BlankLayout',
     component: lazy(() => import('../../views/tiki-fish/order/print'))
-  },
-  {
-    path: '/reports/list',
-    component: lazy(() => import('../../views/tiki-fish/reports/list')),
   },
   {
     path: '/withdrawals/list',

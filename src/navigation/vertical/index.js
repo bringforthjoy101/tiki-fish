@@ -79,7 +79,10 @@ if (anyOf('assets.read')) menu.push(...assets)
 const holdsAnyMaster = anyOf('fishGrades.read', 'packagingItems.read', 'departments.read', 'expenseCategories.read', 'paymentAccounts.read')
 if (holdsAnyMaster) menu.push(...reference)
 
-if (anyOf('reports.operations', 'reports.pnl')) menu.push(...reports)
+// reports.pnl only. The menu used to show on anyOf(operations, pnl), and sales reps hold
+// reports.operations — so the company P&L sat one click from every sales account. Nothing under
+// Reports is operational any more; POST /report has no screen.
+if (anyOf('reports.pnl')) menu.push(...reports)
 
 return menu
 }

@@ -1,29 +1,20 @@
-// ** Initial State
 const initialState = {
-	allData: [],
-	data: [],
-	total: 1,
-	params: {},
-	selectedReport: null,
-	loading: true,
+	pnl: null,
+	restatement: null,
+	loading: false
 }
 
 const reports = (state = initialState, action) => {
 	switch (action.type) {
-		case 'GET_ALL_REPORT_DATA':
-			return { ...state, allData: action.data, data: [], loading: false }
-		case 'GET_FILTERED_REPORT_DATA':
-			return {
-				...state,
-				data: action.data,
-				total: action.totalPages,
-				params: action.params,
-				loading: false,
-			}
-		case 'GET_REPORT':
-			return { ...state, selectedReport: action.selectedReport }
+		case 'REPORTS_LOADING':
+			return { ...state, loading: action.loading }
+		case 'GET_PNL':
+			return { ...state, pnl: action.pnl, loading: false }
+		case 'GET_RESTATEMENT':
+			return { ...state, restatement: action.restatement, loading: false }
 		default:
-			return { ...state }
+			return state
 	}
 }
+
 export default reports
