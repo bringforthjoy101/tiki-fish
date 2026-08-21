@@ -2,17 +2,13 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Input, Label, Button, Table, Spinner, Alert, FormGroup, Badge } from 'reactstrap'
 import { Printer } from 'react-feather'
-import { getDepartments } from '../store/action'
+import { getDepartments, clearReports } from '../store/action'
 import SaveSnapshot from '../SaveSnapshot'
+import { monthStartLocal as monthStart, todayLocal as today } from '@utils'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 const signed = (n) => `${Number(n) < 0 ? '−' : ''}${naira(Math.abs(Number(n) || 0))}`
 
-const monthStart = () => {
-	const d = new Date()
-	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10)
-}
-const today = () => new Date().toISOString().slice(0, 10)
 
 const Departments = () => {
 	const dispatch = useDispatch()
@@ -20,6 +16,7 @@ const Departments = () => {
 	const [range, setRange] = useState({ startDate: monthStart(), endDate: today() })
 
 	useEffect(() => {
+		dispatch(clearReports())
 		dispatch(getDepartments(range))
 	}, [JSON.stringify(range)])
 

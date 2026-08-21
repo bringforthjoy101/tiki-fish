@@ -2,16 +2,12 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Input, Label, Button, Table, Spinner, Alert, FormGroup, Badge } from 'reactstrap'
 import { Printer } from 'react-feather'
-import { getSalesReport } from '../store/action'
+import { getSalesReport, clearReports } from '../store/action'
 import SaveSnapshot from '../SaveSnapshot'
+import { monthStartLocal as monthStart, todayLocal as today } from '@utils'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 
-const monthStart = () => {
-	const d = new Date()
-	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10)
-}
-const today = () => new Date().toISOString().slice(0, 10)
 
 const monthName = (m) => {
 	if (!m) return ''
@@ -25,6 +21,7 @@ const SalesReport = () => {
 	const [range, setRange] = useState({ startDate: monthStart(), endDate: today() })
 
 	useEffect(() => {
+		dispatch(clearReports())
 		dispatch(getSalesReport(range))
 	}, [JSON.stringify(range)])
 
@@ -49,6 +46,13 @@ const SalesReport = () => {
 				<CardHeader className="d-flex justify-content-between align-items-start flex-wrap">
 					<div>
 						<CardTitle tag="h4" className="mb-25">What sold</CardTitle>
+						{/* Outside .no-print deliberately: the date inputs are hidden when printing, so
+						    without this a printed sheet carries no period at all and two months are
+						    indistinguishable on paper. Read from the RESPONSE, not the picker, so it
+						    always describes the figures actually shown. */}
+						<small className="text-muted d-block">
+							{readable(sales?.period?.startDate)} to {readable(sales?.period?.endDate)}
+						</small>
 						<small className="text-muted">
 							Every product sold in the period, biggest first. Counts completed and delivered orders only, so it
 							agrees with the profit and loss.
@@ -192,10 +196,12 @@ const SalesReport = () => {
 
 							<hr />
 							<h6>What this report cannot tell you</h6>
+							{/* Every note the API returns, not a hand-picked subset — a caveat added
+							    server-side would otherwise never reach the reader. */}
 							<ul className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-								<li>{sales.notes.channel}</li>
-								<li>{sales.notes.category}</li>
-								<li>{sales.notes.renames}</li>
+								{Object.entries(sales.notes || {}).map(([k, v]) => (
+									<li key={k}>{v}</li>
+								))}
 							</ul>
 						</>
 					)}

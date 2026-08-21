@@ -7,23 +7,20 @@ import { can } from '@src/utility/capabilities'
 import ExpenseForm from './ExpenseForm'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import { monthStartLocal as monthStart, todayLocal } from '@utils'
 
 // sweetalert2, not sweetalert. The codebase depends on the former (see PreviewActions.js);
 // `sweetalert` is not installed at all and importing it fails the build.
 const MySwal = withReactContent(Swal)
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
-const monthStart = () => {
-	const d = new Date()
-	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10)
-}
 
 const ExpensesList = () => {
 	const dispatch = useDispatch()
 	const { expenses, pagination, totalAmount, summary, reference, loading } = useSelector((s) => s.expenses)
 
 	// Defaults to this month. An expense list with no date filter is a list nobody reads.
-	const [filters, setFilters] = useState({ startDate: monthStart(), endDate: new Date().toISOString().slice(0, 10) })
+	const [filters, setFilters] = useState({ startDate: monthStart(), endDate: todayLocal() })
 	const [formOpen, setFormOpen] = useState(false)
 	const [editing, setEditing] = useState(null)
 

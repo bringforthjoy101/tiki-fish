@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Input, Label, Button, Table, Spinner, Alert, FormGroup, Badge } from 'reactstrap'
 import { Printer, AlertTriangle } from 'react-feather'
-import { getProcurementReport } from '../store/action'
+import { getProcurementReport, clearReports } from '../store/action'
+import { yearStartLocal as yearStart, todayLocal as today } from '@utils'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 
-const yearStart = () => `${new Date().getFullYear()}-01-01`
-const today = () => new Date().toISOString().slice(0, 10)
 
 const readable = (s) => {
 	if (!s) return '—'
@@ -28,6 +27,7 @@ const ProcurementReport = () => {
 	const [range, setRange] = useState({ startDate: yearStart(), endDate: today() })
 
 	useEffect(() => {
+		dispatch(clearReports())
 		dispatch(getProcurementReport(range))
 	}, [JSON.stringify(range)])
 
@@ -53,6 +53,9 @@ const ProcurementReport = () => {
 				<CardHeader className="d-flex justify-content-between align-items-start flex-wrap">
 					<div>
 						<CardTitle tag="h4" className="mb-25">What fish cost</CardTitle>
+						<small className="text-muted d-block">
+							Purchases from {readable(procurement?.period?.startDate)} to {readable(procurement?.period?.endDate)}
+						</small>
 						<small className="text-muted">What was bought, from whom, and what is still owed for it.</small>
 					</div>
 					<Button color="secondary" outline className="no-print" onClick={() => window.print()}>
@@ -86,7 +89,7 @@ const ProcurementReport = () => {
 									<div className="d-flex">
 										<div className="mr-1"><AlertTriangle size={18} /></div>
 										<div>
-											<strong>{naira(owed.total)} is still owed to fish suppliers.</strong>
+											<strong>{naira(owed.total)} is still owed to fish suppliers, as at today.</strong>
 											<div>
 												{naira(owed.billed)} billed, {naira(owed.paid)} paid.
 												{owed.oldest && (
@@ -108,18 +111,18 @@ const ProcurementReport = () => {
 									<small className="text-muted">{h.rows} purchases, {readable(h.firstDate)} to {readable(h.lastDate)}</small>
 								</Col>
 								<Col md="4" sm="6">
-									<div className="text-muted" style={{ fontSize: '0.75rem' }}>Paid</div>
+									<div className="text-muted" style={{ fontSize: '0.75rem' }}>Paid — all periods</div>
 									<div style={{ fontWeight: 600, fontSize: '1.2rem' }}>{naira(owed.paid)}</div>
 								</Col>
 								<Col md="4" sm="6">
-									<div className="text-muted" style={{ fontSize: '0.75rem' }}>Still owed</div>
+									<div className="text-muted" style={{ fontSize: '0.75rem' }}>Still owed — all periods, as at today</div>
 									<div style={{ fontWeight: 600, fontSize: '1.2rem' }} className={owed.total > 0 ? 'text-warning' : ''}>
 										{naira(owed.total)}
 									</div>
 								</Col>
 							</Row>
 
-							<h5>Where it stands</h5>
+							<h5>Where it stands <small className="text-muted">— all periods, not just the dates above</small></h5>
 							<Table size="sm" style={{ maxWidth: 560 }}>
 								<thead>
 									<tr>
@@ -147,8 +150,8 @@ const ProcurementReport = () => {
 									<tr>
 										<th>Supplier</th>
 										<th className="text-right">Purchases</th>
-										<th className="text-right">Billed</th>
-										<th className="text-right">Still owed</th>
+										<th className="text-right">Billed in period</th>
+										<th className="text-right">Still owed (all periods)</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -233,10 +236,9 @@ const ProcurementReport = () => {
 							<hr />
 							<h6>What this report cannot tell you</h6>
 							<ul className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-								<li>{procurement.notes.costPerKg}</li>
-								<li>{procurement.notes.lossRate}</li>
-								<li>{procurement.notes.naming}</li>
-								<li>{procurement.notes.twoEras}</li>
+								{Object.entries(procurement.notes || {}).map(([k, v]) => (
+									<li key={k}>{v}</li>
+								))}
 							</ul>
 						</>
 					)}

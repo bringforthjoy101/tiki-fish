@@ -12,6 +12,8 @@ const initialState = {
 
 const reports = (state = initialState, action) => {
 	switch (action.type) {
+		case 'CLEAR_REPORTS':
+			return { ...state, pnl: null, departments: null, restatement: null, sales: null, procurement: null }
 		case 'REPORTS_LOADING':
 			return { ...state, loading: action.loading }
 		case 'GET_DEPARTMENTS_REPORT':

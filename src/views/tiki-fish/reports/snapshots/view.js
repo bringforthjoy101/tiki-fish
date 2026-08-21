@@ -99,6 +99,14 @@ const FrozenSales = ({ p }) => (
 				<Line label="Total revenue" value={p.reconciles?.equalsGrossRevenue} strong />
 			</tbody>
 		</Table>
+		{/* The live screen refuses to be trusted when this is non-zero; a saved copy that dropped
+		    the warning would be the version somebody actually sends. */}
+		{Number(p.reconciles?.residual) !== 0 && (
+			<Alert color="danger" className="p-1">
+				When this was saved, the product lines and the order totals disagreed by{' '}
+				{naira(p.reconciles.residual)}. The figures below did not reconcile to the profit and loss.
+			</Alert>
+		)}
 		<Table size="sm" responsive>
 			<thead>
 				<tr>

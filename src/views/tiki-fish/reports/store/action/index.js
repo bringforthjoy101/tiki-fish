@@ -121,3 +121,15 @@ export const getSnapshot = (id) => {
 }
 
 export const clearSnapshot = () => (dispatch) => dispatch({ type: 'GET_SNAPSHOT', snapshot: null })
+
+/**
+ * Blank every report before fetching a new one.
+ *
+ * The slice is shared by six screens behind ONE `loading` flag, and each screen guards with
+ * `if (loading && !thisReport)`. Two consequences without this: a failed refetch left the
+ * previous period's figures on screen under the new dates with no error, and navigating between
+ * reports could show one report's spinner state while another's stale data rendered.
+ *
+ * A brief blank is the right trade on a screen whose numbers get sent to an accountant.
+ */
+export const clearReports = () => (dispatch) => dispatch({ type: 'CLEAR_REPORTS' })

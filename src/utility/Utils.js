@@ -102,6 +102,36 @@ export const sortCompare = key => (a, b) => {
 }
 
 // Api URL
+/**
+ * Local calendar dates as YYYY-MM-DD, for date inputs and API range params.
+ *
+ * NOT `new Date(...).toISOString().slice(0, 10)`. toISOString converts to UTC, and Nigeria is
+ * UTC+1 all year, so local midnight on the 1st serialises as the LAST DAY OF THE PREVIOUS MONTH.
+ * Measured under TZ=Africa/Lagos: local 1 Aug 2026 -> "2026-07-31", 1 Jan -> "2025-12-31".
+ *
+ * That shipped: every "this month" report defaulted to a range starting one day early and
+ * silently counted the previous month's last day. 31 July 2026 alone carries 12 orders worth
+ * NGN 4,820,000. The figure is plausible, nothing errors, and the range was not printed anywhere.
+ *
+ * `todayLocal` had the mirror bug: between 00:00 and 01:00 WAT it returned yesterday, so the
+ * upper bound excluded the current day.
+ */
+export const toLocalDate = d => {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export const todayLocal = () => toLocalDate(new Date())
+
+export const monthStartLocal = () => {
+  const d = new Date()
+  return toLocalDate(new Date(d.getFullYear(), d.getMonth(), 1))
+}
+
+export const yearStartLocal = () => `${new Date().getFullYear()}-01-01`
+
 export const apiUrl = process.env.REACT_APP_API_ENDPOINT
 
 export const Storage = {

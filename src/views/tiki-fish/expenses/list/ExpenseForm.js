@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Row, Col, Label, Input, Button, FormGroup, Spinner, Alert } from 'reactstrap'
 import { createExpense, updateExpense, getExpenses } from '../store/action'
+import { todayLocal as today } from '@utils'
 
-const today = () => new Date().toISOString().slice(0, 10)
 
 const BATCH_HINT_AVAILABLE =
 	'Firewood, smokehouse labour and packaging used on one batch belong to that batch. Tag it here and it becomes ' +
 	'part of what those products cost. Only batches still being worked on are listed — once a batch is posted its cost is fixed.'
+
+const BATCH_HINT_POSTED =
+	'This cost is already part of a batch that has been posted. Its cost was frozen at posting, so the batch cannot ' +
+	'be changed here — everything else on this form can still be corrected. To move it, void and re-post the batch.'
 
 const BATCH_HINT_NONE =
 	'No batch is currently being worked on. Costs can only be tagged to a batch before it is posted, so start the ' +
@@ -47,6 +51,8 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 	const { reference } = useSelector((s) => s.expenses)
 	const [form, setForm] = useState(blank)
 	const [saving, setSaving] = useState(false)
+	// What the batch tag was when the row loaded. Needed to tell "unchanged" from "being set".
+	const [originalBatchId, setOriginalBatchId] = useState('')
 
 	useEffect(() => {
 		if (!open) return
@@ -54,8 +60,10 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 		// entry does not bleed into today's.
 		if (!expense) {
 			setForm(blank)
+			setOriginalBatchId('')
 			return
 		}
+		setOriginalBatchId(expense.productionBatchId ?? '')
 		setForm({
 			...blank,
 			...expense,
@@ -97,6 +105,14 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 		Object.keys(payload).forEach((k) => {
 			if (payload[k] === '') payload[k] = null
 		})
+		// Only send the batch tag if it was actually CHANGED. updateExpense treats the field
+		// being PRESENT as it being set, and re-validates the batch — so resending an unchanged
+		// id made an expense permanently uneditable the moment its batch was posted: the save
+		// failed on a field the clerk never touched, could not see (the select lists drafts only,
+		// so a posted batch matches no option and renders blank) and often could not clear.
+		if (expense && String(payload.productionBatchId ?? '') === String(originalBatchId ?? '')) {
+			delete payload.productionBatchId
+		}
 		const ok = expense ? await dispatch(updateExpense(expense.id, payload)) : await dispatch(createExpense(payload))
 		setSaving(false)
 		if (ok) {
@@ -106,7 +122,9 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 	}
 
 	const draftBatches = reference.draftBatches || []
-	const batchHint = draftBatches.length ? BATCH_HINT_AVAILABLE : BATCH_HINT_NONE
+	const taggedButNotDraft = Boolean(form.productionBatchId) && !draftBatches.some((b) => String(b.id) === String(form.productionBatchId))
+	let batchHint = draftBatches.length ? BATCH_HINT_AVAILABLE : BATCH_HINT_NONE
+	if (taggedButNotDraft) batchHint = BATCH_HINT_POSTED
 	const daysBack = Math.round((new Date(today()) - new Date(form.expenseDate || today())) / 86400000)
 	const amountNum = Number(form.amount) || 0
 
@@ -176,9 +194,15 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 								type="select"
 								value={form.productionBatchId ?? ''}
 								onChange={set('productionBatchId')}
-								disabled={!draftBatches.length}
+								disabled={!draftBatches.length && !taggedButNotDraft}
 							>
 								<option value="">No — this is a general cost</option>
+								{/* A tag pointing at a batch that has since been posted matches no draft option, so
+								    the select would render blank and the hint would say "no batch is being worked
+								    on" — telling the clerk a tagged cost is untagged. */}
+								{taggedButNotDraft && (
+									<option value={form.productionBatchId}>Batch #{form.productionBatchId} — already posted</option>
+								)}
 								{draftBatches.map((b) => (
 									<option key={b.id} value={b.id}>
 										{b.reference} — {readable(b.batchDate)}
