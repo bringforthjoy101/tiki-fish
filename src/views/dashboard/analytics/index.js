@@ -49,6 +49,16 @@ const AnalyticsDashboard = () => {
 		return Number(value).toLocaleString('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 })
 	}
 
+	// A DELIBERATELY WITHHELD FIGURE IS NOT A LOADING FIGURE.
+	//
+	// money() renders null as a spinner, which is right while a request is in flight and wrong
+	// once the answer has arrived and the answer is "we will not say". The P&L withholds net
+	// profit whenever the cost side is incomplete — 11 of 25 months have no recorded spending —
+	// and a permanent spinner reads as a page that never finished loading. Rendering it as
+	// NGN 0 would be worse still: a zero is a claim.
+	const withheld = dashData?.departments?.netProfitWithheld
+	const netProfitStat = withheld ? 'Not shown' : money(dashData?.departments?.netProfit)
+
 	const numFormatter = (num) => {
 		if (num > 999 && num < 1000000) {
 			return `${(num / 1000).toFixed(2)}K`
@@ -94,9 +104,14 @@ const AnalyticsDashboard = () => {
 					<StatsVertical
 						icon={<DollarSign size={21} />}
 						color="success"
-						stats={money(dashData?.departments?.netProfit)}
-						statTitle="Net Profit (after discounts)"
+						stats={netProfitStat}
+						statTitle={withheld ? 'Net Profit — not shown' : 'Net Profit'}
 					/>
+					{/* The reason, from the same coverage guard the P&L uses. A figure refused
+					    without saying why just looks broken. */}
+					{withheld && (
+						<small className="text-muted d-block mt-n1 mb-1 px-1">{dashData?.departments?.coverage}</small>
+					)}
 				</Col>
 				<Col xl="4" md="6" sm="12">
 					<StatsVertical
