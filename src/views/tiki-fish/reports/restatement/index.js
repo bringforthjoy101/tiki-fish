@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Table, Spinner, Alert, Button, Badge } from 'reactstrap'
-import { Printer } from 'react-feather'
+
 import { getRestatement } from '../store/action'
 import SaveSnapshot from '../SaveSnapshot'
+import ReportActions from '../ReportActions'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
 
@@ -49,9 +50,7 @@ const Restatement = () => {
 					</div>
 					<div className="d-flex align-items-center">
 						<SaveSnapshot reportType="restatement" range={{}} />
-						<Button color="secondary" outline className="no-print ml-1" onClick={() => window.print()}>
-							<Printer size={15} /> Print
-						</Button>
+						<ReportActions reportType="restatement" range={{}} label="What changed, and why" />
 					</div>
 				</CardHeader>
 

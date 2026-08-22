@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Input, Label, Button, Table, Spinner, Alert, FormGroup, Badge } from 'reactstrap'
-import { Printer, AlertTriangle } from 'react-feather'
+import { AlertTriangle } from 'react-feather'
 import { getProcurementReport, clearReports } from '../store/action'
 import { yearStartLocal as yearStart, todayLocal as today } from '@utils'
+import ReportActions from '../ReportActions'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
-
 
 const readable = (s) => {
 	if (!s) return '—'
@@ -58,9 +58,7 @@ const ProcurementReport = () => {
 						</small>
 						<small className="text-muted">What was bought, from whom, and what is still owed for it.</small>
 					</div>
-					<Button color="secondary" outline className="no-print" onClick={() => window.print()}>
-						<Printer size={15} /> Print
-					</Button>
+						<ReportActions reportType="procurement" range={range} label="What fish cost" />
 				</CardHeader>
 
 				<CardBody>

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardBody, CardHeader, CardTitle, Row, Col, Input, Label, Button, Table, Spinner, Alert, FormGroup, Badge } from 'reactstrap'
-import { Printer } from 'react-feather'
+
 import { getSalesReport, clearReports } from '../store/action'
 import SaveSnapshot from '../SaveSnapshot'
 import { monthStartLocal as monthStart, todayLocal as today } from '@utils'
+import ReportActions from '../ReportActions'
 
 const naira = (n) => `₦${Math.round(Number(n) || 0).toLocaleString('en-NG')}`
-
 
 const readable = (s) => {
 	if (!s) return 'the beginning'
@@ -66,9 +66,7 @@ const SalesReport = () => {
 					</div>
 					<div className="d-flex align-items-center">
 						<SaveSnapshot reportType="sales" range={range} />
-						<Button color="secondary" outline className="no-print ml-1" onClick={() => window.print()}>
-							<Printer size={15} /> Print
-						</Button>
+						<ReportActions reportType="sales" range={range} label="What sold" />
 					</div>
 				</CardHeader>
 
