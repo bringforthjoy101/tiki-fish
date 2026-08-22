@@ -608,9 +608,14 @@ const TransactionTable = () => {
 									backgroundPosition: 'calc(100% - 3px) 11px, calc(100% - 20px) 13px, 100% 0',
 								}}
 							>
+								{/* Must stay within the API's perPage cap of 200 (validate.js) and must include
+								    the default of 25, or the select renders with no matching option and two of
+								    the three choices 400 the request — leaving the previous page's rows on
+								    screen under a page count that no longer matches them. */}
+								<option value="25">25</option>
+								<option value="50">50</option>
 								<option value="100">100</option>
-								<option value="250">250</option>
-								<option value="500">500</option>
+								<option value="200">200</option>
 							</CustomInput>
 							<Label for="rows-per-page">Entries</Label>
 						</div>

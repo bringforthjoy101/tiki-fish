@@ -1,4 +1,4 @@
-import { paginateArray, sortCompare, apiRequest, swal } from '@utils'
+import { paginateArray, sortCompare, apiRequest, swal, textMatches } from '@utils'
 
 // ** Get all Report
 export const getAllData = ({ startDate, endDate }) => {

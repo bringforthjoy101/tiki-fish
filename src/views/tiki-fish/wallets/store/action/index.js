@@ -1,4 +1,4 @@
-import { paginateArray, sortCompare, apiRequest, swal } from '@utils'
+import { paginateArray, sortCompare, apiRequest, swal, textMatches } from '@utils'
 import moment from 'moment'
 
 export const apiUrl = process.env.REACT_APP_API_ENDPOINT

@@ -37,10 +37,19 @@ const ProductTable = () => {
   const ability = useContext(AbilityContext)
   const canEdit = ability.can('manage', 'products')
 
-  // The margin column is dropped for anyone the API did not send cost to. Without this the
-  // column renders a badge computed from undefined — which is "0%", a number that looks like an
-  // answer. Removing the column is honest; showing zero is not.
-  const canSeeCost = ability.can('readCost', 'products')
+  // The margin column is dropped for anyone the API did not send cost to.
+  //
+  // NOT ability.can('readCost', 'products'): CASL treats 'manage' as a RESERVED WILDCARD ACTION,
+  // so any holder of products.manage — which includes the storekeeper — passes a check for any
+  // other action on products, including one they were never granted. The gate silently opened
+  // for exactly the role it was meant to exclude.
+  //
+  // The response itself is the honest signal. The server strips the fields and sets costHidden,
+  // so "did cost actually arrive" cannot be fooled by a capability grammar quirk. Left in, the
+  // column renders a badge computed from undefined — "0.0%" — which is a number that looks like
+  // an answer.
+  const firstRow = (store.data && store.data[0]) || {}
+  const canSeeCost = firstRow.costHidden !== true && firstRow.costPrice !== undefined
   const visibleColumns = canSeeCost ? columns : columns.filter(c => c.name !== 'Profit Margin')
 
   // ** States
