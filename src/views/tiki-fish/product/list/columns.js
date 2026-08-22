@@ -11,6 +11,7 @@ import { store } from '@store/storeConfig/store'
 
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import { stockState } from './ProductCards'
 
 const MySwal = withReactContent(Swal)
 
@@ -97,12 +98,21 @@ export const columns = [
     sortable: true,
     cell: row => {
       const qty = Number(row.qty)
-      let stockStatus = { color: 'success', text: 'In Stock', icon: <Package size={14} /> }
-      
-      if (qty === 0) {
-        stockStatus = { color: 'danger', text: 'Out of Stock', icon: <AlertTriangle size={14} /> }
-      } else if (qty < 10) {
-        stockStatus = { color: 'warning', text: 'Low Stock', icon: <AlertTriangle size={14} /> }
+      // Same rule as the phone card — stockState() reads each product's OWN reorderLevel. This
+      // column still hard-coded `qty < 10`, the unit-blind rule migration 034 was written to
+      // replace, so desktop and phone gave contradictory answers for the same product the moment
+      // any level was set.
+      const state = stockState(row)
+      const TEXT = {
+        out: { color: 'danger', text: 'Out of Stock' },
+        low: { color: 'warning', text: 'Low Stock' },
+        ok: { color: 'success', text: 'In Stock' },
+        unknown: { color: 'secondary', text: 'No reorder level' }
+      }
+      const stockStatus = {
+        color: TEXT[state.key].color,
+        text: TEXT[state.key].text,
+        icon: state.key === 'ok' ? <Package size={14} /> : <AlertTriangle size={14} />
       }
       
       return (

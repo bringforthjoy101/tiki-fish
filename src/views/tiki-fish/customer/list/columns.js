@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 // ** Custom Components
 import Avatar from '@components/avatar'
 
-import { getAllData, deleteCustomer } from '../store/action'
+import { refreshCustomers, deleteCustomer } from '../store/action'
 import { store } from '@store/storeConfig/store'
 
 import Swal from 'sweetalert2'
@@ -51,7 +51,8 @@ const handleDelete = async (id) => {
     if (result.value) {
       const deleted = await store.dispatch(deleteCustomer(id))
       if (deleted.status) {
-        await store.dispatch(getAllData())
+        // See Sidebar.js: the list renders store.data, and only searchCustomers fills it.
+        await store.dispatch(refreshCustomers())
           MySwal.fire({
               icon: 'success',
               title: 'Deleted!',

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 
 import { swal, apiRequest } from '@utils'
-import { getAllData, getFilteredData } from '../store/action'
+import { refreshCustomers } from '../store/action'
 
 // ** Third Party Components
 import { Button, FormGroup, Label, Spinner, CustomInput } from 'reactstrap'
@@ -64,7 +64,11 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
 				if (response.data.status) {
 					setIsSubmitting(false)
 					swal('Great job!', response.data.message, 'success')
-					dispatch(getAllData())
+					// refreshCustomers, not getAllData: the list renders store.data, which only
+					// searchCustomers fills. getAllData populates store.allData — a slice this
+					// page stopped reading when it moved to server-side search — so a newly
+					// created customer never appeared until a manual reload.
+					dispatch(refreshCustomers())
 					toggleSidebar()
 				} else {
 					setIsSubmitting(false)

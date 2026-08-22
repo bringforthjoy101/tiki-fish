@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect, useContext } from 'react'
+import { Fragment, useState, useEffect, useContext, useRef } from 'react'
 
 // ** Columns
 import { columns } from './columns'
@@ -79,6 +79,8 @@ const TransactionTable = () => {
 	const [isLoading, setIsLoading] = useState(true)
 	const [filtersOpen, setFiltersOpen] = useState(false)
 	const [activeRange, setActiveRange] = useState('today')
+	// Bumped on every dispatch; a reply whose number is stale is discarded.
+	const requestSeq = useRef(0)
 
 	useEffect(() => {
 		dispatch({ type: 'RESET_ORDER_NOTIFICATIONS' })
@@ -102,17 +104,27 @@ const TransactionTable = () => {
 	useEffect(() => {
 		setIsLoading(true)
 		const timer = setTimeout(async () => {
+			// A sequence number, because clearTimeout only cancels a request that has not STARTED.
+			// Once a dispatch is in flight nothing aborts it, and the reducer is unconditional
+			// last-write-wins — so with a ~280ms round-trip, a slow early query can land after a
+			// fast later one and leave the table showing results for a filter that is no longer
+			// set. handlePagination bypasses the debounce entirely, so a page tap and a filter
+			// change race directly.
+			const seq = ++requestSeq.current
 			await dispatch(searchOrders({ ...query(), page: 1 }))
+			if (seq !== requestSeq.current) return
 			setCurrentPage(1)
 			setIsLoading(false)
 		}, 350)
 		return () => clearTimeout(timer)
-	}, [searchTerm, statusFilter, paymentStatusFilter, rowsPerPage, picker])
+	}, [searchTerm, statusFilter, paymentStatusFilter, rowsPerPage, JSON.stringify(picker)])
 
 	// ** Function in get data on page change
 	const handlePagination = async (page) => {
 		setIsLoading(true)
+		const seq = ++requestSeq.current
 		await dispatch(searchOrders({ ...query(), page: page.selected + 1 }))
+		if (seq !== requestSeq.current) return
 		setCurrentPage(page.selected + 1)
 		setIsLoading(false)
 	}
@@ -250,12 +262,20 @@ const TransactionTable = () => {
 		doc.setFont(undefined, 'normal')
 		doc.setFontSize(10)
 		
-		const totalRevenue = store.data.reduce((sum, order) => sum + (order.amount || 0), 0)
-		const completedOrders = store.data.filter(order => order.status === 'completed').length
-		const pendingOrders = store.data.filter(order => order.status === 'pending').length
+		// exportRows, NOT store.data. The table above is built from the full filtered fetch (up to
+		// 2,500 orders) while this block counted the 25 rows on screen — so the two halves of the
+		// same document described different sets and nothing said so. Before the export changed,
+		// both came from store.data and agreed.
+		//
+		// Revenue here means completed + delivered, matching helpers/reporting.js. Summing every
+		// status would call cancelled orders revenue, the same fault the summary cards had.
+		const REVENUE = ['completed', 'delivered']
+		const totalRevenue = exportRows.filter((o) => REVENUE.includes(o.status)).reduce((sum, o) => sum + (Number(o.amount) || 0), 0)
+		const completedOrders = exportRows.filter((o) => o.status === 'completed').length
+		const pendingOrders = exportRows.filter((o) => o.status === 'pending').length
 		
-		doc.text(`Total Orders: ${store.data.length}`, 14, finalY + 23)
-		doc.text(`Total Revenue: ₦${totalRevenue.toLocaleString()}`, 14, finalY + 30)
+		doc.text(`Total Orders: ${exportRows.length}`, 14, finalY + 23)
+		doc.text(`Revenue (completed + delivered): ₦${totalRevenue.toLocaleString()}`, 14, finalY + 30)
 		doc.text(`Completed Orders: ${completedOrders}`, 14, finalY + 37)
 		doc.text(`Pending Orders: ${pendingOrders}`, 14, finalY + 44)
 		
@@ -651,7 +671,7 @@ const TransactionTable = () => {
 						</div>
 						<p className="mt-2">Loading orders...</p>
 					</div>
-				) : store.data.length === 0 && !searchTerm && !statusFilter && !paymentStatusFilter ? (
+				) : store.data.length === 0 && !searchTerm && !statusFilter && !paymentStatusFilter && activeRange === 'all' ? (
 					<div className="text-center py-5">
 						<ShoppingBag size={48} className="text-muted mb-2" />
 						<h4>No Orders Found</h4>
@@ -664,7 +684,11 @@ const TransactionTable = () => {
 						subHeader
 						responsive
 						paginationServer
-						columns={columns}
+						// The rows are ONE PAGE from the server, so a client-side sort reorders 25
+						// of 7,218 rows while the header still renders an arrow and looks like it
+						// answered. Server sorting is offered through the sort param; until every
+						// column maps to one, no column claims to sort.
+						columns={columns.map((c) => ({ ...c, sortable: false }))}
 						sortIcon={<ChevronDown />}
 						className="react-dataTable"
 						paginationComponent={CustomPagination}

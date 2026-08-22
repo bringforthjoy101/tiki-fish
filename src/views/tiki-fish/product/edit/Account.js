@@ -80,7 +80,11 @@ const UserAccountTab = ({ selectedProduct }) => {
 						packagingPrice: selectedProduct.packagingPrice,
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
-						reorderLevel: selectedProduct.reorderLevel ?? '',
+						// productData, not selectedProduct: `selectedProduct` here is the PRE-SAVE
+						// product captured in this render's closure, so resetting from it restored
+						// the OLD reorder level and silently undid the save the user just made.
+						// Every other field happened to be re-fetched; this one was not.
+						reorderLevel: productData.reorderLevel,
 						category: selectedProduct.category,
 						status: selectedProduct.status || 'in-stock',
 						videoUrl: selectedProduct.videoUrl || ''
@@ -96,7 +100,11 @@ const UserAccountTab = ({ selectedProduct }) => {
 						packagingPrice: selectedProduct.packagingPrice,
 						smokeHousePrice: selectedProduct.smokeHousePrice,
 						unitValue: selectedProduct.unitValue,
-						reorderLevel: selectedProduct.reorderLevel ?? '',
+						// productData, not selectedProduct: `selectedProduct` here is the PRE-SAVE
+						// product captured in this render's closure, so resetting from it restored
+						// the OLD reorder level and silently undid the save the user just made.
+						// Every other field happened to be re-fetched; this one was not.
+						reorderLevel: productData.reorderLevel,
 						category: selectedProduct.category,
 						status: selectedProduct.status || 'in-stock',
 						videoUrl: selectedProduct.videoUrl || ''

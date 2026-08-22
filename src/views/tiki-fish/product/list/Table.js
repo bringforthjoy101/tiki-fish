@@ -377,7 +377,10 @@ const ProductTable = () => {
           /* Below 1024px the eight-column table becomes cards. Stock and price lead, because at
              a counter the question is "do we have it and what does it cost". */
           <div className='p-1'>
-            <ProductCards products={dataToRender()} breakpoint={breakpoint} canEdit={canEdit} loading={false} />
+            {/* loading was hard-coded false, so during the first fetch dataToRender() is empty and the
+                card list rendered "No products match what you are looking for" — which reads as a
+                result, not a wait. The orders list threads a real flag; this one did not have one. */}
+            <ProductCards products={dataToRender()} breakpoint={breakpoint} canEdit={canEdit} loading={!store.allData.length && !searchTerm} />
             <CustomPagination />
           </div>
         )}

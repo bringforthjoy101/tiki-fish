@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 
 // ** Columns
 import { columns } from './columns'
@@ -14,7 +14,7 @@ import Select from 'react-select'
 import ReactPaginate from 'react-paginate'
 import { ChevronDown, Share, Printer, FileText } from 'react-feather'
 import DataTable from 'react-data-table-component'
-import { selectThemeColors, isUserLoggedIn, swal, todayLocal } from '@utils'
+import { selectThemeColors, isUserLoggedIn, swal, todayLocal, textMatches } from '@utils'
 import {
 	Card,
 	CardHeader,
@@ -50,6 +50,7 @@ const UsersList = () => {
 	const [rowsPerPage, setRowsPerPage] = useState(10)
 	const [currentStatus, setCurrentStatus] = useState({ value: '', label: 'Select Status', number: 0 })
 	const [sidebarOpen, setSidebarOpen] = useState(false)
+	const requestSeq = useRef(0)
 
 	// ** Function to toggle sidebar
 	const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
@@ -63,9 +64,13 @@ const UsersList = () => {
 	// round-trip floor is ~280ms, typing a name would queue a dozen requests and the last one to
 	// arrive — not the last one sent — would win.
 	useEffect(() => {
-		const timer = setTimeout(() => {
+		const timer = setTimeout(async () => {
+			// See the orders list: the debounce cancels the timer, never a request already in
+			// flight, and the reducer is last-write-wins.
+			const seq = ++requestSeq.current
+			await dispatch(searchCustomers({ page: 1, perPage: rowsPerPage, status: currentStatus.value, q: searchTerm }))
+			if (seq !== requestSeq.current) return
 			setCurrentPage(1)
-			dispatch(searchCustomers({ page: 1, perPage: rowsPerPage, status: currentStatus.value, q: searchTerm }))
 		}, 350)
 		return () => clearTimeout(timer)
 	}, [searchTerm])
@@ -146,8 +151,22 @@ const UsersList = () => {
 		return `"${String(value).replace(/"/g, '""')}"`
 	}
 
+	// Exports what is ON SCREEN, filtered. getAllData() sends no query string, so the export
+	// always contained all 4,114 customers regardless of the search term and status filter — while
+	// the orders export on the same menu does honour its filters. Two behaviours under one
+	// "Download Table" button.
+	const exportRows = async () => {
+		const all = await dispatch(getAllData())
+		const status = currentStatus.value
+		return all.filter(
+			(c) =>
+				(!status || c.status === status) &&
+				(textMatches(c.fullName, searchTerm) || textMatches(c.phone, searchTerm) || textMatches(c.location, searchTerm))
+		)
+	}
+
 	const handleExportCSV = async () => {
-		const rows = await dispatch(getAllData())
+		const rows = await exportRows()
 		if (!rows.length) return swal('Nothing to export', 'No customers were returned.', 'info')
 		const header = EXPORT_COLUMNS.map((c) => c.label).join(',')
 		const body = rows.map((row) => EXPORT_COLUMNS.map((c) => cell(row, c.key)).join(',')).join('\n')
@@ -158,7 +177,7 @@ const UsersList = () => {
 	}
 
 	const handleExportPDF = async () => {
-		const rows = await dispatch(getAllData())
+		const rows = await exportRows()
 		if (!rows.length) return swal('Nothing to export', 'No customers were returned.', 'info')
 		const doc = new jsPDF({ orientation: 'landscape' })
 		doc.autoTable({

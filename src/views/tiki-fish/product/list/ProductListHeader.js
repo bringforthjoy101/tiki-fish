@@ -44,6 +44,15 @@ const ProductListHeader = () => {
       })
     }
   }, [products])
+  // if/else, not a ternary: .eslintrc.js sets multiline-ternary to ['error', 'never'], so a
+  // ternary may not wrap AT ALL — hoisting it out of the object literal is not enough, and CRA
+  // fails the build on it rather than warning.
+  let lowStockSubtitle = 'at or below their reorder level'
+  if (stats.noLevelSet) {
+    const s = stats.noLevelSet === 1 ? '' : 's'
+    lowStockSubtitle = `at or below reorder level · ${stats.noLevelSet} product${s} have no level set`
+  }
+
 
   const statCards = [
     {
@@ -61,9 +70,13 @@ const ProductListHeader = () => {
       icon: <DollarSign size={24} />
     },
     {
+      // The subtitle has to change with the rule. It promised "< 10 units" while the count had
+      // moved to each product's own reorder level — and since migration 034 seeds nothing, the
+      // number is structurally 0 until levels are set. A zero under a stale promise reads as
+      // "all good"; naming the products with no level set is what makes it actionable.
       title: 'Low Stock Alert',
       value: stats.lowStock,
-      subtitle: 'Products < 10 units',
+      subtitle: lowStockSubtitle,
       color: 'warning',
       icon: <AlertTriangle size={24} />
     },

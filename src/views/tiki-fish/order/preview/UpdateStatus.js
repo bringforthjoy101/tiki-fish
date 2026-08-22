@@ -45,7 +45,11 @@ export const UpdateStatus = ({ currentStatus }) => {
 			setIsSubmitting(true)
 			const response = await apiRequest({ url: `/orders/update-status/${id}`, method: 'POST', body }, dispatch)
 			if (response) {
-				if (response.data.message) {
+				// `status`, NOT `message`. errorResponse returns 400 WITH a message, and
+				// apiRequest's validateStatus accepts anything under 500 — so every refusal took
+				// the success branch and a storekeeper denied permission was told "Great job!"
+				// while nothing changed. Latent until orders.advanceStatus made refusals routine.
+				if (response.data.status) {
 					swal('Great job!', response.data.message, 'success')
 					dispatch(getOrder(id))
 					setIsSubmitting(false)

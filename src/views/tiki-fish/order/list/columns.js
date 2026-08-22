@@ -110,7 +110,15 @@ export const columns = [
 		selector: 'paymentStatus',
 		sortable: true,
 		cell: (row) => {
-			const paymentStatus = paymentStatusConfig[row.paymentStatus] || paymentStatusConfig.pending
+			// Fall back to the RAW value, never to another real status. Substituting
+			// paymentStatusConfig.pending made 'cod' — which has no entry — render as "Pending",
+			// a different and wrong answer that looks authoritative. OrderCards' StatusBadge
+			// already did this correctly, so desktop and phone disagreed on the same order.
+			const paymentStatus = paymentStatusConfig[row.paymentStatus] || {
+				color: 'light-secondary',
+				icon: null,
+				label: row.paymentStatus || 'unknown'
+			}
 			return (
 				<Badge color={paymentStatus.color} pill className="px-2 py-1">
 					{paymentStatus.icon}
