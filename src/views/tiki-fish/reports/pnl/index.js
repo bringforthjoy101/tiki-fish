@@ -127,7 +127,7 @@ const ProfitAndLoss = () => {
 									label="Net profit"
 									value={pnl.netProfit}
 									strong
-									note={pnl.netProfit === null ? 'Withheld — the cost side is incomplete for this period' : null}
+									note={pnl.netProfitProvisional ? 'Costs are incomplete for this period — this figure is higher than the truth' : null}
 								/>
 							</tbody>
 						</Table>

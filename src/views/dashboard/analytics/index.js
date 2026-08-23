@@ -49,15 +49,12 @@ const AnalyticsDashboard = () => {
 		return Number(value).toLocaleString('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 })
 	}
 
-	// A DELIBERATELY WITHHELD FIGURE IS NOT A LOADING FIGURE.
-	//
-	// money() renders null as a spinner, which is right while a request is in flight and wrong
-	// once the answer has arrived and the answer is "we will not say". The P&L withholds net
-	// profit whenever the cost side is incomplete — 11 of 25 months have no recorded spending —
-	// and a permanent spinner reads as a page that never finished loading. Rendering it as
-	// NGN 0 would be worse still: a zero is a claim.
-	const withheld = dashData?.departments?.netProfitWithheld
-	const netProfitStat = withheld ? 'Not shown' : money(dashData?.departments?.netProfit)
+	// The figure is shown even when the cost side is short — the owner asked for that. What must
+	// NOT happen is showing it bare: 10 of 25 months have no recorded spending, holding 44% of
+	// all revenue, so the all-time figure reads about +NGN 19.9m where the truth is nearer
+	// -NGN 382m. The caveat below the tile is the only thing standing between those two numbers.
+	const provisional = dashData?.departments?.netProfitProvisional
+	const netProfitStat = money(dashData?.departments?.netProfit)
 
 	const numFormatter = (num) => {
 		if (num > 999 && num < 1000000) {
@@ -105,12 +102,12 @@ const AnalyticsDashboard = () => {
 						icon={<DollarSign size={21} />}
 						color="success"
 						stats={netProfitStat}
-						statTitle={withheld ? 'Net Profit — not shown' : 'Net Profit'}
+						statTitle={provisional ? 'Net Profit — incomplete costs' : 'Net Profit'}
 					/>
-					{/* The reason, from the same coverage guard the P&L uses. A figure refused
-					    without saying why just looks broken. */}
-					{withheld && (
-						<small className="text-muted d-block mt-n1 mb-1 px-1">{dashData?.departments?.coverage}</small>
+					{/* Shown with the figure, never instead of it. Without this line the number
+					    reads as a measurement rather than an estimate over missing months. */}
+					{provisional && (
+						<small className="text-warning d-block mt-n1 mb-1 px-1">{dashData?.departments?.coverage}</small>
 					)}
 				</Col>
 				<Col xl="4" md="6" sm="12">

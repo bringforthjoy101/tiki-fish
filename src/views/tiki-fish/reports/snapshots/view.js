@@ -48,9 +48,9 @@ const FrozenPnl = ({ p }) => (
 				<Line label="Net profit" value={p.netProfit} strong />
 			</tbody>
 		</Table>
-		{p.netProfit === null && (
+		{(p.netProfitProvisional || p.netProfit === null) && (
 			<Alert color="warning" className="p-1">
-				<strong>No profit figure was shown.</strong> {p.coverage?.message}
+				<strong>Costs are incomplete for this period.</strong> {p.coverage?.message}
 			</Alert>
 		)}
 	</>
