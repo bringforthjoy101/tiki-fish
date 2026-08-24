@@ -1,5 +1,7 @@
 // ** React Imports
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { AbilityContext } from '@src/utility/context/Can'
 
 // ** Third Party Components
 import { Card, CardBody, Button } from 'reactstrap'
@@ -15,6 +17,11 @@ import withReactContent from 'sweetalert2-react-content'
 import { getOrder, completeOrder, nullifyOrder } from '../store/action'
 
 const PreviewActions = ({ id, data }) => {
+	const ability = useContext(AbilityContext)
+	// 'orders.updateStatus' -> { action: 'updateStatus', subject: 'orders' }. The grammar is
+	// resource.action; writing it the other way round matches nothing and hides the control from
+	// everyone with no error — a mistake this codebase has made four times.
+	const canUpdateStatus = ability.can('updateStatus', 'orders') || ability.can('advanceStatus', 'orders')
 	const dispatch = useDispatch()
   const MySwal = withReactContent(Swal)
 
@@ -291,11 +298,17 @@ const PreviewActions = ({ id, data }) => {
 					Print
 				</Button.Ripple>
 				
-				<UpdateStatus currentStatus={data.status} />
-				<UpdatePayment 
-					currentPaymentMode={data.paymentMode} 
-					currentPaymentStatus={data.paymentStatus} 
-				/>
+				{/* Gated on the SAME capabilities the API enforces. Neither control checked anything
+				    before, so every sales rep was shown a status dropdown and a payment form that
+				    returned "Your access level does not permit this action" on submit — a button
+				    that cannot ever work is worse than no button. */}
+				{canUpdateStatus && <UpdateStatus currentStatus={data.status} />}
+				{canUpdateStatus && (
+					<UpdatePayment 
+						currentPaymentMode={data.paymentMode} 
+						currentPaymentStatus={data.paymentStatus} 
+					/>
+				)}
 				{/* <Button.Ripple tag={Link} to={`/apps/invoice/edit/${id}`} color='secondary' block outline className='mb-75'>
           Edit
         </Button.Ripple>

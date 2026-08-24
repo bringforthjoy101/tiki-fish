@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import { AbilityContext } from '@src/utility/context/Can'
 import { Link } from 'react-router-dom'
 import { Card, CardBody, CardTitle, Button, Badge, Label, Input, Spinner } from 'reactstrap'
 import { selectThemeColors, swal, apiRequest } from '@utils'
@@ -24,6 +25,8 @@ import {
 import { getOrder } from '../store/action'
 
 const FulfillmentPanel = ({ id, data }) => {
+	const ability = useContext(AbilityContext)
+	const canSetDeliveryFee = ability.can('updateDeliveryFee', 'orders')
 	const dispatch = useDispatch()
 	const MySwal = withReactContent(Swal)
 
@@ -489,7 +492,12 @@ const FulfillmentPanel = ({ id, data }) => {
 				</CardBody>
 			</Card>
 
-			{/* Delivery Fee Section */}
+			{/* Gated on orders.updateDeliveryFee, which is now its own capability: setting a fee is
+			    part of TAKING an order, whereas completing one moves money. Before this the whole
+			    section rendered for everyone and every submit returned "Your access level does
+			    not permit this action". */}
+			{canSetDeliveryFee && (
+			<>
 			<Card className="invoice-action-wrapper">
 				<CardBody>
 					<CardTitle tag="h6" className="mb-1">
@@ -533,6 +541,8 @@ const FulfillmentPanel = ({ id, data }) => {
 					)}
 				</CardBody>
 			</Card>
+			</>
+			)}
 
 			{/* Quick Actions */}
 			<Card className="invoice-action-wrapper">
