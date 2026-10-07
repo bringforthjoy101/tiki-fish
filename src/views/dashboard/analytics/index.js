@@ -7,6 +7,7 @@ import CardCongratulations from '@src/views/ui-elements/cards/advance/CardCongra
 import StatsCard from '@src/views/ui-elements/cards/statistics/StatsCard'
 import StatsVertical from '@components/widgets/stats/StatsVertical'
 import { DollarSign, Eye, TrendingUp } from 'react-feather'
+import WalletBalances from './WalletBalances'
 
 import '@styles/react/libs/charts/apex-charts.scss'
 
@@ -141,6 +142,22 @@ const AnalyticsDashboard = () => {
 						stats={money(dashData?.departments?.smokeHouse)}
 						statTitle="Smokehouse Recovered"
 					/>
+				</Col>
+			</Row>
+			{/*
+			  The six wallet balances, in their own section rather than mixed into the tiles
+			  above. The tiles above are PERIOD FLOWS from the P&L - what was recovered - while
+			  these are cumulative BALANCES since the reset, net of spending. Two tiles reading
+			  "Packaging" with different numbers, side by side and unlabelled, is how the last
+			  version of this page came to be misread.
+
+			  Renders nothing at all unless dashData.wallets is present, which the API omits for
+			  anyone without wallets.readBalance - owner-only, a tighter gate than the rest of
+			  this page.
+			*/}
+			<Row>
+				<Col sm="12">
+					<WalletBalances wallets={dashData?.wallets} />
 				</Col>
 			</Row>
 			<Row className="match-height">
