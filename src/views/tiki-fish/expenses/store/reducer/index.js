@@ -5,7 +5,7 @@ const initialState = {
 	summary: null,
 	selectedExpense: null,
 	selectedHistory: [],
-	reference: { departments: [], categories: [], paymentAccounts: [], suppliers: [], draftBatches: [] },
+	reference: { departments: [], categories: [], paymentAccounts: [], suppliers: [], draftBatches: [], wallets: [] },
 	params: {},
 	loading: false,
 }

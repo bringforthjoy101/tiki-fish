@@ -100,7 +100,7 @@ export const restoreExpense = (id) => {
 // the form is the screen people open most.
 export const getReferenceData = () => {
 	return async (dispatch) => {
-		const [departments, categories, accounts, suppliers, batches] = await Promise.all([
+		const [departments, categories, accounts, suppliers, batches, wallets] = await Promise.all([
 			apiRequest({ url: '/departments', method: 'GET' }, dispatch),
 			apiRequest({ url: '/expense-categories', method: 'GET' }, dispatch),
 			apiRequest({ url: '/payment-accounts', method: 'GET' }, dispatch),
@@ -109,6 +109,8 @@ export const getReferenceData = () => {
 			// it posted, so tagging one now would look counted and change nothing — createExpense
 			// refuses it by name. Offering it here would just produce that error later.
 			apiRequest({ url: '/batches?status=draft', method: 'GET' }, dispatch),
+			// The six names only — /wallets eager-loads every withdrawal on every wallet.
+			apiRequest({ url: '/wallet-options', method: 'GET' }, dispatch),
 		])
 		dispatch({
 			type: 'GET_EXPENSE_REFERENCE',
@@ -118,6 +120,7 @@ export const getReferenceData = () => {
 				paymentAccounts: accounts?.data?.data || [],
 				suppliers: suppliers?.data?.data || [],
 				draftBatches: batches?.data?.data?.batches || [],
+				wallets: wallets?.data?.data || [],
 			},
 		})
 	}

@@ -176,6 +176,11 @@ const ExpensesList = () => {
 										<th>Department</th>
 										<th>Category</th>
 										<th>Paid from</th>
+										{/* Which CASH account the money left, and which WALLET it came out
+										    of. Two different questions, and the pair is why the owner asked
+										    where a 20,000 fuel bill had gone: it left Main Bank, and it came
+										    out of Delivery rather than Profit. */}
+										<th>Deducted from</th>
 										<th className="text-right">Amount</th>
 										<th />
 									</tr>
@@ -212,6 +217,17 @@ const ExpensesList = () => {
 											<td>{e.department?.name || '—'}</td>
 											<td>{e.expenseCategory?.name || '—'}</td>
 											<td>{e.paymentAccount?.name || '—'}</td>
+											<td className="text-nowrap">
+												{e.effectiveWallet?.label || '—'}
+												{/* Marked when somebody overrode the category's usual wallet,
+												    so an unusual figure in a wallet can be traced to a choice
+												    rather than looking like a bug. */}
+												{e.effectiveWallet?.explicit && (
+													<Badge color="light-secondary" className="ml-50">
+														set
+													</Badge>
+												)}
+											</td>
 											<td className="text-right text-nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
 												{naira(e.amount)}
 											</td>

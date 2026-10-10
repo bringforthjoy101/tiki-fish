@@ -27,6 +27,7 @@ const blank = {
 	expenseDate: today(),
 	departmentId: '',
 	categoryId: '',
+	walletId: '',
 	paymentAccountId: '',
 	amount: '',
 	description: '',
@@ -70,6 +71,7 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 			expenseDate: expense.expenseDate?.slice(0, 10) || today(),
 			departmentId: expense.departmentId ?? '',
 			categoryId: expense.categoryId ?? '',
+			walletId: expense.walletId ?? '',
 			paymentAccountId: expense.paymentAccountId ?? '',
 			supplierId: expense.supplierId ?? '',
 			productionBatchId: expense.productionBatchId ?? '',
@@ -86,6 +88,11 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 			if (field === 'categoryId' && value) {
 				const cat = reference.categories.find((c) => String(c.id) === String(value))
 				if (cat?.defaultDepartmentId && !f.departmentId) next.departmentId = cat.defaultDepartmentId
+				// The wallet the category normally comes out of, as a starting point. Overwritten
+				// on every category change rather than only when blank, unlike the department
+				// above: changing the category almost always changes which wallet is right, and
+				// a stale wallet left from the previous choice would be silently wrong.
+				if (cat?.defaultWalletId) next.walletId = String(cat.defaultWalletId)
 			}
 			// Quantity x unit price is offered as the amount when the amount is still blank.
 			if ((field === 'quantity' || field === 'unitPrice') && !f.amount) {
@@ -122,6 +129,12 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 	}
 
 	const draftBatches = reference.draftBatches || []
+
+	// What the chosen wallet is for, in the clerk's words. if/else rather than a ternary chain:
+	// the repo's multiline-ternary rule is set to 'never', so a wrapped ternary fails the build.
+	let walletHint = 'Most costs are already pointed at the right wallet by their category.'
+	const chosenWallet = (reference.wallets || []).find((w) => String(w.id) === String(form.walletId))
+	if (chosenWallet) walletHint = chosenWallet.note
 	const taggedButNotDraft = Boolean(form.productionBatchId) && !draftBatches.some((b) => String(b.id) === String(form.productionBatchId))
 	let batchHint = draftBatches.length ? BATCH_HINT_AVAILABLE : BATCH_HINT_NONE
 	if (taggedButNotDraft) batchHint = BATCH_HINT_POSTED
@@ -166,6 +179,26 @@ const ExpenseForm = ({ open, toggle, expense, filters }) => {
 							</Input>
 						</FormGroup>
 					</Col>
+					<Col md="6">
+						<FormGroup>
+							<Label for="walletId">Deduct from</Label>
+							<Input id="walletId" type="select" value={form.walletId ?? ''} onChange={set('walletId')}>
+								<option value="">Use the category&rsquo;s usual wallet</option>
+								{(reference.wallets || []).map((w) => (
+									<option key={w.id} value={w.id}>
+										{w.label}
+									</option>
+								))}
+							</Input>
+							{/* The category picks this for you; it is here for the times the category
+							    cannot know. Transport is Delivery on a customer run and Overhead on a
+							    trip to the bank, and no category can tell those apart. */}
+							<small className="text-muted">{walletHint}</small>
+						</FormGroup>
+					</Col>
+				</Row>
+
+				<Row>
 					<Col md="6">
 						<FormGroup>
 							<Label for="departmentId">Department *</Label>
